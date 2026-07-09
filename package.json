@@ -1,6 +1,6 @@
 {
   "name": "kaitox-obsidian",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Sync the active note as an X (Twitter) Article draft through a local relay and browser extension.",
   "type": "module",
   "license": "MIT",
