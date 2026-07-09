@@ -1,29 +1,26 @@
-# Kaitox — Obsidian plugin
+# Kaitox for Obsidian
 
-This is the **distribution repository** for the Kaitox Obsidian plugin, submitted to
-the Obsidian community-plugins directory. It only holds the plugin `manifest.json`,
-`versions.json`, and the compiled release assets — no source code.
+Preview the active note as an **X (Twitter) Article** and push it to your drafts — straight from your vault. Part of the [Kaitox](https://github.com/kuangjiajia/kaitox-toolkit) personal toolkit.
 
-**Source, issues, and development** live in the main monorepo:
-<https://github.com/kuangjiajia/kaitox-toolkit> (see `apps/obsidian`).
-
-Kaitox is a personal toolkit. This plugin syncs the active note to X (Twitter) as an
-Article draft, via a local relay and a browser extension.
+The plugin previews, style-checks, and packages the note, then hands off to the browser: the [Kaitox Chrome extension](https://github.com/kuangjiajia/kaitox-toolkit/tree/main/apps/extension) picks the draft up on `x.com/compose/articles` inside your logged-in session and creates the Article draft there. No official API and no keys.
 
 ## Install
 
-- **From Obsidian:** Settings → Community plugins → Browse → search **"Kaitox"**.
-- **Manual:** download `main.js`, `manifest.json`, and `styles.css` from the latest
-  [Release](../../releases/latest) into `<vault>/.obsidian/plugins/kaitox/`, then
-  enable the plugin.
+**From Community plugins** (once listed): Settings → Community plugins → Browse → search **Kaitox**.
 
-## Releases
+**Manual:** download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/kuangjiajia/kaitox-obsidian/releases) into your vault at `.obsidian/plugins/kaitox/`, then enable **Kaitox** in Settings → Community plugins.
 
-Releases here are published automatically by the
-[`release-obsidian`](https://github.com/kuangjiajia/kaitox-toolkit/blob/main/.github/workflows/release-obsidian.yml)
-workflow in the monorepo whenever an `obsidian-v*` tag is pushed. The release tag is
-the bare version (e.g. `0.6.1`) so it matches `manifest.version`, as Obsidian requires.
+## Build from source
+
+```bash
+npm install
+npm run build     # → dist/main.js, dist/manifest.json, dist/styles.css
+```
+
+## Source of truth
+
+This repository is generated from the [kaitox-toolkit monorepo](https://github.com/kuangjiajia/kaitox-toolkit) (`apps/obsidian`) on each release. Open issues and PRs against the monorepo.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE)
