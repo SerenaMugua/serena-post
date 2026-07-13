@@ -1,6 +1,6 @@
 {
   "name": "kaitox-obsidian",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Sync the active note as an X (Twitter) Article draft through a local relay and browser extension.",
   "type": "module",
   "license": "MIT",
@@ -15,8 +15,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@kaitox/relay-protocol": "^0.5.1",
-    "@kaitox/x-article": "^0.6.0",
+    "@kaitox/relay-protocol": "^0.5.2",
+    "@kaitox/x-article": "^0.6.1",
     "mermaid": "^11.16.0"
   },
   "devDependencies": {
