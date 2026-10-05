@@ -7,7 +7,6 @@ import { requestUrl, RequestUrlParam } from 'obsidian';
 import { ResolvedProxyConfig } from '../types';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import FormData from 'form-data';
 import * as http from 'node:http';
 import * as https from 'node:https';
 
@@ -192,6 +191,30 @@ export async function getAccessToken(appid: string, secret: string, proxyConfig?
 }
 
 /**
+ * 手动构建 multipart/form-data 请求体
+ * （不用 form-data 包：esbuild 打包时会换成浏览器版 FormData，导致上传报错）
+ */
+function buildMultipart(fieldName: string, data: Buffer, filename: string, contentType: string) {
+	const boundary = '----WeChatPB' + Date.now().toString(16) + Math.random().toString(16).slice(2);
+	const head = Buffer.from(
+		`--${boundary}\r\n` +
+		`Content-Disposition: form-data; name="${fieldName}"; filename="${filename}"\r\n` +
+		`Content-Type: ${contentType}\r\n\r\n`,
+		'utf8'
+	);
+	const tail = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf8');
+	const body = Buffer.concat([head, data, tail]);
+	return { body, contentType: `multipart/form-data; boundary=${boundary}` };
+}
+
+function detectImageType(buf: Buffer, filename: string): string {
+	if (buf.length > 3 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
+	if (buf.length > 2 && buf[0] === 0xff && buf[1] === 0xd8) return 'image/jpeg';
+	if (buf.length > 2 && buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return 'image/gif';
+	return /\.png$/i.test(filename) ? 'image/png' : 'image/jpeg';
+}
+
+/**
  * 上传图片素材
  */
 export async function uploadImage(
@@ -201,110 +224,31 @@ export async function uploadImage(
 	proxyConfig?: ResolvedProxyConfig
 ): Promise<{ media_id: string; url: string }> {
 	const url = `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=image`;
+	const buffer = Buffer.from(imageData);
+	const mime = detectImageType(buffer, filename);
+	const ext = mime === 'image/png' ? 'png' : mime === 'image/gif' ? 'gif' : 'jpg';
+	const safeName = filename.replace(/\.[^.]+$/, '') + '.' + ext;
+	const { body, contentType } = buildMultipart('media', buffer, safeName, mime);
 
-	try {
-		// 将 ArrayBuffer 转换为 Buffer
-		const buffer = Buffer.from(imageData);
-
-		// 如果没有代理，使用 form-data 的 submit 方法
-		if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
-			const formData = new FormData();
-			formData.append('media', buffer, {
-				filename: filename,
-				contentType: 'image/jpeg'
-			});
-
-			return new Promise((resolve, reject) => {
-				formData.submit(url, (err: Error, res: any) => {
-					if (err) {
-						reject(err);
-						return;
-					}
-
-					let data = '';
-					res.on('data', (chunk: any) => {
-						data += chunk;
-					});
-
-					res.on('end', () => {
-						try {
-							const result = JSON.parse(data);
-							if (result.media_id) {
-								resolve(result);
-							} else {
-								reject(toWeixinError(result, '上传图片失败'));
-							}
-						} catch (e) {
-							reject(e);
-						}
-					});
-				});
-			});
-		}
-
-		// 使用代理时，手动构建请求
-		// 创建代理agent
-		let agent: any;
-		if (proxyConfig.type === 'socks5') {
-			const auth = proxyConfig.username && proxyConfig.password
-				? `${encodeURIComponent(proxyConfig.username)}:${encodeURIComponent(proxyConfig.password)}@`
-				: '';
-			const proxyUrl = `socks5h://${auth}${proxyConfig.host}:${proxyConfig.port}`;
-			agent = new SocksProxyAgent(proxyUrl);
-		} else {
-			const auth = proxyConfig.username && proxyConfig.password
-				? `${encodeURIComponent(proxyConfig.username)}:${encodeURIComponent(proxyConfig.password)}@`
-				: '';
-			const protocol = proxyConfig.type || 'http';
-			const proxyUrl = `${protocol}://${auth}${proxyConfig.host}:${proxyConfig.port}`;
-			agent = new HttpsProxyAgent(proxyUrl);
-		}
-
-		const formData = new FormData();
-		formData.append('media', buffer, {
-			filename: filename,
-			contentType: 'image/jpeg'
-		});
-
-		const requestModule = url.startsWith('https') ? https : http;
-
-		return new Promise((resolve, reject) => {
-			const requestOptions = {
-				method: 'POST',
-				headers: formData.getHeaders(),
-				agent: agent
-			};
-
-			const req = requestModule.request(url, requestOptions, (res: any) => {
-				let data = '';
-				res.on('data', (chunk: any) => {
-					data += chunk;
-				});
-
-				res.on('end', () => {
-					try {
-						const result = JSON.parse(data);
-						if (result.media_id) {
-							resolve(result);
-						} else {
-							reject(toWeixinError(result, '上传图片失败'));
-						}
-					} catch (e) {
-						reject(e);
-					}
-				});
-			});
-
-			req.on('error', (err: Error) => {
-				reject(err);
-			});
-
-			// 使用 formData 的 pipe 方法发送数据
-			formData.pipe(req);
-		});
-	} catch (error) {
-		throw error;
+	let json: any;
+	if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
+		// 与获取 Token 走同一条网络（Obsidian requestUrl），出口 IP 一致
+		const arrayBuffer = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer;
+		const response = await requestUrl({ url, method: 'POST', contentType, body: arrayBuffer, throw: false });
+		json = response.json;
+	} else {
+		const response = await requestWithProxy(url, {
+			url,
+			method: 'POST',
+			contentType,
+			headers: { 'Content-Length': String(body.length) },
+			body: body as any
+		}, proxyConfig);
+		json = response.json;
 	}
+
+	if (json && json.media_id) return json;
+	throw toWeixinError(json, '上传图片失败');
 }
 
 /**

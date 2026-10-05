@@ -172,8 +172,18 @@ export async function buildDraftDefaults(app: App, input: DraftDefaultsInput): P
 	const fm = app.metadataCache.getFileCache(input.file)?.frontmatter as Record<string, any> | undefined;
 
 	const title = fmString(fm, ['title', '标题']) || input.file.basename;
-	const author = fmString(fm, ['author', '作者']) || input.defaultAuthor;
-	const digest = fmString(fm, ['digest', '摘要', 'description', 'summary']);
+	// 作者：专门的公众号作者属性 > 设置里的默认作者 > 通用 author 属性（去掉 [[ ]] 和 @，超长则不用）
+	const cleanName = (v: string) => v.replace(/^\[\[|\]\]$/g, '').split('|').pop()!.replace(/^@/, '').trim();
+	const fmAuthor = cleanName(fmString(fm, ['author', '作者']));
+	const author = cleanName(fmString(fm, ['wx_author', '公众号作者']))
+		|| input.defaultAuthor
+		|| (fmAuthor.length <= DRAFT_LIMITS.author ? fmAuthor : '');
+	// 摘要：专门的 digest/摘要 优先；description 只作参考，超长自动截断
+	let digest = fmString(fm, ['digest', '摘要']);
+	if (!digest) {
+		const desc = fmString(fm, ['description', 'summary']).replace(/\s+/g, ' ');
+		digest = desc.length > DRAFT_LIMITS.digest ? desc.slice(0, DRAFT_LIMITS.digest - 1) + '…' : desc;
+	}
 	const contentSourceUrl = fmString(fm, ['source_url', 'sourceUrl', '原文链接']);
 	const openComment = fmBool(fm, ['comment', 'open_comment', '留言']) ?? input.defaultOpenComment;
 

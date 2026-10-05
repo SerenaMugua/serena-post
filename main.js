@@ -17335,14 +17335,6 @@ var require_dist3 = __commonJS({
   }
 });
 
-// node_modules/form-data/lib/browser.js
-var require_browser2 = __commonJS({
-  "node_modules/form-data/lib/browser.js"(exports, module2) {
-    "use strict";
-    module2.exports = typeof self === "object" ? self.FormData : window.FormData;
-  }
-});
-
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
@@ -17544,8 +17536,14 @@ async function buildDraftDefaults(app, input) {
   var _a, _b;
   const fm = (_a = app.metadataCache.getFileCache(input.file)) == null ? void 0 : _a.frontmatter;
   const title = fmString(fm, ["title", "\u6807\u9898"]) || input.file.basename;
-  const author = fmString(fm, ["author", "\u4F5C\u8005"]) || input.defaultAuthor;
-  const digest = fmString(fm, ["digest", "\u6458\u8981", "description", "summary"]);
+  const cleanName = (v) => v.replace(/^\[\[|\]\]$/g, "").split("|").pop().replace(/^@/, "").trim();
+  const fmAuthor = cleanName(fmString(fm, ["author", "\u4F5C\u8005"]));
+  const author = cleanName(fmString(fm, ["wx_author", "\u516C\u4F17\u53F7\u4F5C\u8005"])) || input.defaultAuthor || (fmAuthor.length <= DRAFT_LIMITS.author ? fmAuthor : "");
+  let digest = fmString(fm, ["digest", "\u6458\u8981"]);
+  if (!digest) {
+    const desc = fmString(fm, ["description", "summary"]).replace(/\s+/g, " ");
+    digest = desc.length > DRAFT_LIMITS.digest ? desc.slice(0, DRAFT_LIMITS.digest - 1) + "\u2026" : desc;
+  }
   const contentSourceUrl = fmString(fm, ["source_url", "sourceUrl", "\u539F\u6587\u94FE\u63A5"]);
   const openComment = (_b = fmBool(fm, ["comment", "open_comment", "\u7559\u8A00"])) != null ? _b : input.defaultOpenComment;
   let coverBase64 = "";
@@ -20340,7 +20338,6 @@ ${BUILTIN_THEME_REFINEMENT}`,
 var import_obsidian5 = require("obsidian");
 var import_https_proxy_agent = __toESM(require_dist2());
 var import_socks_proxy_agent = __toESM(require_dist3());
-var import_form_data = __toESM(require_browser2());
 var http = __toESM(require("node:http"));
 var https = __toESM(require("node:https"));
 async function requestWithProxy(url, options2, proxyConfig) {
@@ -20473,90 +20470,52 @@ async function getAccessToken(appid, secret, proxyConfig) {
     throw error;
   }
 }
+function buildMultipart(fieldName, data, filename, contentType) {
+  const boundary = "----WeChatPB" + Date.now().toString(16) + Math.random().toString(16).slice(2);
+  const head = Buffer.from(
+    `--${boundary}\r
+Content-Disposition: form-data; name="${fieldName}"; filename="${filename}"\r
+Content-Type: ${contentType}\r
+\r
+`,
+    "utf8"
+  );
+  const tail = Buffer.from(`\r
+--${boundary}--\r
+`, "utf8");
+  const body = Buffer.concat([head, data, tail]);
+  return { body, contentType: `multipart/form-data; boundary=${boundary}` };
+}
+function detectImageType(buf, filename) {
+  if (buf.length > 3 && buf[0] === 137 && buf[1] === 80 && buf[2] === 78 && buf[3] === 71) return "image/png";
+  if (buf.length > 2 && buf[0] === 255 && buf[1] === 216) return "image/jpeg";
+  if (buf.length > 2 && buf[0] === 71 && buf[1] === 73 && buf[2] === 70) return "image/gif";
+  return /\.png$/i.test(filename) ? "image/png" : "image/jpeg";
+}
 async function uploadImage(imageData, filename, accessToken, proxyConfig) {
   const url = `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=image`;
-  try {
-    const buffer = Buffer.from(imageData);
-    if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
-      const formData2 = new import_form_data.default();
-      formData2.append("media", buffer, {
-        filename,
-        contentType: "image/jpeg"
-      });
-      return new Promise((resolve, reject) => {
-        formData2.submit(url, (err, res) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          let data = "";
-          res.on("data", (chunk) => {
-            data += chunk;
-          });
-          res.on("end", () => {
-            try {
-              const result = JSON.parse(data);
-              if (result.media_id) {
-                resolve(result);
-              } else {
-                reject(toWeixinError(result, "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25"));
-              }
-            } catch (e) {
-              reject(e);
-            }
-          });
-        });
-      });
-    }
-    let agent;
-    if (proxyConfig.type === "socks5") {
-      const auth = proxyConfig.username && proxyConfig.password ? `${encodeURIComponent(proxyConfig.username)}:${encodeURIComponent(proxyConfig.password)}@` : "";
-      const proxyUrl = `socks5h://${auth}${proxyConfig.host}:${proxyConfig.port}`;
-      agent = new import_socks_proxy_agent.SocksProxyAgent(proxyUrl);
-    } else {
-      const auth = proxyConfig.username && proxyConfig.password ? `${encodeURIComponent(proxyConfig.username)}:${encodeURIComponent(proxyConfig.password)}@` : "";
-      const protocol = proxyConfig.type || "http";
-      const proxyUrl = `${protocol}://${auth}${proxyConfig.host}:${proxyConfig.port}`;
-      agent = new import_https_proxy_agent.HttpsProxyAgent(proxyUrl);
-    }
-    const formData = new import_form_data.default();
-    formData.append("media", buffer, {
-      filename,
-      contentType: "image/jpeg"
-    });
-    const requestModule = url.startsWith("https") ? https : http;
-    return new Promise((resolve, reject) => {
-      const requestOptions = {
-        method: "POST",
-        headers: formData.getHeaders(),
-        agent
-      };
-      const req = requestModule.request(url, requestOptions, (res) => {
-        let data = "";
-        res.on("data", (chunk) => {
-          data += chunk;
-        });
-        res.on("end", () => {
-          try {
-            const result = JSON.parse(data);
-            if (result.media_id) {
-              resolve(result);
-            } else {
-              reject(toWeixinError(result, "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25"));
-            }
-          } catch (e) {
-            reject(e);
-          }
-        });
-      });
-      req.on("error", (err) => {
-        reject(err);
-      });
-      formData.pipe(req);
-    });
-  } catch (error) {
-    throw error;
+  const buffer = Buffer.from(imageData);
+  const mime = detectImageType(buffer, filename);
+  const ext = mime === "image/png" ? "png" : mime === "image/gif" ? "gif" : "jpg";
+  const safeName = filename.replace(/\.[^.]+$/, "") + "." + ext;
+  const { body, contentType } = buildMultipart("media", buffer, safeName, mime);
+  let json;
+  if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
+    const arrayBuffer = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength);
+    const response = await (0, import_obsidian5.requestUrl)({ url, method: "POST", contentType, body: arrayBuffer, throw: false });
+    json = response.json;
+  } else {
+    const response = await requestWithProxy(url, {
+      url,
+      method: "POST",
+      contentType,
+      headers: { "Content-Length": String(body.length) },
+      body
+    }, proxyConfig);
+    json = response.json;
   }
+  if (json && json.media_id) return json;
+  throw toWeixinError(json, "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25");
 }
 async function addDraft(articles, accessToken, proxyConfig) {
   const url = `https://api.weixin.qq.com/cgi-bin/draft/add?access_token=${accessToken}`;
