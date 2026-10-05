@@ -319,6 +319,29 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+		new Setting(containerEl).setName('草稿默认信息').setHeading();
+
+		new Setting(containerEl)
+			.setName('默认作者')
+			.setDesc('发布确认弹窗中作者栏的默认值；笔记属性 author 优先。最多 8 个字')
+			.addText(text => text
+				.setPlaceholder('例如：Serena 木瓜')
+				.setValue(this.plugin.settings.defaultAuthor)
+				.onChange(async value => {
+					this.plugin.settings.defaultAuthor = value.trim();
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('默认开启留言')
+			.setDesc('发布确认弹窗中「开启留言」的默认状态；笔记属性 comment 优先')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.defaultOpenComment)
+				.onChange(async value => {
+					this.plugin.settings.defaultOpenComment = value;
+					await this.plugin.saveSettings();
+				}));
+
 		const coverSetting = new Setting(containerEl)
 			.setName('默认封面图片')
 			.setDesc('没有临时封面时使用，最大 2 MB');

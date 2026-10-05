@@ -124,6 +124,51 @@ async function requestWithProxy(
 	}
 }
 
+
+/**
+ * 微信接口错误：保留 errcode，并把常见错误码翻译成中文提示
+ */
+export class WeixinApiError extends Error {
+	errcode: number | string;
+	constructor(message: string, errcode: number | string) {
+		super(message);
+		this.name = 'WeixinApiError';
+		this.errcode = errcode;
+	}
+}
+
+const WEIXIN_ERROR_HINTS: Record<string, string> = {
+	'40001': 'Access Token 无效或 AppSecret 错误',
+	'40013': 'AppID 无效，请检查账号设置',
+	'40125': 'AppSecret 无效，请在公众号后台「设置与开发 → 开发接口管理」重置后重新填写',
+	'40164': '当前出口 IP 不在公众号 IP 白名单',
+	'42001': 'Access Token 已过期',
+	'48001': '该公众号没有此接口权限（未认证的个人号常见），请在后台「设置与开发 → 接口权限」确认「草稿箱 / 素材管理」可用',
+	'45009': '今日接口调用次数已达上限，请明天再试',
+	'40007': '封面素材无效，请重新选择封面',
+	'40009': '图片尺寸或大小不符合要求',
+	'41005': '缺少图片数据',
+	'45003': '标题过长',
+	'45004': '摘要过长（最多 120 字）',
+	'45110': '作者名过长（最多 8 个字）',
+	'53404': '账号已被限制发文',
+	'-1': '微信系统繁忙，请稍后重试'
+};
+
+export function toWeixinError(json: any, fallback: string): WeixinApiError {
+	const errcode = json?.errcode ?? 'unknown';
+	const errmsg: string = json?.errmsg || fallback;
+	let hint = WEIXIN_ERROR_HINTS[String(errcode)];
+	if (String(errcode) === '40164') {
+		const ip = errmsg.match(/invalid ip ([0-9a-fA-F.:]+)/)?.[1];
+		hint = ip
+			? `出口 IP ${ip} 不在公众号白名单。请到公众号后台「设置与开发 → 开发接口管理 → IP 白名单」添加 ${ip}，几分钟后再试（家庭宽带 IP 变化后需要重新添加）`
+			: `${hint}，请到公众号后台「设置与开发 → 开发接口管理 → IP 白名单」添加当前出口 IP`;
+	}
+	const message = hint ? `${hint}（errcode: ${errcode}）` : `${errmsg}（errcode: ${errcode}）`;
+	return new WeixinApiError(message, errcode);
+}
+
 /**
  * 获取 Access Token
  */
@@ -139,8 +184,7 @@ export async function getAccessToken(appid: string, secret: string, proxyConfig?
 		if (response.json.access_token) {
 			return response.json.access_token;
 		} else {
-			const errmsg = response.json.errmsg || '获取 Access Token 失败';
-			throw new Error(errmsg);
+			throw toWeixinError(response.json, '获取 Access Token 失败');
 		}
 	} catch (error) {
 		throw error;
@@ -188,7 +232,7 @@ export async function uploadImage(
 							if (result.media_id) {
 								resolve(result);
 							} else {
-								reject(new Error(result.errmsg || '上传图片失败'));
+								reject(toWeixinError(result, '上传图片失败'));
 							}
 						} catch (e) {
 							reject(e);
@@ -243,7 +287,7 @@ export async function uploadImage(
 						if (result.media_id) {
 							resolve(result);
 						} else {
-							reject(new Error(result.errmsg || '上传图片失败'));
+							reject(toWeixinError(result, '上传图片失败'));
 						}
 					} catch (e) {
 						reject(e);
@@ -288,9 +332,7 @@ export async function addDraft(
 		if (response.json.media_id) {
 			return response.json;
 		} else {
-			const errmsg = response.json.errmsg || '创建草稿失败';
-			const errcode = response.json.errcode || 'unknown';
-			throw new Error(`${errmsg} (errcode: ${errcode})`);
+			throw toWeixinError(response.json, '创建草稿失败');
 		}
 	} catch (error) {
 		throw error;

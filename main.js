@@ -17349,7 +17349,7 @@ __export(main_exports, {
   default: () => WeChatPublisherPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/types/index.ts
 var DEFAULT_SETTINGS = {
@@ -17362,12 +17362,352 @@ var DEFAULT_SETTINGS = {
   customThemesEnabled: false,
   defaultTheme: "\u7EFF\u767D\u6E05\u7B80",
   excludeFrontmatter: false,
-  defaultCoverImage: ""
+  defaultCoverImage: "",
+  defaultAuthor: "",
+  defaultOpenComment: false
 };
 
 // src/views/publisher-view.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 var import_html2canvas = __toESM(require_html2canvas());
+
+// src/modals/draft-confirm-modal.ts
+var import_obsidian = require("obsidian");
+
+// src/utils/image.ts
+async function compressImage(data, mimeType, maxSizeKB = 500) {
+  if (data.byteLength <= maxSizeKB * 1024 || !/^image\/(png|jpe?g|webp)$/i.test(mimeType)) {
+    return { data, mimeType };
+  }
+  const blobUrl = URL.createObjectURL(new Blob([data], { type: mimeType }));
+  try {
+    const image = new Image();
+    await new Promise((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("\u65E0\u6CD5\u8BFB\u53D6\u56FE\u7247"));
+      image.src = blobUrl;
+    });
+    const scale = Math.min(1, 2048 / image.naturalWidth, 2048 / image.naturalHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("\u65E0\u6CD5\u521B\u5EFA\u56FE\u7247\u538B\u7F29\u753B\u5E03");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const outputMime = mimeType === "image/png" ? "image/jpeg" : mimeType;
+    let quality = 0.9;
+    let output = await canvasToBlob(canvas, outputMime, quality);
+    while (output.size > maxSizeKB * 1024 && quality > 0.2) {
+      quality -= 0.1;
+      output = await canvasToBlob(canvas, outputMime, quality);
+    }
+    return { data: await output.arrayBuffer(), mimeType: outputMime };
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("\u56FE\u7247\u538B\u7F29\u5931\u8D25")), mimeType, quality);
+  });
+}
+
+// src/modals/draft-confirm-modal.ts
+var DRAFT_LIMITS = { title: 64, author: 8, digest: 120 };
+var COVER_MAX_KB = 1024;
+var IMAGE_EXT = /^(png|jpe?g|gif|webp)$/i;
+function mimeFromExt(ext) {
+  const e = ext.toLowerCase();
+  if (e === "jpg" || e === "jpeg") return "image/jpeg";
+  if (e === "gif") return "image/gif";
+  if (e === "webp") return "image/webp";
+  return "image/png";
+}
+function arrayBufferToDataUrl(data, mimeType) {
+  const bytes = new Uint8Array(data);
+  let binary = "";
+  const chunk = 32768;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return `data:${mimeType};base64,${btoa(binary)}`;
+}
+async function toCoverDataUrl(data, mimeType) {
+  const compressed = await compressImage(data, mimeType, COVER_MAX_KB);
+  let { data: out, mimeType: outMime } = compressed;
+  if (!/^image\/(jpeg|png)$/.test(outMime)) {
+    out = await convertToJpeg(out, outMime);
+    outMime = "image/jpeg";
+  }
+  return arrayBufferToDataUrl(out, outMime);
+}
+async function convertToJpeg(data, mimeType) {
+  const url = URL.createObjectURL(new Blob([data], { type: mimeType }));
+  try {
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("\u65E0\u6CD5\u8BFB\u53D6\u5C01\u9762\u56FE\u7247"));
+      img.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("\u65E0\u6CD5\u521B\u5EFA\u753B\u5E03");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    const blob = await new Promise((resolve, reject) => canvas.toBlob((b) => b ? resolve(b) : reject(new Error("\u5C01\u9762\u8F6C\u6362\u5931\u8D25")), "image/jpeg", 0.9));
+    return await blob.arrayBuffer();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+async function resolveImageRef(app, ref, sourcePath) {
+  var _a;
+  let link = ref.trim();
+  if (!link) return null;
+  if (link.startsWith("data:image/")) return link;
+  if (/^https?:\/\//i.test(link)) {
+    try {
+      const res = await (0, import_obsidian.requestUrl)({ url: link, method: "GET" });
+      const type = (res.headers["content-type"] || res.headers["Content-Type"] || "image/jpeg").split(";")[0];
+      return await toCoverDataUrl(res.arrayBuffer, type);
+    } catch (e) {
+      console.error("[WeChatPB] \u4E0B\u8F7D\u5C01\u9762\u5931\u8D25", e);
+      return null;
+    }
+  }
+  link = link.replace(/^!?\[\[/, "").replace(/\]\]$/, "").split("|")[0].split("#")[0].trim();
+  const md = link.match(/^!?\[[^\]]*\]\(([^)\s]+)[^)]*\)$/);
+  if (md) link = md[1];
+  try {
+    link = decodeURIComponent(link);
+  } catch (e) {
+  }
+  const file = (_a = app.metadataCache.getFirstLinkpathDest(link, sourcePath)) != null ? _a : app.vault.getAbstractFileByPath(link);
+  if (!(file instanceof import_obsidian.TFile) || !IMAGE_EXT.test(file.extension)) return null;
+  const data = await app.vault.readBinary(file);
+  return await toCoverDataUrl(data, mimeFromExt(file.extension));
+}
+function findFirstImageRef(markdown) {
+  var _a, _b, _c;
+  const re = /!\[\[([^\]]+)\]\]|!\[[^\]]*\]\(([^)\s]+)[^)]*\)/g;
+  let m;
+  while ((m = re.exec(markdown)) !== null) {
+    const ref = ((_b = (_a = m[1]) != null ? _a : m[2]) != null ? _b : "").split("|")[0];
+    const ext = (_c = ref.split("?")[0].split(".").pop()) != null ? _c : "";
+    if (IMAGE_EXT.test(ext) || /^https?:\/\//i.test(ref)) return ref;
+  }
+  return null;
+}
+function fmString(fm, keys) {
+  if (!fm) return "";
+  for (const k of keys) {
+    const v = fm[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+    if (Array.isArray(v) && typeof v[0] === "string" && v[0].trim()) return v[0].trim();
+  }
+  return "";
+}
+function fmBool(fm, keys) {
+  if (!fm) return void 0;
+  for (const k of keys) {
+    const v = fm[k];
+    if (typeof v === "boolean") return v;
+    if (typeof v === "string") {
+      if (/^(true|yes|on|1|开|开启|是)$/i.test(v.trim())) return true;
+      if (/^(false|no|off|0|关|关闭|否)$/i.test(v.trim())) return false;
+    }
+  }
+  return void 0;
+}
+async function buildDraftDefaults(app, input) {
+  var _a, _b, _c, _d;
+  const fm = (_a = app.metadataCache.getFileCache(input.file)) == null ? void 0 : _a.frontmatter;
+  const title = fmString(fm, ["title", "\u6807\u9898"]) || input.file.basename;
+  const author = fmString(fm, ["author", "\u4F5C\u8005"]) || input.defaultAuthor;
+  const digest = fmString(fm, ["digest", "\u6458\u8981", "description", "summary"]);
+  const contentSourceUrl = fmString(fm, ["source_url", "sourceUrl", "\u539F\u6587\u94FE\u63A5"]);
+  const openComment = (_b = fmBool(fm, ["comment", "open_comment", "\u7559\u8A00"])) != null ? _b : input.defaultOpenComment;
+  let coverBase64 = "";
+  let coverSource = "";
+  const fmCover = fmString(fm, ["cover", "\u5C01\u9762", "banner", "image"]);
+  if (fmCover) {
+    coverBase64 = (_c = await resolveImageRef(app, fmCover, input.file.path)) != null ? _c : "";
+    coverSource = coverBase64 ? "\u7B14\u8BB0\u5C5E\u6027 cover" : "";
+    if (!coverBase64) new import_obsidian.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
+  }
+  if (!coverBase64 && input.panelCoverBase64) {
+    coverBase64 = input.panelCoverBase64;
+    coverSource = "\u4FA7\u8FB9\u680F\u4E0A\u4F20\u7684\u5C01\u9762";
+  }
+  if (!coverBase64) {
+    const first = findFirstImageRef(input.markdown);
+    if (first) {
+      coverBase64 = (_d = await resolveImageRef(app, first, input.file.path)) != null ? _d : "";
+      if (coverBase64) coverSource = "\u6B63\u6587\u7B2C\u4E00\u5F20\u56FE\u7247";
+    }
+  }
+  if (!coverBase64 && input.defaultCoverBase64) {
+    coverBase64 = input.defaultCoverBase64;
+    coverSource = "\u8BBE\u7F6E\u91CC\u7684\u9ED8\u8BA4\u5C01\u9762";
+  }
+  return {
+    meta: {
+      title,
+      author,
+      digest,
+      contentSourceUrl,
+      coverBase64,
+      openComment,
+      onlyFansCanComment: false
+    },
+    coverSource
+  };
+}
+var DraftConfirmModal = class extends import_obsidian.Modal {
+  constructor(app, meta, coverSource, accountNames) {
+    super(app);
+    this.resolver = null;
+    this.submitted = false;
+    this.meta = { ...meta };
+    this.coverSource = coverSource;
+    this.accountNames = accountNames;
+  }
+  /** 打开弹窗，确认返回 DraftMeta，取消返回 null */
+  openAndWait() {
+    return new Promise((resolve) => {
+      this.resolver = resolve;
+      this.open();
+    });
+  }
+  onOpen() {
+    this.modalEl.addClass("wechatpb-draft-modal");
+    this.render();
+  }
+  onClose() {
+    var _a;
+    this.contentEl.empty();
+    if (!this.submitted) (_a = this.resolver) == null ? void 0 : _a.call(this, null);
+  }
+  render() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("h3", { text: "\u63A8\u9001\u5230\u516C\u4F17\u53F7\u8349\u7A3F\u7BB1" });
+    contentEl.createEl("p", {
+      cls: "wechatpb-draft-target",
+      text: `\u5C06\u53D1\u9001\u5230\uFF1A${this.accountNames.join("\u3001")}`
+    });
+    const counter = (el, value, max) => {
+      el.setText(`${value.length} / ${max}`);
+      el.toggleClass("is-over", value.length > max);
+    };
+    const titleSetting = new import_obsidian.Setting(contentEl).setName("\u6807\u9898").setDesc("");
+    const titleCount = titleSetting.descEl.createSpan({ cls: "wechatpb-counter" });
+    counter(titleCount, this.meta.title, DRAFT_LIMITS.title);
+    titleSetting.addText((text) => {
+      text.setValue(this.meta.title).onChange((v) => {
+        this.meta.title = v;
+        counter(titleCount, v, DRAFT_LIMITS.title);
+      });
+      text.inputEl.addClass("wechatpb-wide-input");
+    });
+    const authorSetting = new import_obsidian.Setting(contentEl).setName("\u4F5C\u8005").setDesc("");
+    const authorCount = authorSetting.descEl.createSpan({ cls: "wechatpb-counter" });
+    counter(authorCount, this.meta.author, DRAFT_LIMITS.author);
+    authorSetting.addText((text) => text.setPlaceholder("\u53EF\u7559\u7A7A").setValue(this.meta.author).onChange((v) => {
+      this.meta.author = v;
+      counter(authorCount, v, DRAFT_LIMITS.author);
+    }));
+    const digestSetting = new import_obsidian.Setting(contentEl).setName("\u6458\u8981").setDesc("\u7559\u7A7A\u5219\u5FAE\u4FE1\u81EA\u52A8\u622A\u53D6\u6B63\u6587\u524D 54 \u5B57\u3002");
+    const digestCount = digestSetting.descEl.createSpan({ cls: "wechatpb-counter" });
+    counter(digestCount, this.meta.digest, DRAFT_LIMITS.digest);
+    digestSetting.addTextArea((area) => {
+      area.setValue(this.meta.digest).onChange((v) => {
+        this.meta.digest = v;
+        counter(digestCount, v, DRAFT_LIMITS.digest);
+      });
+      area.inputEl.rows = 3;
+      area.inputEl.addClass("wechatpb-wide-input");
+    });
+    new import_obsidian.Setting(contentEl).setName("\u539F\u6587\u94FE\u63A5").setDesc("\u53EF\u9009\uFF0C\u6587\u672B\u300C\u9605\u8BFB\u539F\u6587\u300D\u8DF3\u8F6C\u5730\u5740").addText((text) => text.setPlaceholder("https://").setValue(this.meta.contentSourceUrl).onChange((v) => {
+      this.meta.contentSourceUrl = v.trim();
+    }));
+    const coverSetting = new import_obsidian.Setting(contentEl).setName("\u5C01\u9762\uFF08\u5FC5\u586B\uFF09").setDesc(this.meta.coverBase64 ? `\u6765\u6E90\uFF1A${this.coverSource}` : "\u8FD8\u6CA1\u6709\u5C01\u9762\uFF1A\u5728\u7B14\u8BB0\u5C5E\u6027\u5199 cover\uFF0C\u6216\u70B9\u51FB\u53F3\u4FA7\u9009\u62E9\u56FE\u7247");
+    coverSetting.addButton((btn) => btn.setButtonText(this.meta.coverBase64 ? "\u66F4\u6362" : "\u9009\u62E9\u56FE\u7247").onClick(() => this.pickCover()));
+    if (this.meta.coverBase64) {
+      const preview = contentEl.createDiv({ cls: "wechatpb-cover-preview" });
+      preview.createEl("img", { attr: { src: this.meta.coverBase64, alt: "\u5C01\u9762\u9884\u89C8" } });
+    }
+    new import_obsidian.Setting(contentEl).setName("\u5F00\u542F\u7559\u8A00").addToggle((t) => t.setValue(this.meta.openComment).onChange((v) => {
+      this.meta.openComment = v;
+      this.render();
+    }));
+    if (this.meta.openComment) {
+      new import_obsidian.Setting(contentEl).setName("\u4EC5\u7C89\u4E1D\u53EF\u7559\u8A00").addToggle((t) => t.setValue(this.meta.onlyFansCanComment).onChange((v) => {
+        this.meta.onlyFansCanComment = v;
+      }));
+    }
+    const footer = new import_obsidian.Setting(contentEl);
+    footer.addButton((btn) => btn.setButtonText("\u53D6\u6D88").onClick(() => this.close()));
+    footer.addButton((btn) => btn.setButtonText("\u63A8\u9001\u5230\u8349\u7A3F\u7BB1").setCta().onClick(() => this.submit()));
+  }
+  pickCover() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg,image/png,image/webp";
+    input.onchange = async () => {
+      var _a;
+      const file = (_a = input.files) == null ? void 0 : _a[0];
+      if (!file) return;
+      try {
+        this.meta.coverBase64 = await toCoverDataUrl(await file.arrayBuffer(), file.type || "image/jpeg");
+        this.coverSource = `\u624B\u52A8\u9009\u62E9\uFF08${file.name}\uFF09`;
+        this.render();
+      } catch (e) {
+        new import_obsidian.Notice(`\u5C01\u9762\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
+      }
+    };
+    input.click();
+  }
+  submit() {
+    var _a;
+    const m = this.meta;
+    m.title = m.title.trim();
+    m.author = m.author.trim();
+    m.digest = m.digest.trim();
+    if (!m.title) {
+      new import_obsidian.Notice("\u8BF7\u586B\u5199\u6807\u9898");
+      return;
+    }
+    if (m.title.length > DRAFT_LIMITS.title) {
+      new import_obsidian.Notice(`\u6807\u9898\u6700\u591A ${DRAFT_LIMITS.title} \u5B57`);
+      return;
+    }
+    if (m.author.length > DRAFT_LIMITS.author) {
+      new import_obsidian.Notice(`\u4F5C\u8005\u6700\u591A ${DRAFT_LIMITS.author} \u5B57`);
+      return;
+    }
+    if (m.digest.length > DRAFT_LIMITS.digest) {
+      new import_obsidian.Notice(`\u6458\u8981\u6700\u591A ${DRAFT_LIMITS.digest} \u5B57`);
+      return;
+    }
+    if (m.contentSourceUrl && !/^https?:\/\//i.test(m.contentSourceUrl)) {
+      new import_obsidian.Notice("\u539F\u6587\u94FE\u63A5\u9700\u8981\u4EE5 http:// \u6216 https:// \u5F00\u5934");
+      return;
+    }
+    if (!m.coverBase64) {
+      new import_obsidian.Notice("\u5FAE\u4FE1\u8349\u7A3F\u5FC5\u987B\u6709\u5C01\u9762\uFF0C\u8BF7\u5148\u9009\u62E9\u5C01\u9762");
+      return;
+    }
+    if (!m.openComment) m.onlyFansCanComment = false;
+    this.submitted = true;
+    (_a = this.resolver) == null ? void 0 : _a.call(this, { ...m });
+    this.close();
+  }
+};
 
 // node_modules/postcss/lib/postcss.mjs
 var import_postcss = __toESM(require_postcss(), 1);
@@ -17397,10 +17737,10 @@ var Root = import_postcss.default.Root;
 var Node2 = import_postcss.default.Node;
 
 // src/utils/css-to-inline.ts
-var import_obsidian = require("obsidian");
+var import_obsidian2 = require("obsidian");
 function applyInlineCSS(html, css) {
   const tempDiv = document.createElement("div");
-  tempDiv.append((0, import_obsidian.sanitizeHTMLToDom)(html));
+  tempDiv.append((0, import_obsidian2.sanitizeHTMLToDom)(html));
   const root2 = tempDiv.firstElementChild;
   if (!root2) {
     return html;
@@ -19469,7 +19809,7 @@ var parser = _Parser.parse;
 var lexer = _Lexer.lex;
 
 // src/utils/formatter.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 var MarkedFormatter = class {
   /**
    * Initialize marked with WeChat-friendly renderer
@@ -19619,7 +19959,7 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
     const headingLabel = (_a = options2.headingLabel) == null ? void 0 : _a.trim();
     if (!headingLabel) return html;
     const container = document.createElement("div");
-    container.append((0, import_obsidian2.sanitizeHTMLToDom)(html));
+    container.append((0, import_obsidian3.sanitizeHTMLToDom)(html));
     const headings = Array.from(container.querySelectorAll("h2"));
     for (const [index, heading] of headings.entries()) {
       const label = document.createElement("span");
@@ -19631,14 +19971,14 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
   }
   static sanitize(html) {
     const container = document.createElement("div");
-    container.append((0, import_obsidian2.sanitizeHTMLToDom)(html));
+    container.append((0, import_obsidian3.sanitizeHTMLToDom)(html));
     return container.innerHTML;
   }
 };
 MarkedFormatter.markedInstance = null;
 
 // src/utils/theme-manager.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 
 // themes/Apple极简-黑.md
 var Apple_default = '\n```CSS\n/* \u5168\u5C40\u5C5E\u6027 */\n.note-to-mp {\n  max-width: 620px;\n  margin: 0 auto;\n  padding: 20px 24px;\n  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;\n  font-size: 16px;\n  line-height: 21px !important;\n  color: #6e6e73 !important;\n  background-color: #fbfbfd !important;\n  text-align: left !important;\n  word-wrap: break-word;\n  word-break: break-word;\n}\n\n/* --- \u6807\u9898\u90E8\u5206 --- */\n.note-to-mp h1 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 12px;\n  letter-spacing: -0.03em;\n}\n\n.note-to-mp h2 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 12px;\n  letter-spacing: -0.02em;\n}\n\n.note-to-mp h3 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n  letter-spacing: -0.01em;\n}\n\n.note-to-mp h4 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n.note-to-mp h5 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n.note-to-mp h6 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n/* \u6BB5\u843D */\n.note-to-mp p {\n  margin: 18px 0 !important;\n  line-height: 24px !important;\n  color: #6e6e73 !important;\n  font-weight: 300;\n  text-align: left;\n}\n\n/* \u52A0\u7C97 */\n.note-to-mp strong {\n  font-weight: 400;\n  color: #1d1d1f !important;\n}\n\n/* \u659C\u4F53 */\n.note-to-mp em {\n  font-style: normal;\n  color: #6e6e73 !important;\n  font-weight: 300;\n}\n\n/* \u4E0B\u5212\u7EBF */\n.note-to-mp u {\n  text-decoration: none;\n  border-bottom: 1px solid #86868b;\n  padding-bottom: 2px;\n}\n\n/* \u94FE\u63A5 */\n.note-to-mp a {\n  color: #06c !important;\n  text-decoration: none;\n  font-weight: 400;\n  word-break: break-all;\n}\n\n/* --- \u5217\u8868\u4F18\u5316\u7248 --- */\n.note-to-mp ul, .note-to-mp ol {\n  margin: 18px 0;\n  padding-left: 22px;\n}\n.note-to-mp ul { list-style-type: disc; }\n.note-to-mp ol { list-style-type: decimal; }\n\n.note-to-mp li {\n  margin: 8px 0;\n  line-height: 24px !important;\n  color: #6e6e73 !important;\n  font-weight: 300;\n  padding-left: 0;\n  position: relative;\n}\n\n/* --- \u5F15\u7528\u4F18\u5316\u7248 --- */\n.note-to-mp blockquote {\n  margin: 18px 0;\n  padding: 12px 16px;\n  background-color: #f5f5f7 !important;\n  border-left: 4px solid #424245;\n  border-radius: 4px;\n\n  color: #6e6e73 !important;\n  font-size: 14px;\n  line-height: 1.6 !important;\n  font-weight: 400;\n  text-align: left;\n  font-style: normal;\n  max-width: 100%;\n}\n\n/* --- \u4EE3\u7801\u5757\u90E8\u5206 --- */\n\n/* 1. \u884C\u5185\u4EE3\u7801 (\u6587\u5B57\u4E2D\u95F4\u7684\u77ED\u4EE3\u7801) */\n.note-to-mp code {\n  font-family: Menlo, Monaco, Consolas, "Courier New", monospace, sans-serif;\n  font-size: 14px;\n  padding: 2px 6px;\n  background-color: #f5f5f7 !important;\n  color: #6e6e73 !important;\n  border-radius: 6px;\n  font-weight: 400;\n}\n\n/* 2. \u4EE3\u7801\u5757\u5916\u5C42\u5BB9\u5668 (Mac\u7A97\u53E3\u98CE\u683C) */\n.note-to-mp .code-section {\n  margin: 24px 0;\n  padding: 45px 20px 20px;\n  background-color: #282c34 !important;\n  border-radius: 8px;\n  overflow-x: auto;\n\n  background-image:\n    radial-gradient(circle, #ff5f56 6px, transparent 7px),\n    radial-gradient(circle, #ffbd2e 6px, transparent 7px),\n    radial-gradient(circle, #27c93f 6px, transparent 7px),\n    linear-gradient(#21252b, #21252b);\n  background-size: 14px 14px, 14px 14px, 14px 14px, 100% 36px;\n  background-position: 15px 12px, 35px 12px, 55px 12px, 0 0;\n  background-repeat: no-repeat;\n\n  box-shadow: 0 10px 30px rgba(0,0,0,0.15);\n  border: none;\n}\n\n.note-to-mp .code-section ul { display: none; }\n\n/* 3. pre \u6807\u7B7E\u6837\u5F0F\u91CD\u7F6E (\u81EA\u52A8\u6362\u884C) */\n.note-to-mp .code-section pre {\n  margin: 0;\n  padding: 0;\n  background: transparent !important;\n  border: none;\n  line-height: 1.6 !important;\n  white-space: pre-wrap !important;\n  word-wrap: break-word !important;\n  word-break: break-all !important;\n}\n\n/* 4. \u4EE3\u7801\u5757\u5185\u90E8\u6587\u5B57 (\u5F3A\u5236\u9AD8\u4EAE\u989C\u8272) */\n.note-to-mp .code-section code,\n.note-to-mp .code-section span {\n  background-color: transparent !important;\n  color: #e0e6ed !important;\n  padding: 0;\n  border-radius: 0;\n  display: inline;\n  font-family: Menlo, Monaco, Consolas, "Courier New", monospace, sans-serif;\n  font-size: 14px;\n}\n\n/* \u56FE\u7247 */\n.note-to-mp img {\n  max-width: 100%;\n  max-height: 600px !important;\n  height: auto;\n  display: block;\n  margin: 20px auto 41px;\n  border-radius: 15px;\n  box-shadow: 0 15px 30px -6px rgba(33, 150, 243, 0.25), 0 9px 18px -9px rgba(0, 0, 0, 0.3), 0 -6px 18px -4px rgba(0, 0, 0, 0.025);\n}\n.note-to-mp img:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -8px rgba(33, 150, 243, 0.3), 0 12px 24px -12px rgba(0, 0, 0, 0.35); }\n\n/* \u8868\u683C */\n.note-to-mp table { width: 100%; margin: 18px 0; border-collapse: collapse; font-size: 15px; }\n.note-to-mp th { background-color: #f5f5f7 !important; padding: 16px 20px; text-align: left; border: none; font-weight: 500; color: #1d1d1f !important; }\n.note-to-mp td { padding: 16px 20px; border: none; border-top: 1px solid #d2d2d7; color: #6e6e73 !important; font-weight: 300; }\n\n/* WeChatPB \u89C6\u89C9\u6821\u51C6\uFF1A\u63D0\u9AD8\u957F\u6587\u5BF9\u6BD4\u5EA6\uFF0C\u907F\u514D\u7EC6\u7070\u6587\u5B57\u53D1\u865A */\n.note-to-mp { color: #3f3f46 !important; }\n.note-to-mp p,\n.note-to-mp li,\n.note-to-mp td { color: #3f3f46 !important; font-weight: 400; }\n.note-to-mp blockquote { color: #52525b !important; }\n```\n';
@@ -19897,21 +20237,21 @@ ${BUILTIN_THEME_REFINEMENT}`,
       return this.themes;
     }
     try {
-      const cleanPath = (0, import_obsidian3.normalizePath)(this.themesFolder.trim());
+      const cleanPath = (0, import_obsidian4.normalizePath)(this.themesFolder.trim());
       const folder = this.app.vault.getAbstractFileByPath(cleanPath);
       if (!folder) {
-        new import_obsidian3.Notice(`\u627E\u4E0D\u5230\u6587\u4EF6\u5939: ${cleanPath}
+        new import_obsidian4.Notice(`\u627E\u4E0D\u5230\u6587\u4EF6\u5939: ${cleanPath}
 
 \u63D0\u793A\uFF1A\u8BF7\u4F7F\u7528\u76F8\u5BF9\u4E8E vault \u6839\u76EE\u5F55\u7684\u8DEF\u5F84
 \u4F8B\u5982\uFF1Awechat-styles \u6216 styles/wechat`, 8e3);
         return this.themes;
       }
-      if (!(folder instanceof import_obsidian3.TFolder)) {
-        new import_obsidian3.Notice(`"${cleanPath}" \u4E0D\u662F\u4E00\u4E2A\u6587\u4EF6\u5939`, 5e3);
+      if (!(folder instanceof import_obsidian4.TFolder)) {
+        new import_obsidian4.Notice(`"${cleanPath}" \u4E0D\u662F\u4E00\u4E2A\u6587\u4EF6\u5939`, 5e3);
         return this.themes;
       }
       for (const file of folder.children) {
-        if (file instanceof import_obsidian3.TFile) {
+        if (file instanceof import_obsidian4.TFile) {
           try {
             let css = "";
             let themeName = file.basename;
@@ -19942,13 +20282,13 @@ ${BUILTIN_THEME_REFINEMENT}`,
       }
       const customThemeCount = this.themes.filter((theme) => !theme.builtin).length;
       if (customThemeCount > 0) {
-        new import_obsidian3.Notice(`\u5DF2\u52A0\u8F7D ${customThemeCount} \u4E2A\u81EA\u5B9A\u4E49\u4E3B\u9898`, 3e3);
+        new import_obsidian4.Notice(`\u5DF2\u52A0\u8F7D ${customThemeCount} \u4E2A\u81EA\u5B9A\u4E49\u4E3B\u9898`, 3e3);
       } else {
-        new import_obsidian3.Notice(`\u6587\u4EF6\u5939 "${cleanPath}" \u4E2D\u6CA1\u6709\u627E\u5230 CSS \u6587\u4EF6\u6216\u5305\u542B CSS \u4EE3\u7801\u5757\u7684 MD \u6587\u4EF6`, 5e3);
+        new import_obsidian4.Notice(`\u6587\u4EF6\u5939 "${cleanPath}" \u4E2D\u6CA1\u6709\u627E\u5230 CSS \u6587\u4EF6\u6216\u5305\u542B CSS \u4EE3\u7801\u5757\u7684 MD \u6587\u4EF6`, 5e3);
       }
     } catch (error) {
       console.error("Failed to load themes:", error);
-      new import_obsidian3.Notice(`\u52A0\u8F7D\u4E3B\u9898\u5931\u8D25: ${error.message}`, 5e3);
+      new import_obsidian4.Notice(`\u52A0\u8F7D\u4E3B\u9898\u5931\u8D25: ${error.message}`, 5e3);
     }
     return this.themes;
   }
@@ -19984,7 +20324,7 @@ ${BUILTIN_THEME_REFINEMENT}`,
 };
 
 // src/services/weixin-api.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 var import_https_proxy_agent = __toESM(require_dist2());
 var import_socks_proxy_agent = __toESM(require_dist3());
 var import_form_data = __toESM(require_browser2());
@@ -19992,7 +20332,7 @@ var http = __toESM(require("node:http"));
 var https = __toESM(require("node:https"));
 async function requestWithProxy(url, options2, proxyConfig) {
   if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
-    const response = await (0, import_obsidian4.requestUrl)(options2);
+    const response = await (0, import_obsidian5.requestUrl)(options2);
     return {
       status: response.status,
       json: response.json,
@@ -20068,6 +20408,42 @@ async function requestWithProxy(url, options2, proxyConfig) {
     throw new Error(`\u4EE3\u7406\u8BF7\u6C42\u5931\u8D25: ${error.message}`);
   }
 }
+var WeixinApiError = class extends Error {
+  constructor(message, errcode) {
+    super(message);
+    this.name = "WeixinApiError";
+    this.errcode = errcode;
+  }
+};
+var WEIXIN_ERROR_HINTS = {
+  "40001": "Access Token \u65E0\u6548\u6216 AppSecret \u9519\u8BEF",
+  "40013": "AppID \u65E0\u6548\uFF0C\u8BF7\u68C0\u67E5\u8D26\u53F7\u8BBE\u7F6E",
+  "40125": "AppSecret \u65E0\u6548\uFF0C\u8BF7\u5728\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406\u300D\u91CD\u7F6E\u540E\u91CD\u65B0\u586B\u5199",
+  "40164": "\u5F53\u524D\u51FA\u53E3 IP \u4E0D\u5728\u516C\u4F17\u53F7 IP \u767D\u540D\u5355",
+  "42001": "Access Token \u5DF2\u8FC7\u671F",
+  "48001": "\u8BE5\u516C\u4F17\u53F7\u6CA1\u6709\u6B64\u63A5\u53E3\u6743\u9650\uFF08\u672A\u8BA4\u8BC1\u7684\u4E2A\u4EBA\u53F7\u5E38\u89C1\uFF09\uFF0C\u8BF7\u5728\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u63A5\u53E3\u6743\u9650\u300D\u786E\u8BA4\u300C\u8349\u7A3F\u7BB1 / \u7D20\u6750\u7BA1\u7406\u300D\u53EF\u7528",
+  "45009": "\u4ECA\u65E5\u63A5\u53E3\u8C03\u7528\u6B21\u6570\u5DF2\u8FBE\u4E0A\u9650\uFF0C\u8BF7\u660E\u5929\u518D\u8BD5",
+  "40007": "\u5C01\u9762\u7D20\u6750\u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u5C01\u9762",
+  "40009": "\u56FE\u7247\u5C3A\u5BF8\u6216\u5927\u5C0F\u4E0D\u7B26\u5408\u8981\u6C42",
+  "41005": "\u7F3A\u5C11\u56FE\u7247\u6570\u636E",
+  "45003": "\u6807\u9898\u8FC7\u957F",
+  "45004": "\u6458\u8981\u8FC7\u957F\uFF08\u6700\u591A 120 \u5B57\uFF09",
+  "45110": "\u4F5C\u8005\u540D\u8FC7\u957F\uFF08\u6700\u591A 8 \u4E2A\u5B57\uFF09",
+  "53404": "\u8D26\u53F7\u5DF2\u88AB\u9650\u5236\u53D1\u6587",
+  "-1": "\u5FAE\u4FE1\u7CFB\u7EDF\u7E41\u5FD9\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5"
+};
+function toWeixinError(json, fallback) {
+  var _a, _b;
+  const errcode = (_a = json == null ? void 0 : json.errcode) != null ? _a : "unknown";
+  const errmsg = (json == null ? void 0 : json.errmsg) || fallback;
+  let hint = WEIXIN_ERROR_HINTS[String(errcode)];
+  if (String(errcode) === "40164") {
+    const ip = (_b = errmsg.match(/invalid ip ([0-9a-fA-F.:]+)/)) == null ? void 0 : _b[1];
+    hint = ip ? `\u51FA\u53E3 IP ${ip} \u4E0D\u5728\u516C\u4F17\u53F7\u767D\u540D\u5355\u3002\u8BF7\u5230\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406 \u2192 IP \u767D\u540D\u5355\u300D\u6DFB\u52A0 ${ip}\uFF0C\u51E0\u5206\u949F\u540E\u518D\u8BD5\uFF08\u5BB6\u5EAD\u5BBD\u5E26 IP \u53D8\u5316\u540E\u9700\u8981\u91CD\u65B0\u6DFB\u52A0\uFF09` : `${hint}\uFF0C\u8BF7\u5230\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406 \u2192 IP \u767D\u540D\u5355\u300D\u6DFB\u52A0\u5F53\u524D\u51FA\u53E3 IP`;
+  }
+  const message = hint ? `${hint}\uFF08errcode: ${errcode}\uFF09` : `${errmsg}\uFF08errcode: ${errcode}\uFF09`;
+  return new WeixinApiError(message, errcode);
+}
 async function getAccessToken(appid, secret, proxyConfig) {
   const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`;
   try {
@@ -20078,8 +20454,7 @@ async function getAccessToken(appid, secret, proxyConfig) {
     if (response.json.access_token) {
       return response.json.access_token;
     } else {
-      const errmsg = response.json.errmsg || "\u83B7\u53D6 Access Token \u5931\u8D25";
-      throw new Error(errmsg);
+      throw toWeixinError(response.json, "\u83B7\u53D6 Access Token \u5931\u8D25");
     }
   } catch (error) {
     throw error;
@@ -20111,7 +20486,7 @@ async function uploadImage(imageData, filename, accessToken, proxyConfig) {
               if (result.media_id) {
                 resolve(result);
               } else {
-                reject(new Error(result.errmsg || "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25"));
+                reject(toWeixinError(result, "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25"));
               }
             } catch (e) {
               reject(e);
@@ -20154,7 +20529,7 @@ async function uploadImage(imageData, filename, accessToken, proxyConfig) {
             if (result.media_id) {
               resolve(result);
             } else {
-              reject(new Error(result.errmsg || "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25"));
+              reject(toWeixinError(result, "\u4E0A\u4F20\u56FE\u7247\u5931\u8D25"));
             }
           } catch (e) {
             reject(e);
@@ -20185,9 +20560,7 @@ async function addDraft(articles, accessToken, proxyConfig) {
     if (response.json.media_id) {
       return response.json;
     } else {
-      const errmsg = response.json.errmsg || "\u521B\u5EFA\u8349\u7A3F\u5931\u8D25";
-      const errcode = response.json.errcode || "unknown";
-      throw new Error(`${errmsg} (errcode: ${errcode})`);
+      throw toWeixinError(response.json, "\u521B\u5EFA\u8349\u7A3F\u5931\u8D25");
     }
   } catch (error) {
     throw error;
@@ -20220,47 +20593,9 @@ async function testProxy(proxyConfig) {
   }
 }
 
-// src/utils/image.ts
-async function compressImage(data, mimeType, maxSizeKB = 500) {
-  if (data.byteLength <= maxSizeKB * 1024 || !/^image\/(png|jpe?g|webp)$/i.test(mimeType)) {
-    return { data, mimeType };
-  }
-  const blobUrl = URL.createObjectURL(new Blob([data], { type: mimeType }));
-  try {
-    const image = new Image();
-    await new Promise((resolve, reject) => {
-      image.onload = () => resolve();
-      image.onerror = () => reject(new Error("\u65E0\u6CD5\u8BFB\u53D6\u56FE\u7247"));
-      image.src = blobUrl;
-    });
-    const scale = Math.min(1, 2048 / image.naturalWidth, 2048 / image.naturalHeight);
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("\u65E0\u6CD5\u521B\u5EFA\u56FE\u7247\u538B\u7F29\u753B\u5E03");
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const outputMime = mimeType === "image/png" ? "image/jpeg" : mimeType;
-    let quality = 0.9;
-    let output = await canvasToBlob(canvas, outputMime, quality);
-    while (output.size > maxSizeKB * 1024 && quality > 0.2) {
-      quality -= 0.1;
-      output = await canvasToBlob(canvas, outputMime, quality);
-    }
-    return { data: await output.arrayBuffer(), mimeType: outputMime };
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
-}
-function canvasToBlob(canvas, mimeType, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("\u56FE\u7247\u538B\u7F29\u5931\u8D25")), mimeType, quality);
-  });
-}
-
 // src/views/publisher-view.ts
 var VIEW_TYPE_PUBLISHER = "wechat-multi-publisher-view";
-var PublisherView = class extends import_obsidian5.ItemView {
+var PublisherView = class extends import_obsidian6.ItemView {
   // 发布汇总信息
   constructor(leaf, plugin2) {
     super(leaf);
@@ -20392,7 +20727,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
       this.selectedTheme = select.value;
       this.plugin.settings.defaultTheme = this.selectedTheme;
       await this.plugin.saveSettings();
-      new import_obsidian5.Notice(`\u5DF2\u9009\u62E9\u6837\u5F0F\uFF1A${this.selectedTheme}`);
+      new import_obsidian6.Notice(`\u5DF2\u9009\u62E9\u6837\u5F0F\uFF1A${this.selectedTheme}`);
       this.render();
     };
     const refreshBtn = controlRow.createEl("button", {
@@ -20403,7 +20738,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
       this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
       this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
       await this.themeManager.loadThemes();
-      new import_obsidian5.Notice("\u4E3B\u9898\u5217\u8868\u5DF2\u5237\u65B0");
+      new import_obsidian6.Notice("\u4E3B\u9898\u5217\u8868\u5DF2\u5237\u65B0");
       this.render();
     };
     const selected = this.themeManager.getTheme(this.selectedTheme);
@@ -20419,7 +20754,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
   }
   renderCoverUpload(container) {
     const section = container.createDiv({ cls: "cover-upload-section" });
-    section.createEl("h4", { text: "\u5C01\u9762\u56FE\u7247\uFF08\u53EF\u9009\uFF09" });
+    section.createEl("h4", { text: "\u5C01\u9762\u56FE\u7247\uFF08\u53D1\u5E03\u65F6\u53EF\u5728\u786E\u8BA4\u5F39\u7A97\u66F4\u6362\uFF09" });
     if (this.coverImage) {
       const preview = section.createDiv({ cls: "cover-preview" });
       const img = preview.createEl("img");
@@ -20468,11 +20803,11 @@ var PublisherView = class extends import_obsidian5.ItemView {
   }
   async handleFileUpload(file) {
     if (!file.type.match(/^image\/(jpeg|png)$/)) {
-      new import_obsidian5.Notice("\u4EC5\u652F\u6301 JPG/PNG \u683C\u5F0F");
+      new import_obsidian6.Notice("\u4EC5\u652F\u6301 JPG/PNG \u683C\u5F0F");
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      new import_obsidian5.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2MB");
+      new import_obsidian6.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2MB");
       return;
     }
     const reader = new FileReader();
@@ -20482,7 +20817,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
         base64: (_a = e.target) == null ? void 0 : _a.result
       };
       this.render();
-      new import_obsidian5.Notice("\u5C01\u9762\u56FE\u7247\u4E0A\u4F20\u6210\u529F");
+      new import_obsidian6.Notice("\u5C01\u9762\u56FE\u7247\u4E0A\u4F20\u6210\u529F");
     };
     reader.readAsDataURL(file);
   }
@@ -20549,7 +20884,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
   }
   async handlePreview() {
     var _a, _b, _c, _d;
-    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian5.MarkdownView);
+    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
     if (!activeView) {
       const leaves = this.app.workspace.getLeavesOfType("markdown");
       if (leaves.length > 0) {
@@ -20557,12 +20892,12 @@ var PublisherView = class extends import_obsidian5.ItemView {
       }
     }
     if (!activeView) {
-      new import_obsidian5.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
     let content = activeView.getViewData();
     if (!content.trim()) {
-      new import_obsidian5.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+      new import_obsidian6.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
       return;
     }
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
@@ -20577,17 +20912,17 @@ var PublisherView = class extends import_obsidian5.ItemView {
   }
   async handleExportLongImage() {
     var _a, _b, _c, _d, _e, _f;
-    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian5.MarkdownView);
+    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
     if (!activeView) {
       activeView = (_b = (_a = this.app.workspace.getLeavesOfType("markdown")[0]) == null ? void 0 : _a.view) != null ? _b : null;
     }
     if (!activeView) {
-      new import_obsidian5.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
     let content = activeView.getViewData();
     if (!content.trim()) {
-      new import_obsidian5.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+      new import_obsidian6.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
       return;
     }
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
@@ -20602,9 +20937,9 @@ var PublisherView = class extends import_obsidian5.ItemView {
     );
     try {
       const path = await modal.exportLongImage();
-      new import_obsidian5.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
+      new import_obsidian6.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
     } catch (error) {
-      new import_obsidian5.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
+      new import_obsidian6.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
     }
   }
   /**
@@ -20711,7 +21046,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
   }
   async handlePublish() {
     var _a, _b;
-    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian5.MarkdownView);
+    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
     if (!activeView) {
       const leaves = this.app.workspace.getLeavesOfType("markdown");
       if (leaves.length > 0) {
@@ -20719,16 +21054,46 @@ var PublisherView = class extends import_obsidian5.ItemView {
       }
     }
     if (!activeView) {
-      new import_obsidian5.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
     let content = activeView.getViewData();
     if (!content.trim()) {
-      new import_obsidian5.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+      new import_obsidian6.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
       return;
     }
+    const file = activeView.file;
+    if (!file) {
+      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      return;
+    }
+    if (this.selectedAccountIds.size === 0) {
+      new import_obsidian6.Notice("\u8BF7\u5148\u52FE\u9009\u81F3\u5C11\u4E00\u4E2A\u516C\u4F17\u53F7");
+      return;
+    }
+    if (this.isPublishing) return;
+    const loading = new import_obsidian6.Notice("\u6B63\u5728\u51C6\u5907\u8349\u7A3F\u4FE1\u606F\u2026", 0);
+    let draft;
+    try {
+      const { meta, coverSource } = await buildDraftDefaults(this.app, {
+        file,
+        markdown: this.removeFrontmatter(content),
+        panelCoverBase64: (_a = this.coverImage) == null ? void 0 : _a.base64,
+        defaultCoverBase64: this.plugin.settings.defaultCoverImage,
+        defaultAuthor: this.plugin.settings.defaultAuthor,
+        defaultOpenComment: this.plugin.settings.defaultOpenComment
+      });
+      loading.hide();
+      const accountNames = this.plugin.settings.accounts.filter((a) => this.selectedAccountIds.has(a.id)).map((a) => a.name);
+      draft = await new DraftConfirmModal(this.app, meta, coverSource, accountNames).openAndWait();
+    } catch (error) {
+      loading.hide();
+      new import_obsidian6.Notice(`\u51C6\u5907\u8349\u7A3F\u5931\u8D25\uFF1A${error instanceof Error ? error.message : error}`);
+      return;
+    }
+    if (!draft) return;
+    const title = draft.title;
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
-    const title = ((_a = activeView.file) == null ? void 0 : _a.basename) || "\u65E0\u6807\u9898";
     content = await this.processImageLinks(content, activeView);
     this.isPublishing = true;
     this.publishProgress.clear();
@@ -20749,7 +21114,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
     let failCount = 0;
     for (let i = 0; i < accountIds.length; i += maxConcurrent) {
       const batch = accountIds.slice(i, i + maxConcurrent);
-      const promises = batch.map((accountId) => this.publishToAccount(accountId, title, htmlContent));
+      const promises = batch.map((accountId) => this.publishToAccount(accountId, draft, htmlContent));
       const results = await Promise.all(promises);
       for (const result of results) {
         if (result.success) {
@@ -20762,7 +21127,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
     this.isPublishing = false;
     this.publishSummary = { successCount, failCount };
     this.render();
-    new import_obsidian5.Notice(`\u53D1\u5E03\u5B8C\u6210\uFF1A${successCount} \u4E2A\u6210\u529F\uFF0C${failCount} \u4E2A\u5931\u8D25`);
+    new import_obsidian6.Notice(`\u53D1\u5E03\u5B8C\u6210\uFF1A${successCount} \u4E2A\u6210\u529F\uFF0C${failCount} \u4E2A\u5931\u8D25`);
     this.plugin.settings.publishHistory.unshift({
       time: (/* @__PURE__ */ new Date()).toISOString(),
       articleTitle: title,
@@ -20809,12 +21174,12 @@ var PublisherView = class extends import_obsidian5.ItemView {
         }
       } catch (error) {
         console.error(`[UploadImages] Failed to upload image ${i + 1}:`, error);
+        new import_obsidian6.Notice(`\u7B2C ${i + 1} \u5F20\u6B63\u6587\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${error instanceof Error ? error.message : error}`, 8e3);
       }
     }
     return processedContent;
   }
-  async publishToAccount(accountId, title, content) {
-    var _a;
+  async publishToAccount(accountId, draft, content) {
     const account = this.plugin.settings.accounts.find((a) => a.id === accountId);
     if (!account) {
       return { success: false, duration: 0, error: "\u8D26\u53F7\u672A\u627E\u5230" };
@@ -20830,50 +21195,57 @@ var PublisherView = class extends import_obsidian5.ItemView {
       if (!resolved.appsecret) {
         throw new Error("\u7F3A\u5C11 AppSecret\uFF0C\u8BF7\u5728\u63D2\u4EF6\u8BBE\u7F6E\u4E2D\u91CD\u65B0\u4FDD\u5B58\u8D26\u53F7");
       }
-      if (!resolved.accessToken || !account.tokenExpireTime || Date.now() >= account.tokenExpireTime) {
-        const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
-        this.plugin.setAccessToken(account, token);
-        account.tokenExpireTime = Date.now() + 7200 * 1e3;
-        await this.plugin.saveSettings();
-        resolved = this.plugin.resolveAccount(account);
-      }
-      if (!resolved.accessToken) throw new Error("\u65E0\u6CD5\u83B7\u53D6 Access Token");
-      let thumbMediaId;
-      const coverImageBase64 = ((_a = this.coverImage) == null ? void 0 : _a.base64) || this.plugin.settings.defaultCoverImage;
-      if (coverImageBase64) {
+      const ensureToken = async (force = false) => {
+        if (force || !resolved.accessToken || !account.tokenExpireTime || Date.now() >= account.tokenExpireTime) {
+          const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
+          this.plugin.setAccessToken(account, token);
+          account.tokenExpireTime = Date.now() + 7200 * 1e3;
+          await this.plugin.saveSettings();
+          resolved = this.plugin.resolveAccount(account);
+        }
+        if (!resolved.accessToken) throw new Error("\u65E0\u6CD5\u83B7\u53D6 Access Token");
+        return resolved.accessToken;
+      };
+      const pushDraft = async (accessToken) => {
+        const base64Data = draft.coverBase64.split(",")[1];
+        if (!base64Data) throw new Error("\u5C01\u9762\u56FE\u7247\u6570\u636E\u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u5C01\u9762");
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        let thumbMediaId;
         try {
-          const base64Data = coverImageBase64.split(",")[1];
-          const binaryString = atob(base64Data);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          const imageBuffer = bytes.buffer;
-          const uploadResult = await uploadImage(
-            imageBuffer,
-            "cover.jpg",
-            resolved.accessToken,
-            resolved.proxyConfig
-          );
-          if (uploadResult && uploadResult.media_id) {
-            thumbMediaId = uploadResult.media_id;
-          }
+          const ext = draft.coverBase64.startsWith("data:image/png") ? "png" : "jpg";
+          const uploadResult = await uploadImage(bytes.buffer, `cover.${ext}`, accessToken, resolved.proxyConfig);
+          thumbMediaId = uploadResult.media_id;
         } catch (uploadError) {
-          console.error("[Publish] Cover upload failed:", uploadError);
+          if (uploadError instanceof WeixinApiError) throw uploadError;
+          throw new Error(`\u5C01\u9762\u4E0A\u4F20\u5931\u8D25\uFF1A${uploadError instanceof Error ? uploadError.message : uploadError}`);
+        }
+        const processedContent = await this.uploadImagesAndReplace(content, accessToken, resolved.proxyConfig);
+        const articles = [{
+          title: draft.title,
+          author: draft.author,
+          digest: draft.digest,
+          content: processedContent,
+          content_source_url: draft.contentSourceUrl,
+          thumb_media_id: thumbMediaId,
+          need_open_comment: draft.openComment ? 1 : 0,
+          only_fans_can_comment: draft.onlyFansCanComment ? 1 : 0
+        }];
+        await addDraft(articles, accessToken, resolved.proxyConfig);
+      };
+      try {
+        await pushDraft(await ensureToken());
+      } catch (error) {
+        const code = error instanceof WeixinApiError ? String(error.errcode) : "";
+        if (code === "40001" || code === "42001" || code === "40014") {
+          await pushDraft(await ensureToken(true));
+        } else {
+          throw error;
         }
       }
-      const processedContent = await this.uploadImagesAndReplace(content, resolved.accessToken, resolved.proxyConfig);
-      const articles = [{
-        title,
-        author: "",
-        digest: "",
-        content: processedContent,
-        content_source_url: "",
-        thumb_media_id: thumbMediaId || "",
-        need_open_comment: 0,
-        only_fans_can_comment: 0
-      }];
-      await addDraft(articles, resolved.accessToken, resolved.proxyConfig);
       const duration = Date.now() - startTime;
       this.publishProgress.set(accountId, {
         accountId,
@@ -20900,7 +21272,7 @@ var PublisherView = class extends import_obsidian5.ItemView {
     return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
   }
 };
-var PreviewModal = class extends import_obsidian5.Modal {
+var PreviewModal = class extends import_obsidian6.Modal {
   constructor(app, html, title, exportDir) {
     super(app);
     this.html = html;
@@ -20912,13 +21284,13 @@ var PreviewModal = class extends import_obsidian5.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: "\u5FAE\u4FE1\u9884\u89C8" });
     const previewContainer = contentEl.createDiv({ cls: "wechat-preview-container" });
-    previewContainer.replaceChildren((0, import_obsidian5.sanitizeHTMLToDom)(this.html));
+    previewContainer.replaceChildren((0, import_obsidian6.sanitizeHTMLToDom)(this.html));
     const buttonContainer = contentEl.createDiv({ cls: "modal-button-container" });
     const copyBtn = buttonContainer.createEl("button", { text: "\u590D\u5236", cls: "mod-cta" });
     copyBtn.onclick = async () => {
       try {
         const tempDiv = document.body.createDiv({ cls: "wechat-multi-publisher-copy-buffer" });
-        tempDiv.replaceChildren((0, import_obsidian5.sanitizeHTMLToDom)(this.html));
+        tempDiv.replaceChildren((0, import_obsidian6.sanitizeHTMLToDom)(this.html));
         const range = document.createRange();
         range.selectNodeContents(tempDiv);
         const selection = window.getSelection();
@@ -20953,9 +21325,9 @@ var PreviewModal = class extends import_obsidian5.Modal {
       exportBtn.disabled = true;
       try {
         const path = await this.exportLongImage();
-        new import_obsidian5.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
+        new import_obsidian6.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
       } catch (error) {
-        new import_obsidian5.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
+        new import_obsidian6.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
       } finally {
         exportBtn.disabled = false;
       }
@@ -20969,7 +21341,7 @@ var PreviewModal = class extends import_obsidian5.Modal {
   }
   async exportLongImage() {
     const root2 = document.body.createDiv({ cls: "wechat-multi-publisher-image-export" });
-    root2.replaceChildren((0, import_obsidian5.sanitizeHTMLToDom)(this.html));
+    root2.replaceChildren((0, import_obsidian6.sanitizeHTMLToDom)(this.html));
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 50));
       await this.waitForImages(root2);
@@ -21016,15 +21388,15 @@ var PreviewModal = class extends import_obsidian5.Modal {
     const base = this.title.replace(/[\\/:*?"<>|]/g, "-").trim() || "\u5FAE\u4FE1\u6587\u7AE0";
     for (let index = 0; ; index += 1) {
       const filename = `${base}${index ? `-${index}` : ""}.${extension}`;
-      const path = (0, import_obsidian5.normalizePath)(this.exportDir ? `${this.exportDir}/${filename}` : filename);
+      const path = (0, import_obsidian6.normalizePath)(this.exportDir ? `${this.exportDir}/${filename}` : filename);
       if (!await this.app.vault.adapter.exists(path)) return path;
     }
   }
 };
 
 // src/modals/account-modal.ts
-var import_obsidian6 = require("obsidian");
-var AccountModal = class extends import_obsidian6.Modal {
+var import_obsidian7 = require("obsidian");
+var AccountModal = class extends import_obsidian7.Modal {
   constructor(app, plugin2, account, onSubmit) {
     super(app);
     // Form fields
@@ -21060,48 +21432,48 @@ var AccountModal = class extends import_obsidian6.Modal {
     const { contentEl } = this;
     contentEl.empty();
     this.setTitle(this.isEdit ? "\u7F16\u8F91\u8D26\u53F7" : "\u6DFB\u52A0\u65B0\u8D26\u53F7");
-    new import_obsidian6.Setting(contentEl).setName("\u8D26\u53F7\u540D\u79F0").setDesc("\u4FBF\u4E8E\u8BC6\u522B\u7684\u540D\u79F0").addText((text) => text.setPlaceholder("\u6211\u7684\u516C\u4F17\u53F7").setValue(this.nameInput).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("\u8D26\u53F7\u540D\u79F0").setDesc("\u4FBF\u4E8E\u8BC6\u522B\u7684\u540D\u79F0").addText((text) => text.setPlaceholder("\u6211\u7684\u516C\u4F17\u53F7").setValue(this.nameInput).onChange((value) => {
       this.nameInput = value;
     }));
-    new import_obsidian6.Setting(contentEl).setName("\u5907\u6CE8").setDesc("\u53EF\u9009\u7684\u8BF4\u660E\u6216\u6CE8\u91CA").addTextArea((text) => text.setPlaceholder("\u8D26\u53F7\u7528\u9014\u8BF4\u660E...").setValue(this.remarkInput).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("\u5907\u6CE8").setDesc("\u53EF\u9009\u7684\u8BF4\u660E\u6216\u6CE8\u91CA").addTextArea((text) => text.setPlaceholder("\u8D26\u53F7\u7528\u9014\u8BF4\u660E...").setValue(this.remarkInput).onChange((value) => {
       this.remarkInput = value;
     }));
-    new import_obsidian6.Setting(contentEl).setName("AppID").setDesc("\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppID").addText((text) => text.setPlaceholder("\u8BF7\u8F93\u5165\u516C\u4F17\u53F7 AppID").setValue(this.appidInput).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("AppID").setDesc("\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppID").addText((text) => text.setPlaceholder("\u8BF7\u8F93\u5165\u516C\u4F17\u53F7 AppID").setValue(this.appidInput).onChange((value) => {
       this.appidInput = value;
     }));
-    new import_obsidian6.Setting(contentEl).setName("AppSecret").setDesc(this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709 AppSecret" : "\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppSecret").addText((text) => {
+    new import_obsidian7.Setting(contentEl).setName("AppSecret").setDesc(this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709 AppSecret" : "\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppSecret").addText((text) => {
       text.setPlaceholder("\u8BF7\u8F93\u5165 AppSecret").setValue(this.appsecretInput).onChange((value) => {
         this.appsecretInput = value;
       });
       text.inputEl.type = "password";
     });
-    new import_obsidian6.Setting(contentEl).setName("\u4EE3\u7406\u914D\u7F6E\uFF08\u53EF\u9009\uFF09").setHeading();
-    new import_obsidian6.Setting(contentEl).setName("\u4EE3\u7406\u7C7B\u578B").setDesc("\u9009\u62E9\u4EE3\u7406\u534F\u8BAE\u7C7B\u578B").addDropdown((dropdown) => dropdown.addOption("http", "HTTP\uFF08\u63A8\u8350\uFF0C\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("https", "HTTPS\uFF08\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("socks5", "SOCKS5\uFF08\u4E0D\u652F\u6301\u8BA4\u8BC1\uFF09").setValue(this.proxyType).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u914D\u7F6E\uFF08\u53EF\u9009\uFF09").setHeading();
+    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u7C7B\u578B").setDesc("\u9009\u62E9\u4EE3\u7406\u534F\u8BAE\u7C7B\u578B").addDropdown((dropdown) => dropdown.addOption("http", "HTTP\uFF08\u63A8\u8350\uFF0C\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("https", "HTTPS\uFF08\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("socks5", "SOCKS5\uFF08\u4E0D\u652F\u6301\u8BA4\u8BC1\uFF09").setValue(this.proxyType).onChange((value) => {
       this.proxyType = value;
     }));
-    new import_obsidian6.Setting(contentEl).setName("\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740\uFF08\u5982\uFF1Ac1023.ips5.vip\uFF09\u7559\u7A7A\u5219\u4F7F\u7528\u672C\u5730\u7F51\u7EDC").addText((text) => text.setPlaceholder("c1023.ips5.vip").setValue(this.proxyHost).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740\uFF08\u5982\uFF1Ac1023.ips5.vip\uFF09\u7559\u7A7A\u5219\u4F7F\u7528\u672C\u5730\u7F51\u7EDC").addText((text) => text.setPlaceholder("c1023.ips5.vip").setValue(this.proxyHost).onChange((value) => {
       this.proxyHost = value;
     }));
-    new import_obsidian6.Setting(contentEl).setName("\u4EE3\u7406\u7AEF\u53E3").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u7AEF\u53E3\uFF08\u5982\uFF1A9125\uFF09").addText((text) => text.setPlaceholder("9125").setValue(this.proxyPort.toString()).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u7AEF\u53E3").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u7AEF\u53E3\uFF08\u5982\uFF1A9125\uFF09").addText((text) => text.setPlaceholder("9125").setValue(this.proxyPort.toString()).onChange((value) => {
       const port = parseInt(value);
       if (!isNaN(port)) {
         this.proxyPort = port;
       }
     }));
     const isAuthSupported = this.proxyType === "http" || this.proxyType === "https";
-    new import_obsidian6.Setting(contentEl).setName("\u4EE3\u7406\u7528\u6237\u540D").setDesc(isAuthSupported ? "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u7528\u6237\u540D" : "\u274C SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => text.setPlaceholder("\u7528\u6237\u540D").setValue(this.proxyUsername).setDisabled(!isAuthSupported).onChange((value) => {
+    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u7528\u6237\u540D").setDesc(isAuthSupported ? "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u7528\u6237\u540D" : "\u274C SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => text.setPlaceholder("\u7528\u6237\u540D").setValue(this.proxyUsername).setDisabled(!isAuthSupported).onChange((value) => {
       this.proxyUsername = value;
     }));
-    new import_obsidian6.Setting(contentEl).setName("\u4EE3\u7406\u5BC6\u7801").setDesc(isAuthSupported ? this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709\u4EE3\u7406\u5BC6\u7801" : "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u5BC6\u7801" : "SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => {
+    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u5BC6\u7801").setDesc(isAuthSupported ? this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709\u4EE3\u7406\u5BC6\u7801" : "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u5BC6\u7801" : "SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => {
       text.setPlaceholder("\u5BC6\u7801").setValue(this.proxyPassword).setDisabled(!isAuthSupported).onChange((value) => {
         this.proxyPassword = value;
       });
       text.inputEl.type = "password";
     });
-    new import_obsidian6.Setting(contentEl).setName("\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5").setDesc("\u9A8C\u8BC1\u4EE3\u7406\u914D\u7F6E\u662F\u5426\u6B63\u5E38\u5DE5\u4F5C").addButton((button) => button.setButtonText("\u6D4B\u8BD5\u8FDE\u63A5").onClick(async () => {
+    new import_obsidian7.Setting(contentEl).setName("\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5").setDesc("\u9A8C\u8BC1\u4EE3\u7406\u914D\u7F6E\u662F\u5426\u6B63\u5E38\u5DE5\u4F5C").addButton((button) => button.setButtonText("\u6D4B\u8BD5\u8FDE\u63A5").onClick(async () => {
       await this.testProxyConnection();
     }));
-    new import_obsidian6.Setting(contentEl).setName("\u6D4B\u8BD5 API \u914D\u7F6E").setDesc("\u9A8C\u8BC1 AppID \u548C AppSecret \u662F\u5426\u6709\u6548").addButton((button) => button.setButtonText("\u6D4B\u8BD5 API").onClick(async () => {
+    new import_obsidian7.Setting(contentEl).setName("\u6D4B\u8BD5 API \u914D\u7F6E").setDesc("\u9A8C\u8BC1 AppID \u548C AppSecret \u662F\u5426\u6709\u6548").addButton((button) => button.setButtonText("\u6D4B\u8BD5 API").onClick(async () => {
       await this.testAccessToken();
     }));
     const buttonContainer = contentEl.createDiv({ cls: "modal-button-container" });
@@ -21118,7 +21490,7 @@ var AccountModal = class extends import_obsidian6.Modal {
   }
   async testProxyConnection() {
     if (!this.proxyHost || !this.proxyPort) {
-      new import_obsidian6.Notice("\u4EE3\u7406\u672A\u914D\u7F6E\uFF0C\u5C06\u4F7F\u7528\u672C\u5730\u7F51\u7EDC\u8FDE\u63A5");
+      new import_obsidian7.Notice("\u4EE3\u7406\u672A\u914D\u7F6E\uFF0C\u5C06\u4F7F\u7528\u672C\u5730\u7F51\u7EDC\u8FDE\u63A5");
       return;
     }
     const proxyConfig = {
@@ -21128,22 +21500,22 @@ var AccountModal = class extends import_obsidian6.Modal {
       username: this.proxyUsername || void 0,
       password: this.proxyPassword || void 0
     };
-    new import_obsidian6.Notice("\u6B63\u5728\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5...");
+    new import_obsidian7.Notice("\u6B63\u5728\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5...");
     const response = await testProxy(proxyConfig);
     if (response.success) {
-      new import_obsidian6.Notice(`\u2705 \u4EE3\u7406\u8FDE\u63A5\u6210\u529F\uFF01\u5EF6\u8FDF\uFF1A${response.latency}ms`);
+      new import_obsidian7.Notice(`\u2705 \u4EE3\u7406\u8FDE\u63A5\u6210\u529F\uFF01\u5EF6\u8FDF\uFF1A${response.latency}ms`);
     } else {
-      new import_obsidian6.Notice(`\u274C \u4EE3\u7406\u8FDE\u63A5\u5931\u8D25\uFF1A${response.error}`);
+      new import_obsidian7.Notice(`\u274C \u4EE3\u7406\u8FDE\u63A5\u5931\u8D25\uFF1A${response.error}`);
     }
   }
   async testAccessToken() {
     if (!this.appidInput.trim()) {
-      new import_obsidian6.Notice("\u8BF7\u8F93\u5165 AppID");
+      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppID");
       return;
     }
     const appSecret = this.appsecretInput.trim() || (this.account ? this.plugin.getAppSecret(this.account) : "");
     if (!appSecret) {
-      new import_obsidian6.Notice("\u8BF7\u8F93\u5165 AppSecret");
+      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppSecret");
       return;
     }
     let proxyConfig = void 0;
@@ -21156,7 +21528,7 @@ var AccountModal = class extends import_obsidian6.Modal {
         password: this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : void 0)
       };
     }
-    new import_obsidian6.Notice("\u6B63\u5728\u6D4B\u8BD5 Access Token...");
+    new import_obsidian7.Notice("\u6B63\u5728\u6D4B\u8BD5 Access Token...");
     try {
       const token = await getAccessToken(
         this.appidInput.trim(),
@@ -21164,24 +21536,24 @@ var AccountModal = class extends import_obsidian6.Modal {
         proxyConfig
       );
       if (!token) throw new Error("\u5FAE\u4FE1\u63A5\u53E3\u672A\u8FD4\u56DE Access Token");
-      new import_obsidian6.Notice("\u2705 Access Token \u83B7\u53D6\u6210\u529F");
+      new import_obsidian7.Notice("\u2705 Access Token \u83B7\u53D6\u6210\u529F");
     } catch (error) {
-      new import_obsidian6.Notice(`\u274C \u83B7\u53D6 Access Token \u5931\u8D25\uFF1A${error.message}`);
+      new import_obsidian7.Notice(`\u274C \u83B7\u53D6 Access Token \u5931\u8D25\uFF1A${error.message}`);
     }
   }
   async handleSave() {
     var _a, _b, _c, _d, _e, _f;
     if (!this.nameInput.trim()) {
-      new import_obsidian6.Notice("\u8BF7\u8F93\u5165\u8D26\u53F7\u540D\u79F0");
+      new import_obsidian7.Notice("\u8BF7\u8F93\u5165\u8D26\u53F7\u540D\u79F0");
       return;
     }
     if (!this.appidInput.trim()) {
-      new import_obsidian6.Notice("\u8BF7\u8F93\u5165 AppID");
+      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppID");
       return;
     }
     const appSecret = this.appsecretInput.trim() || (this.account ? this.plugin.getAppSecret(this.account) : "");
     if (!appSecret) {
-      new import_obsidian6.Notice("\u8BF7\u8F93\u5165 AppSecret");
+      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppSecret");
       return;
     }
     let proxyConfig = void 0;
@@ -21205,7 +21577,7 @@ var AccountModal = class extends import_obsidian6.Modal {
       status: "offline",
       lastCheckTime: (_f = this.account) == null ? void 0 : _f.lastCheckTime
     };
-    new import_obsidian6.Notice("\u9A8C\u8BC1 Access Token...");
+    new import_obsidian7.Notice("\u9A8C\u8BC1 Access Token...");
     try {
       const token = await getAccessToken(
         account.appid,
@@ -21225,9 +21597,9 @@ var AccountModal = class extends import_obsidian6.Modal {
       account.status = "online";
       this.onSubmit(account);
       this.close();
-      new import_obsidian6.Notice("\u8D26\u53F7\u4FDD\u5B58\u6210\u529F");
+      new import_obsidian7.Notice("\u8D26\u53F7\u4FDD\u5B58\u6210\u529F");
     } catch (error) {
-      new import_obsidian6.Notice(`\u274C \u9A8C\u8BC1\u5931\u8D25\uFF1A${error.message}`);
+      new import_obsidian7.Notice(`\u274C \u9A8C\u8BC1\u5931\u8D25\uFF1A${error.message}`);
     }
   }
   onClose() {
@@ -21336,7 +21708,7 @@ var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A WeChatPB \u8BBE\u8BA1\u4E00\u5957\u5FA
 \u8BF7\u4FDD\u6301\u8FD9\u4E9B\u517C\u5BB9\u89C4\u5219\uFF0C\u518D\u6839\u636E\u6211\u63A5\u4E0B\u6765\u63D0\u4F9B\u7684\u53C2\u8003\u56FE\u7247\u3001\u54C1\u724C\u989C\u8272\u6216\u6587\u7AE0\u7C7B\u578B\u5B8C\u6210\u89C6\u89C9\u8BBE\u8BA1\u3002`;
 
 // src/main.ts
-var FolderSuggestModal = class extends import_obsidian7.FuzzySuggestModal {
+var FolderSuggestModal = class extends import_obsidian8.FuzzySuggestModal {
   constructor(app, folderPaths, onChoose) {
     super(app);
     this.folderPaths = folderPaths;
@@ -21353,7 +21725,7 @@ var FolderSuggestModal = class extends import_obsidian7.FuzzySuggestModal {
     this.onChoose(item);
   }
 };
-var CustomThemeGuideModal = class extends import_obsidian7.Modal {
+var CustomThemeGuideModal = class extends import_obsidian8.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
@@ -21374,7 +21746,7 @@ var CustomThemeGuideModal = class extends import_obsidian7.Modal {
         window.setTimeout(() => copyButton.textContent = "\u590D\u5236\u7ED9 AI", 1800);
       } catch (error) {
         console.error("Failed to copy custom theme guide:", error);
-        new import_obsidian7.Notice("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u5728\u793A\u4F8B\u6846\u4E2D\u5168\u9009\u590D\u5236");
+        new import_obsidian8.Notice("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u5728\u793A\u4F8B\u6846\u4E2D\u5168\u9009\u590D\u5236");
       }
     };
     actions.createEl("button", { text: "\u5173\u95ED", cls: "mod-cancel" }).onclick = () => this.close();
@@ -21383,7 +21755,7 @@ var CustomThemeGuideModal = class extends import_obsidian7.Modal {
     this.contentEl.empty();
   }
 };
-var WeChatPublisherPlugin = class extends import_obsidian7.Plugin {
+var WeChatPublisherPlugin = class extends import_obsidian8.Plugin {
   constructor() {
     super(...arguments);
     this.statusCheckInterval = null;
@@ -21570,7 +21942,7 @@ var WeChatPublisherPlugin = class extends import_obsidian7.Plugin {
     }
   }
 };
-var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab {
+var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab {
   constructor(app, plugin2) {
     super(app, plugin2);
     this.plugin = plugin2;
@@ -21578,15 +21950,24 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian7.Setting(containerEl).setName("\u6700\u5927\u5E76\u53D1\u53D1\u5E03\u6570").setDesc("\u540C\u65F6\u53D1\u5E03\u7684\u516C\u4F17\u53F7\u6570\u91CF").addSlider((slider) => slider.setLimits(1, 5, 1).setValue(this.plugin.settings.maxConcurrent).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("\u6700\u5927\u5E76\u53D1\u53D1\u5E03\u6570").setDesc("\u540C\u65F6\u53D1\u5E03\u7684\u516C\u4F17\u53F7\u6570\u91CF").addSlider((slider) => slider.setLimits(1, 5, 1).setValue(this.plugin.settings.maxConcurrent).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.maxConcurrent = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian7.Setting(containerEl).setName("\u6392\u9664\u7B14\u8BB0\u5C5E\u6027").setDesc("\u6392\u7248\u548C\u53D1\u5E03\u65F6\u4E0D\u5305\u542B YAML frontmatter").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFrontmatter).onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("\u6392\u9664\u7B14\u8BB0\u5C5E\u6027").setDesc("\u6392\u7248\u548C\u53D1\u5E03\u65F6\u4E0D\u5305\u542B YAML frontmatter").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFrontmatter).onChange(async (value) => {
       this.plugin.settings.excludeFrontmatter = value;
       await this.plugin.saveSettings();
     }));
-    const coverSetting = new import_obsidian7.Setting(containerEl).setName("\u9ED8\u8BA4\u5C01\u9762\u56FE\u7247").setDesc("\u6CA1\u6709\u4E34\u65F6\u5C01\u9762\u65F6\u4F7F\u7528\uFF0C\u6700\u5927 2 MB");
+    new import_obsidian8.Setting(containerEl).setName("\u8349\u7A3F\u9ED8\u8BA4\u4FE1\u606F").setHeading();
+    new import_obsidian8.Setting(containerEl).setName("\u9ED8\u8BA4\u4F5C\u8005").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u4F5C\u8005\u680F\u7684\u9ED8\u8BA4\u503C\uFF1B\u7B14\u8BB0\u5C5E\u6027 author \u4F18\u5148\u3002\u6700\u591A 8 \u4E2A\u5B57").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1ASerena \u6728\u74DC").setValue(this.plugin.settings.defaultAuthor).onChange(async (value) => {
+      this.plugin.settings.defaultAuthor = value.trim();
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian8.Setting(containerEl).setName("\u9ED8\u8BA4\u5F00\u542F\u7559\u8A00").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u300C\u5F00\u542F\u7559\u8A00\u300D\u7684\u9ED8\u8BA4\u72B6\u6001\uFF1B\u7B14\u8BB0\u5C5E\u6027 comment \u4F18\u5148").addToggle((toggle) => toggle.setValue(this.plugin.settings.defaultOpenComment).onChange(async (value) => {
+      this.plugin.settings.defaultOpenComment = value;
+      await this.plugin.saveSettings();
+    }));
+    const coverSetting = new import_obsidian8.Setting(containerEl).setName("\u9ED8\u8BA4\u5C01\u9762\u56FE\u7247").setDesc("\u6CA1\u6709\u4E34\u65F6\u5C01\u9762\u65F6\u4F7F\u7528\uFF0C\u6700\u5927 2 MB");
     if (this.plugin.settings.defaultCoverImage) {
       coverSetting.addButton((button) => button.setButtonText("\u5220\u9664\u9ED8\u8BA4\u5C01\u9762").setWarning().onClick(async () => {
         this.plugin.settings.defaultCoverImage = "";
@@ -21600,22 +21981,22 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
     } else {
       coverSetting.addButton((button) => button.setButtonText("\u4E0A\u4F20\u9ED8\u8BA4\u5C01\u9762").onClick(() => this.chooseDefaultCover()));
     }
-    new import_obsidian7.Setting(containerEl).setName("\u81EA\u52A8\u68C0\u6D4B\u95F4\u9694\uFF08\u5C0F\u65F6\uFF09").setDesc("\u81EA\u52A8\u68C0\u6D4B Access Token \u72B6\u6001\u7684\u65F6\u95F4\u95F4\u9694").addSlider((slider) => slider.setLimits(1, 24, 1).setValue(this.plugin.settings.autoCheckInterval / 36e5).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian8.Setting(containerEl).setName("\u81EA\u52A8\u68C0\u6D4B\u95F4\u9694\uFF08\u5C0F\u65F6\uFF09").setDesc("\u81EA\u52A8\u68C0\u6D4B Access Token \u72B6\u6001\u7684\u65F6\u95F4\u95F4\u9694").addSlider((slider) => slider.setLimits(1, 24, 1).setValue(this.plugin.settings.autoCheckInterval / 36e5).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.autoCheckInterval = value * 36e5;
       await this.plugin.saveSettings();
       this.plugin.startAutoCheck();
     }));
-    new import_obsidian7.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
-    new import_obsidian7.Setting(containerEl).setName("Memoria \u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 14 \u5957\u4F18\u5316\u6392\u7248\uFF0C\u65B0\u7528\u6237\u65E0\u9700\u9009\u62E9\u6587\u4EF6\u5939\u6216\u4FDD\u5B58\u5E94\u7528\uFF0C\u9ED8\u8BA4\u4F7F\u7528\u201C\u7EFF\u767D\u6E05\u7B80\u201D\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
-    new import_obsidian7.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A Memoria \u5185\u7F6E\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
+    new import_obsidian8.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
+    new import_obsidian8.Setting(containerEl).setName("Memoria \u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 14 \u5957\u4F18\u5316\u6392\u7248\uFF0C\u65B0\u7528\u6237\u65E0\u9700\u9009\u62E9\u6587\u4EF6\u5939\u6216\u4FDD\u5B58\u5E94\u7528\uFF0C\u9ED8\u8BA4\u4F7F\u7528\u201C\u7EFF\u767D\u6E05\u7B80\u201D\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
+    new import_obsidian8.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A Memoria \u5185\u7F6E\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
       this.plugin.settings.customThemesEnabled = enabled;
       await this.plugin.saveSettings();
       await this.refreshPublisherViews();
       this.display();
     }));
     if (this.plugin.settings.customThemesEnabled) {
-      new import_obsidian7.Setting(containerEl).setName("\u81EA\u5B9A\u4E49\u6837\u5F0F\u6587\u4EF6\u5939").setDesc("\u9009\u62E9\u5E93\u5185\u5305\u542B .css \u6587\u4EF6\u6216 css \u4EE3\u7801\u5757 Markdown \u7684\u6587\u4EF6\u5939\u3002\u9009\u62E9\u540E\u7ACB\u5373\u4FDD\u5B58\u5E76\u5E94\u7528\u3002").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1Astyles/wechat").setValue(this.plugin.settings.themesFolder).onChange((value) => {
-        this.plugin.settings.themesFolder = (0, import_obsidian7.normalizePath)(value);
+      new import_obsidian8.Setting(containerEl).setName("\u81EA\u5B9A\u4E49\u6837\u5F0F\u6587\u4EF6\u5939").setDesc("\u9009\u62E9\u5E93\u5185\u5305\u542B .css \u6587\u4EF6\u6216 css \u4EE3\u7801\u5757 Markdown \u7684\u6587\u4EF6\u5939\u3002\u9009\u62E9\u540E\u7ACB\u5373\u4FDD\u5B58\u5E76\u5E94\u7528\u3002").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1Astyles/wechat").setValue(this.plugin.settings.themesFolder).onChange((value) => {
+        this.plugin.settings.themesFolder = (0, import_obsidian8.normalizePath)(value);
       })).addButton((button) => button.setButtonText("\u9009\u62E9\u6587\u4EF6\u5939").onClick(() => {
         const folders = this.getAllFolders(this.app.vault.getRoot());
         const folderPaths = folders.map((folder) => folder.path).sort();
@@ -21624,21 +22005,21 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
           await this.plugin.saveSettings();
           await this.refreshPublisherViews();
           this.display();
-          new import_obsidian7.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u52A0\u8F7D");
+          new import_obsidian8.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u52A0\u8F7D");
         }).open();
       })).addButton((button) => button.setButtonText("\u5E94\u7528\u8DEF\u5F84").setCta().onClick(async () => {
         await this.plugin.saveSettings();
         await this.refreshPublisherViews();
-        new import_obsidian7.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
+        new import_obsidian8.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
       }));
     }
-    new import_obsidian7.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
-    new import_obsidian7.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
+    new import_obsidian8.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
+    new import_obsidian8.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, null, async (account) => {
         this.plugin.settings.accounts.push(account);
         await this.plugin.saveSettings();
         this.display();
-        new import_obsidian7.Notice(`\u8D26\u53F7 "${account.name}" \u6DFB\u52A0\u6210\u529F`);
+        new import_obsidian8.Notice(`\u8D26\u53F7 "${account.name}" \u6DFB\u52A0\u6210\u529F`);
       });
       modal.open();
     }));
@@ -21668,7 +22049,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
       const file = (_a = input.files) == null ? void 0 : _a[0];
       if (!file) return;
       if (file.size > 2 * 1024 * 1024) {
-        new import_obsidian7.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2 MB");
+        new import_obsidian8.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2 MB");
         return;
       }
       const reader = new FileReader();
@@ -21685,7 +22066,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
   displayAccountSetting(containerEl, account) {
     const accountDiv = containerEl.createDiv({ cls: "wechat-account-item" });
     const statusIcon = account.status === "online" ? "\u2705" : account.status === "expired" ? "\u26A0\uFE0F" : "\u274C";
-    new import_obsidian7.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
+    new import_obsidian8.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, account, async (updatedAccount) => {
         const index = this.plugin.settings.accounts.findIndex((a) => a.id === account.id);
         if (index !== -1) {
@@ -21696,14 +22077,14 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
       });
       modal.open();
     })).addButton((button) => button.setButtonText("\u5237\u65B0").onClick(async () => {
-      new import_obsidian7.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
+      new import_obsidian8.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
       await this.plugin.checkAccountStatus(account);
       await this.plugin.saveSettings();
       this.display();
       if (account.status === "online") {
-        new import_obsidian7.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
+        new import_obsidian8.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
       } else {
-        new import_obsidian7.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
+        new import_obsidian8.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
       }
     })).addButton((button) => button.setButtonText("\u5220\u9664").setWarning().onClick(async () => {
       if (confirm(`\u786E\u5B9A\u8981\u5220\u9664\u8D26\u53F7 "${account.name}" \u5417\uFF1F`)) {
@@ -21711,7 +22092,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian7.PluginSettingTab 
         this.plugin.settings.accounts = this.plugin.settings.accounts.filter((a) => a.id !== account.id);
         await this.plugin.saveSettings();
         this.display();
-        new import_obsidian7.Notice(`\u8D26\u53F7 "${account.name}" \u5DF2\u5220\u9664`);
+        new import_obsidian8.Notice(`\u8D26\u53F7 "${account.name}" \u5DF2\u5220\u9664`);
       }
     }));
   }

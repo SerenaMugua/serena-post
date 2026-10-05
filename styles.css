@@ -660,3 +660,37 @@
 	color: #FAAD14;
 	border: 1px solid rgba(250, 173, 20, 0.3);
 }
+
+/* 发布前确认弹窗 */
+.wechatpb-draft-modal {
+	width: min(560px, 92vw);
+}
+.wechatpb-draft-modal .wechatpb-draft-target {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-top: 0;
+}
+.wechatpb-draft-modal .wechatpb-wide-input {
+	width: 280px;
+	max-width: 100%;
+}
+.wechatpb-draft-modal .wechatpb-counter {
+	display: inline-block;
+	margin-left: 6px;
+	color: var(--text-faint);
+	font-variant-numeric: tabular-nums;
+}
+.wechatpb-draft-modal .wechatpb-counter.is-over {
+	color: var(--text-error);
+	font-weight: 600;
+}
+.wechatpb-draft-modal .wechatpb-cover-preview {
+	margin: -4px 0 12px;
+	text-align: center;
+}
+.wechatpb-draft-modal .wechatpb-cover-preview img {
+	max-width: 100%;
+	max-height: 180px;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+}

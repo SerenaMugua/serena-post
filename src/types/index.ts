@@ -53,6 +53,8 @@ export interface PluginSettings {
 	defaultTheme: string;      // 默认选中的主题名称
 	excludeFrontmatter: boolean;
 	defaultCoverImage: string;
+	defaultAuthor: string;        // 草稿默认作者
+	defaultOpenComment: boolean;  // 草稿默认开启留言
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -64,8 +66,21 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	customThemesEnabled: false,
 	defaultTheme: '绿白清简',
 	excludeFrontmatter: false,
-	defaultCoverImage: ''
+	defaultCoverImage: '',
+	defaultAuthor: '',
+	defaultOpenComment: false
 };
+
+/** 发布前确认弹窗里填写的草稿信息 */
+export interface DraftMeta {
+	title: string;
+	author: string;
+	digest: string;
+	contentSourceUrl: string;
+	coverBase64: string;
+	openComment: boolean;
+	onlyFansCanComment: boolean;
+}
 
 export interface PublishRequest {
 	accountId: string;

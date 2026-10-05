@@ -1,10 +1,11 @@
 import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, normalizePath, sanitizeHTMLToDom } from 'obsidian';
 import html2canvas from 'html2canvas';
 import WeChatPublisherPlugin from '../main';
-import { WeChatAccount, PublishProgress } from '../types';
+import { WeChatAccount, PublishProgress, DraftMeta } from '../types';
+import { DraftConfirmModal, buildDraftDefaults } from '../modals/draft-confirm-modal';
 import { MarkedFormatter } from '../utils/formatter';
 import { ThemeManager } from '../utils/theme-manager';
-import { getAccessToken, uploadImage, addDraft } from '../services/weixin-api';
+import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
 import { compressImage } from '../utils/image';
 
 export const VIEW_TYPE_PUBLISHER = 'wechat-multi-publisher-view';
@@ -232,7 +233,7 @@ export class PublisherView extends ItemView {
 
 	renderCoverUpload(container: HTMLElement) {
 		const section = container.createDiv({ cls: 'cover-upload-section' });
-		section.createEl('h4', { text: '封面图片（可选）' });
+		section.createEl('h4', { text: '封面图片（发布时可在确认弹窗更换）' });
 
 		if (this.coverImage) {
 			// Show preview
@@ -628,9 +629,43 @@ export class PublisherView extends ItemView {
 			new Notice('当前笔记内容为空');
 			return;
 		}
-		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
+		const file = activeView.file;
+		if (!file) {
+			new Notice('请先打开一个笔记');
+			return;
+		}
+		if (this.selectedAccountIds.size === 0) {
+			new Notice('请先勾选至少一个公众号');
+			return;
+		}
+		if (this.isPublishing) return;
 
-		const title = activeView.file?.basename || '无标题';
+		// 发布前确认：标题 / 作者 / 摘要 / 封面 / 留言
+		const loading = new Notice('正在准备草稿信息…', 0);
+		let draft: DraftMeta | null;
+		try {
+			const { meta, coverSource } = await buildDraftDefaults(this.app, {
+				file,
+				markdown: this.removeFrontmatter(content),
+				panelCoverBase64: this.coverImage?.base64,
+				defaultCoverBase64: this.plugin.settings.defaultCoverImage,
+				defaultAuthor: this.plugin.settings.defaultAuthor,
+				defaultOpenComment: this.plugin.settings.defaultOpenComment
+			});
+			loading.hide();
+			const accountNames = this.plugin.settings.accounts
+				.filter(a => this.selectedAccountIds.has(a.id))
+				.map(a => a.name);
+			draft = await new DraftConfirmModal(this.app, meta, coverSource, accountNames).openAndWait();
+		} catch (error) {
+			loading.hide();
+			new Notice(`准备草稿失败：${error instanceof Error ? error.message : error}`);
+			return;
+		}
+		if (!draft) return;
+		const title = draft.title;
+
+		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
 
 		// Process Obsidian image links to base64
 		content = await this.processImageLinks(content, activeView);
@@ -665,7 +700,7 @@ export class PublisherView extends ItemView {
 
 		for (let i = 0; i < accountIds.length; i += maxConcurrent) {
 			const batch = accountIds.slice(i, i + maxConcurrent);
-			const promises = batch.map(accountId => this.publishToAccount(accountId, title, htmlContent));
+			const promises = batch.map(accountId => this.publishToAccount(accountId, draft!, htmlContent));
 			const results = await Promise.all(promises);
 
 			for (const result of results) {
@@ -749,14 +784,15 @@ export class PublisherView extends ItemView {
 				}
 			} catch (error) {
 				console.error(`[UploadImages] Failed to upload image ${i + 1}:`, error);
-				// Keep original base64 image on error
+				// 微信会过滤 base64 图片，上传失败的图片在草稿里会缺失，提示用户
+				new Notice(`第 ${i + 1} 张正文图片上传失败，草稿中可能缺少这张图：${error instanceof Error ? error.message : error}`, 8000);
 			}
 		}
 
 		return processedContent;
 	}
 
-	async publishToAccount(accountId: string, title: string, content: string) {
+	async publishToAccount(accountId: string, draft: DraftMeta, content: string) {
 		const account = this.plugin.settings.accounts.find(a => a.id === accountId);
 		if (!account) {
 			return { success: false, duration: 0, error: '账号未找到' };
@@ -776,62 +812,65 @@ export class PublisherView extends ItemView {
 			if (!resolved.appsecret) {
 				throw new Error('缺少 AppSecret，请在插件设置中重新保存账号');
 			}
-			// Get or refresh access token
-			if (!resolved.accessToken || !account.tokenExpireTime || Date.now() >= account.tokenExpireTime) {
-				const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
-				this.plugin.setAccessToken(account, token);
-				account.tokenExpireTime = Date.now() + 7200 * 1000;
-				await this.plugin.saveSettings();
-				resolved = this.plugin.resolveAccount(account);
-			}
-			if (!resolved.accessToken) throw new Error('无法获取 Access Token');
+			const ensureToken = async (force = false) => {
+				if (force || !resolved.accessToken || !account.tokenExpireTime || Date.now() >= account.tokenExpireTime) {
+					const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
+					this.plugin.setAccessToken(account, token);
+					account.tokenExpireTime = Date.now() + 7200 * 1000;
+					await this.plugin.saveSettings();
+					resolved = this.plugin.resolveAccount(account);
+				}
+				if (!resolved.accessToken) throw new Error('无法获取 Access Token');
+				return resolved.accessToken;
+			};
 
-			// Upload cover image if exists
-			let thumbMediaId: string | undefined;
-			const coverImageBase64 = this.coverImage?.base64 || this.plugin.settings.defaultCoverImage;
-			if (coverImageBase64) {
+			const pushDraft = async (accessToken: string) => {
+				// 上传封面（必填，失败直接报错，不再静默跳过）
+				const base64Data = draft.coverBase64.split(',')[1];
+				if (!base64Data) throw new Error('封面图片数据无效，请重新选择封面');
+				const binaryString = atob(base64Data);
+				const bytes = new Uint8Array(binaryString.length);
+				for (let i = 0; i < binaryString.length; i++) {
+					bytes[i] = binaryString.charCodeAt(i);
+				}
+				let thumbMediaId: string;
 				try {
-					// Convert base64 to ArrayBuffer
-					const base64Data = coverImageBase64.split(',')[1];
-					const binaryString = atob(base64Data);
-					const bytes = new Uint8Array(binaryString.length);
-					for (let i = 0; i < binaryString.length; i++) {
-						bytes[i] = binaryString.charCodeAt(i);
-					}
-					const imageBuffer = bytes.buffer;
-
-					const uploadResult = await uploadImage(
-						imageBuffer,
-						'cover.jpg',
-						resolved.accessToken,
-						resolved.proxyConfig
-					);
-
-					if (uploadResult && uploadResult.media_id) {
-						thumbMediaId = uploadResult.media_id;
-					}
+					const ext = draft.coverBase64.startsWith('data:image/png') ? 'png' : 'jpg';
+					const uploadResult = await uploadImage(bytes.buffer, `cover.${ext}`, accessToken, resolved.proxyConfig);
+					thumbMediaId = uploadResult.media_id;
 				} catch (uploadError) {
-					console.error('[Publish] Cover upload failed:', uploadError);
-					// Continue without cover image
+					if (uploadError instanceof WeixinApiError) throw uploadError;
+					throw new Error(`封面上传失败：${uploadError instanceof Error ? uploadError.message : uploadError}`);
+				}
+
+				// Upload images in content and replace with WeChat URLs
+				const processedContent = await this.uploadImagesAndReplace(content, accessToken, resolved.proxyConfig);
+
+				const articles = [{
+					title: draft.title,
+					author: draft.author,
+					digest: draft.digest,
+					content: processedContent,
+					content_source_url: draft.contentSourceUrl,
+					thumb_media_id: thumbMediaId,
+					need_open_comment: draft.openComment ? 1 : 0,
+					only_fans_can_comment: draft.onlyFansCanComment ? 1 : 0
+				}];
+
+				await addDraft(articles, accessToken, resolved.proxyConfig);
+			};
+
+			try {
+				await pushDraft(await ensureToken());
+			} catch (error) {
+				// Token 失效（例如在别处重置过 AppSecret 或刷新过 Token）时自动重取一次
+				const code = error instanceof WeixinApiError ? String(error.errcode) : '';
+				if (code === '40001' || code === '42001' || code === '40014') {
+					await pushDraft(await ensureToken(true));
+				} else {
+					throw error;
 				}
 			}
-
-			// Upload images in content and replace with WeChat URLs
-			const processedContent = await this.uploadImagesAndReplace(content, resolved.accessToken, resolved.proxyConfig);
-
-			// Create draft
-			const articles = [{
-				title,
-				author: '',
-				digest: '',
-				content: processedContent,
-				content_source_url: '',
-				thumb_media_id: thumbMediaId || '',
-				need_open_comment: 0,
-				only_fans_can_comment: 0
-			}];
-
-			await addDraft(articles, resolved.accessToken, resolved.proxyConfig);
 
 			const duration = Date.now() - startTime;
 
