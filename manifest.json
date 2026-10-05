@@ -1,9 +1,9 @@
 {
   "id": "wechat-multi-publisher",
-  "name": "WeChatPB",
-  "version": "2.4.0",
+  "name": "WeChatPB · 公众号 + X",
+  "version": "2.5.0",
   "minAppVersion": "1.11.4",
-  "description": "Publish Markdown notes to multiple WeChat Official Accounts.",
+  "description": "Format and publish notes to WeChat Official Account drafts, and push them to X Article drafts via Kaitox.",
   "author": "zhouxing",
   "authorUrl": "https://github.com/Kianzzz",
   "isDesktopOnly": true

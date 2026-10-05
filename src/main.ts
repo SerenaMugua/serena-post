@@ -319,6 +319,43 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
+		new Setting(containerEl).setName('X 推送（Kaitox）').setHeading();
+		containerEl.createEl('p', {
+			cls: 'setting-item-description',
+			text: '推送到 X 需要本地运行 Kaitox 中转程序（终端执行 kaitox relay --daemon），并在 Chrome 安装 Kaitox 扩展、登录 X。'
+		});
+
+		new Setting(containerEl)
+			.setName('中转程序地址')
+			.setDesc('本地 Kaitox relay 地址，一般是 http://127.0.0.1:8765')
+			.addText(text => text
+				.setPlaceholder('http://127.0.0.1:8765')
+				.setValue(this.plugin.settings.relayBase)
+				.onChange(async value => {
+					this.plugin.settings.relayBase = value.trim() || 'http://127.0.0.1:8765';
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('中转令牌（可选）')
+			.setDesc('如果给 relay 配了 token，这里填一样的')
+			.addText(text => text
+				.setValue(this.plugin.settings.relayToken)
+				.onChange(async value => {
+					this.plugin.settings.relayToken = value.trim();
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('推送后打开 X 文章编辑器')
+			.setDesc('推送成功后自动在浏览器打开 x.com 文章编辑器，Kaitox 扩展会在那里创建草稿')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.openXAfterPush)
+				.onChange(async value => {
+					this.plugin.settings.openXAfterPush = value;
+					await this.plugin.saveSettings();
+				}));
+
 		new Setting(containerEl).setName('草稿默认信息').setHeading();
 
 		new Setting(containerEl)

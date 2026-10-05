@@ -1,6 +1,14 @@
 import { App, Modal, Notice, Setting, TFile, requestUrl } from 'obsidian';
 import { DraftMeta } from '../types';
 import { compressImage } from '../utils/image';
+import { renderStyleReport } from '../x/x-preview-modal';
+import type { StyleReport } from '../../vendor/kaitox/relay-protocol/index';
+
+export interface XConfirmInfo {
+	report: StyleReport;
+	unresolved: string[];
+	relayOnline: boolean;
+}
 
 export const DRAFT_LIMITS = { title: 64, author: 8, digest: 120 };
 
@@ -228,14 +236,20 @@ export class DraftConfirmModal extends Modal {
 	private meta: DraftMeta;
 	private coverSource: string;
 	private accountNames: string[];
+	private xInfo?: XConfirmInfo;
 	private resolver: ((meta: DraftMeta | null) => void) | null = null;
 	private submitted = false;
 
-	constructor(app: App, meta: DraftMeta, coverSource: string, accountNames: string[]) {
+	constructor(app: App, meta: DraftMeta, coverSource: string, accountNames: string[], xInfo?: XConfirmInfo) {
 		super(app);
 		this.meta = { ...meta };
 		this.coverSource = coverSource;
 		this.accountNames = accountNames;
+		this.xInfo = xInfo;
+	}
+
+	private get hasWechat(): boolean {
+		return this.accountNames.length > 0;
 	}
 
 	/** 打开弹窗，确认返回 DraftMeta，取消返回 null */
@@ -259,11 +273,25 @@ export class DraftConfirmModal extends Modal {
 	private render() {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.createEl('h3', { text: '推送到公众号草稿箱' });
+		contentEl.createEl('h3', { text: '推送到草稿箱' });
+		const targets = [...this.accountNames.map(n => `公众号「${n}」`)];
+		if (this.xInfo) targets.push('X 文章草稿');
 		contentEl.createEl('p', {
 			cls: 'wechatpb-draft-target',
-			text: `将发送到：${this.accountNames.join('、')}`
+			text: `将发送到：${targets.join('、')}`
 		});
+
+		if (this.xInfo) {
+			const xBox = contentEl.createDiv({ cls: 'wechatpb-x-confirm' });
+			xBox.createEl('div', { cls: 'wechatpb-x-confirm-title', text: 'X 文章' });
+			if (!this.xInfo.relayOnline) {
+				xBox.createDiv({
+					cls: 'wechatpb-x-warn',
+					text: '⚠ Kaitox 中转程序没有运行，X 会推送失败。请先在终端执行 kaitox relay --daemon'
+				});
+			}
+			renderStyleReport(xBox, this.xInfo.report, this.xInfo.unresolved);
+		}
 
 		const counter = (el: HTMLElement, value: string, max: number) => {
 			el.setText(`${value.length} / ${max}`);
@@ -282,8 +310,9 @@ export class DraftConfirmModal extends Modal {
 			text.inputEl.addClass('wechatpb-wide-input');
 		});
 
+		if (this.hasWechat) {
 		// 作者
-		const authorSetting = new Setting(contentEl).setName('作者').setDesc('');
+		const authorSetting = new Setting(contentEl).setName('作者（公众号）').setDesc('');
 		const authorCount = authorSetting.descEl.createSpan({ cls: 'wechatpb-counter' });
 		counter(authorCount, this.meta.author, DRAFT_LIMITS.author);
 		authorSetting.addText(text => text
@@ -295,7 +324,7 @@ export class DraftConfirmModal extends Modal {
 			}));
 
 		// 摘要
-		const digestSetting = new Setting(contentEl).setName('摘要').setDesc('留空则微信自动截取正文前 54 字。');
+		const digestSetting = new Setting(contentEl).setName('摘要（公众号）').setDesc('留空则微信自动截取正文前 54 字。');
 		const digestCount = digestSetting.descEl.createSpan({ cls: 'wechatpb-counter' });
 		counter(digestCount, this.meta.digest, DRAFT_LIMITS.digest);
 		digestSetting.addTextArea(area => {
@@ -309,16 +338,18 @@ export class DraftConfirmModal extends Modal {
 
 		// 原文链接
 		new Setting(contentEl)
-			.setName('原文链接')
+			.setName('原文链接（公众号）')
 			.setDesc('可选，文末「阅读原文」跳转地址')
 			.addText(text => text
 				.setPlaceholder('https://')
 				.setValue(this.meta.contentSourceUrl)
 				.onChange(v => { this.meta.contentSourceUrl = v.trim(); }));
 
+		}
+
 		// 封面
 		const coverSetting = new Setting(contentEl)
-			.setName('封面（必填）')
+			.setName(this.hasWechat ? '封面（必填）' : '封面')
 			.setDesc(this.meta.coverBase64 ? `来源：${this.coverSource}` : '还没有封面：在笔记属性写 cover，或点击右侧选择图片');
 		coverSetting.addButton(btn => btn
 			.setButtonText(this.meta.coverBase64 ? '更换' : '选择图片')
@@ -328,9 +359,10 @@ export class DraftConfirmModal extends Modal {
 			preview.createEl('img', { attr: { src: this.meta.coverBase64, alt: '封面预览' } });
 		}
 
+		if (this.hasWechat) {
 		// 留言
 		new Setting(contentEl)
-			.setName('开启留言')
+			.setName('开启留言（公众号）')
 			.addToggle(t => t.setValue(this.meta.openComment).onChange(v => {
 				this.meta.openComment = v;
 				this.render();
@@ -341,6 +373,8 @@ export class DraftConfirmModal extends Modal {
 				.addToggle(t => t.setValue(this.meta.onlyFansCanComment).onChange(v => {
 					this.meta.onlyFansCanComment = v;
 				}));
+		}
+
 		}
 
 		// 按钮
@@ -377,12 +411,12 @@ export class DraftConfirmModal extends Modal {
 		m.digest = m.digest.trim();
 		if (!m.title) { new Notice('请填写标题'); return; }
 		if (m.title.length > DRAFT_LIMITS.title) { new Notice(`标题最多 ${DRAFT_LIMITS.title} 字`); return; }
-		if (m.author.length > DRAFT_LIMITS.author) { new Notice(`作者最多 ${DRAFT_LIMITS.author} 字`); return; }
-		if (m.digest.length > DRAFT_LIMITS.digest) { new Notice(`摘要最多 ${DRAFT_LIMITS.digest} 字`); return; }
+		if (this.hasWechat && m.author.length > DRAFT_LIMITS.author) { new Notice(`作者最多 ${DRAFT_LIMITS.author} 字`); return; }
+		if (this.hasWechat && m.digest.length > DRAFT_LIMITS.digest) { new Notice(`摘要最多 ${DRAFT_LIMITS.digest} 字`); return; }
 		if (m.contentSourceUrl && !/^https?:\/\//i.test(m.contentSourceUrl)) {
 			new Notice('原文链接需要以 http:// 或 https:// 开头'); return;
 		}
-		if (!m.coverBase64) { new Notice('微信草稿必须有封面，请先选择封面'); return; }
+		if (this.hasWechat && !m.coverBase64) { new Notice('微信草稿必须有封面，请先选择封面'); return; }
 		if (!m.openComment) m.onlyFansCanComment = false;
 		this.submitted = true;
 		this.resolver?.({ ...m });

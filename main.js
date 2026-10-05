@@ -80,13 +80,13 @@ var require_html2canvas = __commonJS({
         };
         return __assign.apply(this, arguments);
       };
-      function __awaiter(thisArg, _arguments, P, generator) {
+      function __awaiter(thisArg, _arguments, P2, generator) {
         function adopt(value) {
-          return value instanceof P ? value : new P(function(resolve) {
+          return value instanceof P2 ? value : new P2(function(resolve) {
             resolve(value);
           });
         }
-        return new (P || (P = Promise))(function(resolve, reject) {
+        return new (P2 || (P2 = Promise))(function(resolve, reject) {
           function fulfilled(value) {
             try {
               step(generator.next(value));
@@ -108,10 +108,10 @@ var require_html2canvas = __commonJS({
         });
       }
       function __generator(thisArg, body) {
-        var _ = { label: 0, sent: function() {
+        var _2 = { label: 0, sent: function() {
           if (t[0] & 1) throw t[1];
           return t[1];
-        }, trys: [], ops: [] }, f2, y, t, g;
+        }, trys: [], ops: [] }, f2, y2, t, g;
         return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
           return this;
         }), g;
@@ -122,53 +122,53 @@ var require_html2canvas = __commonJS({
         }
         function step(op) {
           if (f2) throw new TypeError("Generator is already executing.");
-          while (_) try {
-            if (f2 = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
+          while (_2) try {
+            if (f2 = 1, y2 && (t = op[0] & 2 ? y2["return"] : op[0] ? y2["throw"] || ((t = y2["return"]) && t.call(y2), 0) : y2.next) && !(t = t.call(y2, op[1])).done) return t;
+            if (y2 = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
               case 0:
               case 1:
                 t = op;
                 break;
               case 4:
-                _.label++;
+                _2.label++;
                 return { value: op[1], done: false };
               case 5:
-                _.label++;
-                y = op[1];
+                _2.label++;
+                y2 = op[1];
                 op = [0];
                 continue;
               case 7:
-                op = _.ops.pop();
-                _.trys.pop();
+                op = _2.ops.pop();
+                _2.trys.pop();
                 continue;
               default:
-                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-                  _ = 0;
+                if (!(t = _2.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                  _2 = 0;
                   continue;
                 }
                 if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-                  _.label = op[1];
+                  _2.label = op[1];
                   break;
                 }
-                if (op[0] === 6 && _.label < t[1]) {
-                  _.label = t[1];
+                if (op[0] === 6 && _2.label < t[1]) {
+                  _2.label = t[1];
                   t = op;
                   break;
                 }
-                if (t && _.label < t[2]) {
-                  _.label = t[2];
-                  _.ops.push(op);
+                if (t && _2.label < t[2]) {
+                  _2.label = t[2];
+                  _2.ops.push(op);
                   break;
                 }
-                if (t[2]) _.ops.pop();
-                _.trys.pop();
+                if (t[2]) _2.ops.pop();
+                _2.trys.pop();
                 continue;
             }
-            op = body.call(thisArg, _);
+            op = body.call(thisArg, _2);
           } catch (e2) {
             op = [6, e2];
-            y = 0;
+            y2 = 0;
           } finally {
             f2 = t = 0;
           }
@@ -177,7 +177,7 @@ var require_html2canvas = __commonJS({
         }
       }
       function __spreadArray(to, from, pack2) {
-        if (pack2 || arguments.length === 2) for (var i2 = 0, l = from.length, ar; i2 < l; i2++) {
+        if (pack2 || arguments.length === 2) for (var i2 = 0, l3 = from.length, ar; i2 < l3; i2++) {
           if (ar || !(i2 in from)) {
             if (!ar) ar = Array.prototype.slice.call(from, 0, i2);
             ar[i2] = from[i2];
@@ -194,8 +194,8 @@ var require_html2canvas = __commonJS({
             this.width = width;
             this.height = height;
           }
-          Bounds2.prototype.add = function(x, y, w, h) {
-            return new Bounds2(this.left + x, this.top + y, this.width + w, this.height + h);
+          Bounds2.prototype.add = function(x2, y2, w, h2) {
+            return new Bounds2(this.left + x2, this.top + y2, this.width + w, this.height + h2);
           };
           Bounds2.fromClientRect = function(context, clientRect) {
             return new Bounds2(clientRect.left + context.windowBounds.left, clientRect.top + context.windowBounds.top, clientRect.width, clientRect.height);
@@ -726,7 +726,7 @@ var require_html2canvas = __commonJS({
         if (!options2) {
           options2 = { lineBreak: "normal", wordBreak: "normal" };
         }
-        var _a = codePointsToCharacterClasses(codePoints, options2.lineBreak), indicies = _a[0], classTypes = _a[1], isLetterNumber = _a[2];
+        var _a2 = codePointsToCharacterClasses(codePoints, options2.lineBreak), indicies = _a2[0], classTypes = _a2[1], isLetterNumber = _a2[2];
         if (options2.wordBreak === "break-all" || options2.wordBreak === "break-word") {
           classTypes = classTypes.map(function(type) {
             return [NU, AL, SA].indexOf(type) !== -1 ? ID : type;
@@ -754,7 +754,7 @@ var require_html2canvas = __commonJS({
       );
       var LineBreaker = function(str, options2) {
         var codePoints = toCodePoints$1(str);
-        var _a = cssFormattedClasses(codePoints, options2), indicies = _a[0], classTypes = _a[1], forbiddenBreakpoints = _a[2];
+        var _a2 = cssFormattedClasses(codePoints, options2), indicies = _a2[0], classTypes = _a2[1], forbiddenBreakpoints = _a2[2];
         var length = codePoints.length;
         var lastEnd = 0;
         var nextIndex = 0;
@@ -826,11 +826,11 @@ var require_html2canvas = __commonJS({
       var e = 101;
       var f = 102;
       var u = 117;
-      var z = 122;
-      var A = 65;
-      var E = 69;
-      var F = 70;
-      var U = 85;
+      var z2 = 122;
+      var A2 = 65;
+      var E2 = 69;
+      var F2 = 70;
+      var U2 = 85;
       var Z = 90;
       var isDigit = function(codePoint) {
         return codePoint >= ZERO && codePoint <= 57;
@@ -839,13 +839,13 @@ var require_html2canvas = __commonJS({
         return codePoint >= 55296 && codePoint <= 57343;
       };
       var isHex = function(codePoint) {
-        return isDigit(codePoint) || codePoint >= A && codePoint <= F || codePoint >= a && codePoint <= f;
+        return isDigit(codePoint) || codePoint >= A2 && codePoint <= F2 || codePoint >= a && codePoint <= f;
       };
       var isLowerCaseLetter = function(codePoint) {
-        return codePoint >= a && codePoint <= z;
+        return codePoint >= a && codePoint <= z2;
       };
       var isUpperCaseLetter = function(codePoint) {
-        return codePoint >= A && codePoint <= Z;
+        return codePoint >= A2 && codePoint <= Z;
       };
       var isLetter = function(codePoint) {
         return isLowerCaseLetter(codePoint) || isUpperCaseLetter(codePoint);
@@ -916,7 +916,7 @@ var require_html2canvas = __commonJS({
         }
         var fracd = fraction.length;
         var frac = fracd ? parseInt(fromCodePoint$1.apply(void 0, fraction), 10) : 0;
-        if (codePoints[c] === E || codePoints[c] === e) {
+        if (codePoints[c] === E2 || codePoints[c] === e) {
           c++;
         }
         var expsign = 1;
@@ -1158,7 +1158,7 @@ var require_html2canvas = __commonJS({
               case RIGHT_CURLY_BRACKET:
                 return RIGHT_CURLY_BRACKET_TOKEN;
               case u:
-              case U:
+              case U2:
                 var u1 = this.peekCodePoint(0);
                 var u2 = this.peekCodePoint(1);
                 if (u1 === PLUS_SIGN && (isHex(u2) || u2 === QUESTION_MARK)) {
@@ -1231,7 +1231,7 @@ var require_html2canvas = __commonJS({
                 return digit === QUESTION_MARK ? ZERO : digit;
               })), 16);
               var end = parseInt(fromCodePoint$1.apply(void 0, digits.map(function(digit) {
-                return digit === QUESTION_MARK ? F : digit;
+                return digit === QUESTION_MARK ? F2 : digit;
               })), 16);
               return { type: 30, start: start_1, end };
             }
@@ -1386,7 +1386,7 @@ var require_html2canvas = __commonJS({
             c1 = this.peekCodePoint(0);
             c2 = this.peekCodePoint(1);
             var c3 = this.peekCodePoint(2);
-            if ((c1 === E || c1 === e) && ((c2 === PLUS_SIGN || c2 === HYPHEN_MINUS) && isDigit(c3) || isDigit(c2))) {
+            if ((c1 === E2 || c1 === e) && ((c2 === PLUS_SIGN || c2 === HYPHEN_MINUS) && isDigit(c3) || isDigit(c2))) {
               repr.push(this.consumeCodePoint(), this.consumeCodePoint());
               type = FLAG_NUMBER;
               while (isDigit(this.peekCodePoint(0))) {
@@ -1396,7 +1396,7 @@ var require_html2canvas = __commonJS({
             return [stringToNumber(repr), type];
           };
           Tokenizer2.prototype.consumeNumericToken = function() {
-            var _a = this.consumeNumber(), number = _a[0], flags = _a[1];
+            var _a2 = this.consumeNumber(), number = _a2[0], flags = _a2[1];
             var c1 = this.peekCodePoint(0);
             var c2 = this.peekCodePoint(1);
             var c3 = this.peekCodePoint(2);
@@ -1620,8 +1620,8 @@ var require_html2canvas = __commonJS({
         flags: FLAG_INTEGER
       };
       var getAbsoluteValueForTuple = function(tuple, width, height) {
-        var x = tuple[0], y = tuple[1];
-        return [getAbsoluteValue(x, width), getAbsoluteValue(typeof y !== "undefined" ? y : x, height)];
+        var x2 = tuple[0], y2 = tuple[1];
+        return [getAbsoluteValue(x2, width), getAbsoluteValue(typeof y2 !== "undefined" ? y2 : x2, height)];
       };
       var getAbsoluteValue = function(token, parent) {
         if (token.type === 16) {
@@ -1786,7 +1786,7 @@ var require_html2canvas = __commonJS({
       var rgb = function(_context, args) {
         var tokens = args.filter(nonFunctionArgSeparator);
         if (tokens.length === 3) {
-          var _a = tokens.map(getTokenColorValue), r = _a[0], g = _a[1], b = _a[2];
+          var _a2 = tokens.map(getTokenColorValue), r = _a2[0], g = _a2[1], b = _a2[2];
           return pack(r, g, b, 1);
         }
         if (tokens.length === 4) {
@@ -1815,18 +1815,18 @@ var require_html2canvas = __commonJS({
       var hsl = function(context, args) {
         var tokens = args.filter(nonFunctionArgSeparator);
         var hue = tokens[0], saturation = tokens[1], lightness = tokens[2], alpha = tokens[3];
-        var h = (hue.type === 17 ? deg(hue.number) : angle.parse(context, hue)) / (Math.PI * 2);
+        var h2 = (hue.type === 17 ? deg(hue.number) : angle.parse(context, hue)) / (Math.PI * 2);
         var s = isLengthPercentage(saturation) ? saturation.number / 100 : 0;
-        var l = isLengthPercentage(lightness) ? lightness.number / 100 : 0;
+        var l3 = isLengthPercentage(lightness) ? lightness.number / 100 : 0;
         var a2 = typeof alpha !== "undefined" && isLengthPercentage(alpha) ? getAbsoluteValue(alpha, 1) : 1;
         if (s === 0) {
-          return pack(l * 255, l * 255, l * 255, 1);
+          return pack(l3 * 255, l3 * 255, l3 * 255, 1);
         }
-        var t2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
-        var t1 = l * 2 - t2;
-        var r = hue2rgb(t1, t2, h + 1 / 3);
-        var g = hue2rgb(t1, t2, h);
-        var b = hue2rgb(t1, t2, h - 1 / 3);
+        var t2 = l3 <= 0.5 ? l3 * (s + 1) : l3 + s - l3 * s;
+        var t1 = l3 * 2 - t2;
+        var r = hue2rgb(t1, t2, h2 + 1 / 3);
+        var g = hue2rgb(t1, t2, h2);
+        var b = hue2rgb(t1, t2, h2 - 1 / 3);
         return pack(r * 255, g * 255, b * 255, a2);
       };
       var SUPPORTED_COLOR_FUNCTIONS = {
@@ -2062,17 +2062,17 @@ var require_html2canvas = __commonJS({
             gapBegin = null;
           }
         }
-        return stops.map(function(_a, i3) {
-          var color2 = _a.color;
+        return stops.map(function(_a2, i3) {
+          var color2 = _a2.color;
           return { color: color2, stop: Math.max(Math.min(1, processStops[i3] / lineLength), 0) };
         });
       };
       var getAngleFromCorner = function(corner, width, height) {
         var centerX = width / 2;
         var centerY = height / 2;
-        var x = getAbsoluteValue(corner[0], width) - centerX;
-        var y = centerY - getAbsoluteValue(corner[1], height);
-        return (Math.atan2(y, x) + Math.PI * 2) % (Math.PI * 2);
+        var x2 = getAbsoluteValue(corner[0], width) - centerX;
+        var y2 = centerY - getAbsoluteValue(corner[1], height);
+        return (Math.atan2(y2, x2) + Math.PI * 2) % (Math.PI * 2);
       };
       var calculateGradientDirection = function(angle2, width, height) {
         var radian = typeof angle2 === "number" ? angle2 : getAngleFromCorner(angle2, width, height);
@@ -2087,7 +2087,7 @@ var require_html2canvas = __commonJS({
       var distance = function(a2, b) {
         return Math.sqrt(a2 * a2 + b * b);
       };
-      var findCorner = function(width, height, x, y, closest) {
+      var findCorner = function(width, height, x2, y2, closest) {
         var corners = [
           [0, 0],
           [0, height],
@@ -2096,7 +2096,7 @@ var require_html2canvas = __commonJS({
         ];
         return corners.reduce(function(stat, corner) {
           var cx = corner[0], cy = corner[1];
-          var d = distance(x - cx, y - cy);
+          var d = distance(x2 - cx, y2 - cy);
           if (closest ? d < stat.optimumDistance : d > stat.optimumDistance) {
             return {
               optimumCorner: corner,
@@ -2109,43 +2109,43 @@ var require_html2canvas = __commonJS({
           optimumCorner: null
         }).optimumCorner;
       };
-      var calculateRadius = function(gradient, x, y, width, height) {
+      var calculateRadius = function(gradient, x2, y2, width, height) {
         var rx = 0;
         var ry = 0;
         switch (gradient.size) {
           case 0:
             if (gradient.shape === 0) {
-              rx = ry = Math.min(Math.abs(x), Math.abs(x - width), Math.abs(y), Math.abs(y - height));
+              rx = ry = Math.min(Math.abs(x2), Math.abs(x2 - width), Math.abs(y2), Math.abs(y2 - height));
             } else if (gradient.shape === 1) {
-              rx = Math.min(Math.abs(x), Math.abs(x - width));
-              ry = Math.min(Math.abs(y), Math.abs(y - height));
+              rx = Math.min(Math.abs(x2), Math.abs(x2 - width));
+              ry = Math.min(Math.abs(y2), Math.abs(y2 - height));
             }
             break;
           case 2:
             if (gradient.shape === 0) {
-              rx = ry = Math.min(distance(x, y), distance(x, y - height), distance(x - width, y), distance(x - width, y - height));
+              rx = ry = Math.min(distance(x2, y2), distance(x2, y2 - height), distance(x2 - width, y2), distance(x2 - width, y2 - height));
             } else if (gradient.shape === 1) {
-              var c = Math.min(Math.abs(y), Math.abs(y - height)) / Math.min(Math.abs(x), Math.abs(x - width));
-              var _a = findCorner(width, height, x, y, true), cx = _a[0], cy = _a[1];
-              rx = distance(cx - x, (cy - y) / c);
+              var c = Math.min(Math.abs(y2), Math.abs(y2 - height)) / Math.min(Math.abs(x2), Math.abs(x2 - width));
+              var _a2 = findCorner(width, height, x2, y2, true), cx = _a2[0], cy = _a2[1];
+              rx = distance(cx - x2, (cy - y2) / c);
               ry = c * rx;
             }
             break;
           case 1:
             if (gradient.shape === 0) {
-              rx = ry = Math.max(Math.abs(x), Math.abs(x - width), Math.abs(y), Math.abs(y - height));
+              rx = ry = Math.max(Math.abs(x2), Math.abs(x2 - width), Math.abs(y2), Math.abs(y2 - height));
             } else if (gradient.shape === 1) {
-              rx = Math.max(Math.abs(x), Math.abs(x - width));
-              ry = Math.max(Math.abs(y), Math.abs(y - height));
+              rx = Math.max(Math.abs(x2), Math.abs(x2 - width));
+              ry = Math.max(Math.abs(y2), Math.abs(y2 - height));
             }
             break;
           case 3:
             if (gradient.shape === 0) {
-              rx = ry = Math.max(distance(x, y), distance(x, y - height), distance(x - width, y), distance(x - width, y - height));
+              rx = ry = Math.max(distance(x2, y2), distance(x2, y2 - height), distance(x2 - width, y2), distance(x2 - width, y2 - height));
             } else if (gradient.shape === 1) {
-              var c = Math.max(Math.abs(y), Math.abs(y - height)) / Math.max(Math.abs(x), Math.abs(x - width));
-              var _b = findCorner(width, height, x, y, false), cx = _b[0], cy = _b[1];
-              rx = distance(cx - x, (cy - y) / c);
+              var c = Math.max(Math.abs(y2), Math.abs(y2 - height)) / Math.max(Math.abs(x2), Math.abs(x2 - width));
+              var _b = findCorner(width, height, x2, y2, false), cx = _b[0], cy = _b[1];
+              rx = distance(cx - x2, (cy - y2) / c);
               ry = c * rx;
             }
             break;
@@ -3595,7 +3595,7 @@ var require_html2canvas = __commonJS({
         /** @class */
         (function() {
           function CSSParsedDeclaration2(context, declaration) {
-            var _a, _b;
+            var _a2, _b;
             this.animationDuration = parse2(context, duration, declaration.animationDuration);
             this.backgroundClip = parse2(context, backgroundClip, declaration.backgroundClip);
             this.backgroundColor = parse2(context, backgroundColor, declaration.backgroundColor);
@@ -3652,7 +3652,7 @@ var require_html2canvas = __commonJS({
             this.paintOrder = parse2(context, paintOrder, declaration.paintOrder);
             this.position = parse2(context, position, declaration.position);
             this.textAlign = parse2(context, textAlign, declaration.textAlign);
-            this.textDecorationColor = parse2(context, textDecorationColor, (_a = declaration.textDecorationColor) !== null && _a !== void 0 ? _a : declaration.color);
+            this.textDecorationColor = parse2(context, textDecorationColor, (_a2 = declaration.textDecorationColor) !== null && _a2 !== void 0 ? _a2 : declaration.color);
             this.textDecorationLine = parse2(context, textDecorationLine, (_b = declaration.textDecorationLine) !== null && _b !== void 0 ? _b : declaration.textDecoration);
             this.textShadow = parse2(context, textShadow, declaration.textShadow);
             this.textTransform = parse2(context, textTransform, declaration.textTransform);
@@ -3956,9 +3956,9 @@ var require_html2canvas = __commonJS({
       var Control = 4;
       var Extend = 5;
       var SpacingMark = 7;
-      var L = 8;
-      var V = 9;
-      var T = 10;
+      var L2 = 8;
+      var V2 = 9;
+      var T2 = 10;
       var LV = 11;
       var LVT = 12;
       var ZWJ = 13;
@@ -4034,13 +4034,13 @@ var require_html2canvas = __commonJS({
         if (next === CR || next === LF || next === Control) {
           return BREAK_ALLOWED;
         }
-        if (current === L && [L, V, LV, LVT].indexOf(next) !== -1) {
+        if (current === L2 && [L2, V2, LV, LVT].indexOf(next) !== -1) {
           return BREAK_NOT_ALLOWED;
         }
-        if ((current === LV || current === V) && (next === V || next === T)) {
+        if ((current === LV || current === V2) && (next === V2 || next === T2)) {
           return BREAK_NOT_ALLOWED;
         }
-        if ((current === LVT || current === T) && next === T) {
+        if ((current === LVT || current === T2) && next === T2) {
           return BREAK_NOT_ALLOWED;
         }
         if (next === ZWJ || next === Extend) {
@@ -4215,7 +4215,7 @@ var require_html2canvas = __commonJS({
           return false;
         });
       };
-      var createForeignObjectSVG = function(width, height, x, y, node) {
+      var createForeignObjectSVG = function(width, height, x2, y2, node) {
         var xmlns = "http://www.w3.org/2000/svg";
         var svg = document.createElementNS(xmlns, "svg");
         var foreignObject = document.createElementNS(xmlns, "foreignObject");
@@ -4223,8 +4223,8 @@ var require_html2canvas = __commonJS({
         svg.setAttributeNS(null, "height", height.toString());
         foreignObject.setAttributeNS(null, "width", "100%");
         foreignObject.setAttributeNS(null, "height", "100%");
-        foreignObject.setAttributeNS(null, "x", x.toString());
-        foreignObject.setAttributeNS(null, "y", y.toString());
+        foreignObject.setAttributeNS(null, "x", x2.toString());
+        foreignObject.setAttributeNS(null, "y", y2.toString());
         foreignObject.setAttributeNS(null, "externalResourcesRequired", "true");
         svg.appendChild(foreignObject);
         foreignObject.appendChild(node);
@@ -5261,8 +5261,8 @@ var require_html2canvas = __commonJS({
             var iframeLoad = iframeLoader(iframe).then(function() {
               return __awaiter(_this, void 0, void 0, function() {
                 var onclone, referenceElement;
-                return __generator(this, function(_a) {
-                  switch (_a.label) {
+                return __generator(this, function(_a2) {
+                  switch (_a2.label) {
                     case 0:
                       this.scrolledElements.forEach(restoreNodeScroll);
                       if (cloneWindow) {
@@ -5280,14 +5280,14 @@ var require_html2canvas = __commonJS({
                       if (!(documentClone.fonts && documentClone.fonts.ready)) return [3, 2];
                       return [4, documentClone.fonts.ready];
                     case 1:
-                      _a.sent();
-                      _a.label = 2;
+                      _a2.sent();
+                      _a2.label = 2;
                     case 2:
                       if (!/(AppleWebKit)/g.test(navigator.userAgent)) return [3, 4];
                       return [4, imagesReady(documentClone)];
                     case 3:
-                      _a.sent();
-                      _a.label = 4;
+                      _a2.sent();
+                      _a2.label = 4;
                     case 4:
                       if (typeof onclone === "function") {
                         return [2, Promise.resolve().then(function() {
@@ -5368,7 +5368,7 @@ var require_html2canvas = __commonJS({
             return node.cloneNode(false);
           };
           DocumentCloner2.prototype.createCanvasClone = function(canvas) {
-            var _a;
+            var _a2;
             if (this.options.inlineImages && canvas.ownerDocument) {
               var img = canvas.ownerDocument.createElement("img");
               try {
@@ -5388,7 +5388,7 @@ var require_html2canvas = __commonJS({
                 if (!this.options.allowTaint && ctx) {
                   clonedCtx.putImageData(ctx.getImageData(0, 0, canvas.width, canvas.height), 0, 0);
                 } else {
-                  var gl = (_a = canvas.getContext("webgl2")) !== null && _a !== void 0 ? _a : canvas.getContext("webgl");
+                  var gl = (_a2 = canvas.getContext("webgl2")) !== null && _a2 !== void 0 ? _a2 : canvas.getContext("webgl");
                   if (gl) {
                     var attribs = gl.getContextAttributes();
                     if ((attribs === null || attribs === void 0 ? void 0 : attribs.preserveDrawingBuffer) === false) {
@@ -5525,7 +5525,7 @@ var require_html2canvas = __commonJS({
                     anonymousReplacedElement.appendChild(document3.createTextNode(node.getAttribute(attr[0].value) || ""));
                   }
                 } else if (token.name === "counter") {
-                  var _a = token.values.filter(nonFunctionArgSeparator), counter = _a[0], counterStyle = _a[1];
+                  var _a2 = token.values.filter(nonFunctionArgSeparator), counter = _a2[0], counterStyle = _a2[1];
                   if (counter && isIdentToken(counter)) {
                     var counterState = _this.counters.getCounterValue(counter.value);
                     var counterType = counterStyle && isIdentToken(counterStyle) ? listStyleType.parse(_this.context, counterStyle.value) : 3;
@@ -5665,15 +5665,15 @@ var require_html2canvas = __commonJS({
         }
         return str;
       };
-      var restoreOwnerScroll = function(ownerDocument, x, y) {
-        if (ownerDocument && ownerDocument.defaultView && (x !== ownerDocument.defaultView.pageXOffset || y !== ownerDocument.defaultView.pageYOffset)) {
-          ownerDocument.defaultView.scrollTo(x, y);
+      var restoreOwnerScroll = function(ownerDocument, x2, y2) {
+        if (ownerDocument && ownerDocument.defaultView && (x2 !== ownerDocument.defaultView.pageXOffset || y2 !== ownerDocument.defaultView.pageYOffset)) {
+          ownerDocument.defaultView.scrollTo(x2, y2);
         }
       };
-      var restoreNodeScroll = function(_a) {
-        var element = _a[0], x = _a[1], y = _a[2];
-        element.scrollLeft = x;
-        element.scrollTop = y;
+      var restoreNodeScroll = function(_a2) {
+        var element = _a2[0], x2 = _a2[1], y2 = _a2[2];
+        element.scrollLeft = x2;
+        element.scrollTop = y2;
       };
       var PSEUDO_BEFORE = ":before";
       var PSEUDO_AFTER = ":after";
@@ -5743,8 +5743,8 @@ var require_html2canvas = __commonJS({
             return __awaiter(this, void 0, void 0, function() {
               var isSameOrigin, useCORS, useProxy, src;
               var _this = this;
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     isSameOrigin = CacheStorage.isSameOrigin(key);
                     useCORS = !isInlineImage(key) && this._options.useCORS === true && FEATURES.SUPPORT_CORS_IMAGES && !isSameOrigin;
@@ -5759,8 +5759,8 @@ var require_html2canvas = __commonJS({
                     if (!useProxy) return [3, 2];
                     return [4, this.proxy(src)];
                   case 1:
-                    src = _a.sent();
-                    _a.label = 2;
+                    src = _a2.sent();
+                    _a2.label = 2;
                   case 2:
                     this.context.logger.debug("Added image " + key.substring(0, 256));
                     return [4, new Promise(function(resolve, reject) {
@@ -5785,7 +5785,7 @@ var require_html2canvas = __commonJS({
                       }
                     })];
                   case 3:
-                    return [2, _a.sent()];
+                    return [2, _a2.sent()];
                 }
               });
             });
@@ -5864,10 +5864,10 @@ var require_html2canvas = __commonJS({
       var Vector = (
         /** @class */
         (function() {
-          function Vector2(x, y) {
+          function Vector2(x2, y2) {
             this.type = 0;
-            this.x = x;
-            this.y = y;
+            this.x = x2;
+            this.y = y2;
           }
           Vector2.prototype.add = function(deltaX, deltaY) {
             return new Vector2(this.x + deltaX, this.y + deltaY);
@@ -5915,7 +5915,7 @@ var require_html2canvas = __commonJS({
           function BoundCurves2(element) {
             var styles = element.styles;
             var bounds = element.bounds;
-            var _a = getAbsoluteValueForTuple(styles.borderTopLeftRadius, bounds.width, bounds.height), tlh = _a[0], tlv = _a[1];
+            var _a2 = getAbsoluteValueForTuple(styles.borderTopLeftRadius, bounds.width, bounds.height), tlh = _a2[0], tlv = _a2[1];
             var _b = getAbsoluteValueForTuple(styles.borderTopRightRadius, bounds.width, bounds.height), trh = _b[0], trv = _b[1];
             var _c = getAbsoluteValueForTuple(styles.borderBottomRightRadius, bounds.width, bounds.height), brh = _c[0], brv = _c[1];
             var _d = getAbsoluteValueForTuple(styles.borderBottomLeftRadius, bounds.width, bounds.height), blh = _d[0], blv = _d[1];
@@ -5982,22 +5982,22 @@ var require_html2canvas = __commonJS({
         CORNER2[CORNER2["BOTTOM_RIGHT"] = 2] = "BOTTOM_RIGHT";
         CORNER2[CORNER2["BOTTOM_LEFT"] = 3] = "BOTTOM_LEFT";
       })(CORNER || (CORNER = {}));
-      var getCurvePoints = function(x, y, r1, r2, position2) {
+      var getCurvePoints = function(x2, y2, r1, r2, position2) {
         var kappa = 4 * ((Math.sqrt(2) - 1) / 3);
         var ox = r1 * kappa;
         var oy = r2 * kappa;
-        var xm = x + r1;
-        var ym = y + r2;
+        var xm = x2 + r1;
+        var ym = y2 + r2;
         switch (position2) {
           case CORNER.TOP_LEFT:
-            return new BezierCurve(new Vector(x, ym), new Vector(x, ym - oy), new Vector(xm - ox, y), new Vector(xm, y));
+            return new BezierCurve(new Vector(x2, ym), new Vector(x2, ym - oy), new Vector(xm - ox, y2), new Vector(xm, y2));
           case CORNER.TOP_RIGHT:
-            return new BezierCurve(new Vector(x, y), new Vector(x + ox, y), new Vector(xm, ym - oy), new Vector(xm, ym));
+            return new BezierCurve(new Vector(x2, y2), new Vector(x2 + ox, y2), new Vector(xm, ym - oy), new Vector(xm, ym));
           case CORNER.BOTTOM_RIGHT:
-            return new BezierCurve(new Vector(xm, y), new Vector(xm, y + oy), new Vector(x + ox, ym), new Vector(x, ym));
+            return new BezierCurve(new Vector(xm, y2), new Vector(xm, y2 + oy), new Vector(x2 + ox, ym), new Vector(x2, ym));
           case CORNER.BOTTOM_LEFT:
           default:
-            return new BezierCurve(new Vector(xm, ym), new Vector(xm - ox, ym), new Vector(x, y + oy), new Vector(x, y));
+            return new BezierCurve(new Vector(xm, ym), new Vector(xm - ox, ym), new Vector(x2, y2 + oy), new Vector(x2, y2));
         }
       };
       var calculateBorderBoxPath = function(curves) {
@@ -6425,8 +6425,8 @@ var require_html2canvas = __commonJS({
       var hasIntrinsicValue = function(value) {
         return typeof value === "number";
       };
-      var calculateBackgroundSize = function(size, _a, bounds) {
-        var intrinsicWidth = _a[0], intrinsicHeight = _a[1], intrinsicProportion = _a[2];
+      var calculateBackgroundSize = function(size, _a2, bounds) {
+        var intrinsicWidth = _a2[0], intrinsicHeight = _a2[1], intrinsicProportion = _a2[2];
         var first = size[0], second = size[1];
         if (!first) {
           return [0, 0];
@@ -6501,30 +6501,30 @@ var require_html2canvas = __commonJS({
         }
         return value;
       };
-      var calculateBackgroundRepeatPath = function(repeat, _a, _b, backgroundPositioningArea, backgroundPaintingArea) {
-        var x = _a[0], y = _a[1];
+      var calculateBackgroundRepeatPath = function(repeat, _a2, _b, backgroundPositioningArea, backgroundPaintingArea) {
+        var x2 = _a2[0], y2 = _a2[1];
         var width = _b[0], height = _b[1];
         switch (repeat) {
           case 2:
             return [
-              new Vector(Math.round(backgroundPositioningArea.left), Math.round(backgroundPositioningArea.top + y)),
-              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(backgroundPositioningArea.top + y)),
-              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(height + backgroundPositioningArea.top + y)),
-              new Vector(Math.round(backgroundPositioningArea.left), Math.round(height + backgroundPositioningArea.top + y))
+              new Vector(Math.round(backgroundPositioningArea.left), Math.round(backgroundPositioningArea.top + y2)),
+              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(backgroundPositioningArea.top + y2)),
+              new Vector(Math.round(backgroundPositioningArea.left + backgroundPositioningArea.width), Math.round(height + backgroundPositioningArea.top + y2)),
+              new Vector(Math.round(backgroundPositioningArea.left), Math.round(height + backgroundPositioningArea.top + y2))
             ];
           case 3:
             return [
-              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top)),
-              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top)),
-              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.height + backgroundPositioningArea.top)),
-              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.height + backgroundPositioningArea.top))
+              new Vector(Math.round(backgroundPositioningArea.left + x2), Math.round(backgroundPositioningArea.top)),
+              new Vector(Math.round(backgroundPositioningArea.left + x2 + width), Math.round(backgroundPositioningArea.top)),
+              new Vector(Math.round(backgroundPositioningArea.left + x2 + width), Math.round(backgroundPositioningArea.height + backgroundPositioningArea.top)),
+              new Vector(Math.round(backgroundPositioningArea.left + x2), Math.round(backgroundPositioningArea.height + backgroundPositioningArea.top))
             ];
           case 1:
             return [
-              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top + y)),
-              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top + y)),
-              new Vector(Math.round(backgroundPositioningArea.left + x + width), Math.round(backgroundPositioningArea.top + y + height)),
-              new Vector(Math.round(backgroundPositioningArea.left + x), Math.round(backgroundPositioningArea.top + y + height))
+              new Vector(Math.round(backgroundPositioningArea.left + x2), Math.round(backgroundPositioningArea.top + y2)),
+              new Vector(Math.round(backgroundPositioningArea.left + x2 + width), Math.round(backgroundPositioningArea.top + y2)),
+              new Vector(Math.round(backgroundPositioningArea.left + x2 + width), Math.round(backgroundPositioningArea.top + y2 + height)),
+              new Vector(Math.round(backgroundPositioningArea.left + x2), Math.round(backgroundPositioningArea.top + y2 + height))
             ];
           default:
             return [
@@ -6654,15 +6654,15 @@ var require_html2canvas = __commonJS({
           CanvasRenderer2.prototype.renderStack = function(stack) {
             return __awaiter(this, void 0, void 0, function() {
               var styles;
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     styles = stack.element.container.styles;
                     if (!styles.isVisible()) return [3, 2];
                     return [4, this.renderStackContent(stack)];
                   case 1:
-                    _a.sent();
-                    _a.label = 2;
+                    _a2.sent();
+                    _a2.label = 2;
                   case 2:
                     return [
                       2
@@ -6674,8 +6674,8 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderNode = function(paint) {
             return __awaiter(this, void 0, void 0, function() {
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     if (contains(
                       paint.container.flags,
@@ -6687,11 +6687,11 @@ var require_html2canvas = __commonJS({
                     if (!paint.container.styles.isVisible()) return [3, 3];
                     return [4, this.renderNodeBackgroundAndBorders(paint)];
                   case 1:
-                    _a.sent();
+                    _a2.sent();
                     return [4, this.renderNodeContent(paint)];
                   case 2:
-                    _a.sent();
-                    _a.label = 3;
+                    _a2.sent();
+                    _a2.label = 3;
                   case 3:
                     return [
                       2
@@ -6727,10 +6727,10 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderTextNode = function(text, styles) {
             return __awaiter(this, void 0, void 0, function() {
-              var _a, font, fontFamily2, fontSize2, _b, baseline, middle, paintOrder2;
+              var _a2, font, fontFamily2, fontSize2, _b, baseline, middle, paintOrder2;
               var _this = this;
               return __generator(this, function(_c) {
-                _a = this.createFontStyle(styles), font = _a[0], fontFamily2 = _a[1], fontSize2 = _a[2];
+                _a2 = this.createFontStyle(styles), font = _a2[0], fontFamily2 = _a2[1], fontSize2 = _a2[2];
                 this.ctx.font = font;
                 this.ctx.direction = styles.direction === 1 ? "rtl" : "ltr";
                 this.ctx.textAlign = "left";
@@ -6808,7 +6808,7 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderNodeContent = function(paint) {
             return __awaiter(this, void 0, void 0, function() {
-              var container, curves, styles, _i, _a, child, image2, image2, iframeRenderer, canvas, size, _b, fontFamily2, fontSize2, baseline, bounds, x, textBounds, img, image2, url, fontFamily2, bounds;
+              var container, curves, styles, _i, _a2, child, image2, image2, iframeRenderer, canvas, size, _b, fontFamily2, fontSize2, baseline, bounds, x2, textBounds, img, image2, url, fontFamily2, bounds;
               return __generator(this, function(_c) {
                 switch (_c.label) {
                   case 0:
@@ -6819,11 +6819,11 @@ var require_html2canvas = __commonJS({
                     container = paint.container;
                     curves = paint.curves;
                     styles = container.styles;
-                    _i = 0, _a = container.textNodes;
+                    _i = 0, _a2 = container.textNodes;
                     _c.label = 1;
                   case 1:
-                    if (!(_i < _a.length)) return [3, 4];
-                    child = _a[_i];
+                    if (!(_i < _a2.length)) return [3, 4];
+                    child = _a2[_i];
                     return [4, this.renderTextNode(child, styles)];
                   case 2:
                     _c.sent();
@@ -6917,16 +6917,16 @@ var require_html2canvas = __commonJS({
                       this.ctx.textBaseline = "alphabetic";
                       this.ctx.textAlign = canvasTextAlign(container.styles.textAlign);
                       bounds = contentBox(container);
-                      x = 0;
+                      x2 = 0;
                       switch (container.styles.textAlign) {
                         case 1:
-                          x += bounds.width / 2;
+                          x2 += bounds.width / 2;
                           break;
                         case 2:
-                          x += bounds.width;
+                          x2 += bounds.width;
                           break;
                       }
-                      textBounds = bounds.add(x, 0, 0, -bounds.height / 2 + 1);
+                      textBounds = bounds.add(x2, 0, 0, -bounds.height / 2 + 1);
                       this.ctx.save();
                       this.path([
                         new Vector(bounds.left, bounds.top),
@@ -6988,7 +6988,7 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderStackContent = function(stack) {
             return __awaiter(this, void 0, void 0, function() {
-              var _i, _a, child, _b, _c, child, _d, _e, child, _f, _g, child, _h, _j, child, _k, _l, child, _m, _o, child;
+              var _i, _a2, child, _b, _c, child, _d, _e2, child, _f, _g, child, _h, _j, child, _k, _l, child, _m, _o, child;
               return __generator(this, function(_p) {
                 switch (_p.label) {
                   case 0:
@@ -7002,11 +7002,11 @@ var require_html2canvas = __commonJS({
                     return [4, this.renderNodeBackgroundAndBorders(stack.element)];
                   case 1:
                     _p.sent();
-                    _i = 0, _a = stack.negativeZIndex;
+                    _i = 0, _a2 = stack.negativeZIndex;
                     _p.label = 2;
                   case 2:
-                    if (!(_i < _a.length)) return [3, 5];
-                    child = _a[_i];
+                    if (!(_i < _a2.length)) return [3, 5];
+                    child = _a2[_i];
                     return [4, this.renderStack(child)];
                   case 3:
                     _p.sent();
@@ -7031,11 +7031,11 @@ var require_html2canvas = __commonJS({
                     _b++;
                     return [3, 7];
                   case 10:
-                    _d = 0, _e = stack.nonPositionedFloats;
+                    _d = 0, _e2 = stack.nonPositionedFloats;
                     _p.label = 11;
                   case 11:
-                    if (!(_d < _e.length)) return [3, 14];
-                    child = _e[_d];
+                    if (!(_d < _e2.length)) return [3, 14];
+                    child = _e2[_d];
                     return [4, this.renderStack(child)];
                   case 12:
                     _p.sent();
@@ -7141,11 +7141,11 @@ var require_html2canvas = __commonJS({
             this.ctx.translate(-offsetX, -offsetY);
           };
           CanvasRenderer2.prototype.resizeImage = function(image2, width, height) {
-            var _a;
+            var _a2;
             if (image2.width === width && image2.height === height) {
               return image2;
             }
-            var ownerDocument = (_a = this.canvas.ownerDocument) !== null && _a !== void 0 ? _a : document;
+            var ownerDocument = (_a2 = this.canvas.ownerDocument) !== null && _a2 !== void 0 ? _a2 : document;
             var canvas = ownerDocument.createElement("canvas");
             canvas.width = Math.max(1, width);
             canvas.height = Math.max(1, height);
@@ -7155,13 +7155,13 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderBackgroundImage = function(container) {
             return __awaiter(this, void 0, void 0, function() {
-              var index, _loop_1, this_1, _i, _a, backgroundImage2;
+              var index, _loop_1, this_1, _i, _a2, backgroundImage2;
               return __generator(this, function(_b) {
                 switch (_b.label) {
                   case 0:
                     index = container.styles.backgroundImage.length - 1;
                     _loop_1 = function(backgroundImage3) {
-                      var image2, url, _c, path, x, y, width, height, pattern, _d, path, x, y, width, height, _e, lineLength, x0, x1, y0, y1, canvas, ctx, gradient_1, pattern, _f, path, left, top_1, width, height, position2, x, y, _g, rx, ry, radialGradient_1, midX, midY, f2, invF;
+                      var image2, url, _c, path, x2, y2, width, height, pattern, _d, path, x2, y2, width, height, _e2, lineLength, x0, x1, y0, y1, canvas, ctx, gradient_1, pattern, _f, path, left, top_1, width, height, position2, x2, y2, _g, rx, ry, radialGradient_1, midX, midY, f2, invF;
                       return __generator(this, function(_h) {
                         switch (_h.label) {
                           case 0:
@@ -7185,15 +7185,15 @@ var require_html2canvas = __commonJS({
                                 image2.width,
                                 image2.height,
                                 image2.width / image2.height
-                              ]), path = _c[0], x = _c[1], y = _c[2], width = _c[3], height = _c[4];
+                              ]), path = _c[0], x2 = _c[1], y2 = _c[2], width = _c[3], height = _c[4];
                               pattern = this_1.ctx.createPattern(this_1.resizeImage(image2, width, height), "repeat");
-                              this_1.renderRepeat(path, pattern, x, y);
+                              this_1.renderRepeat(path, pattern, x2, y2);
                             }
                             return [3, 6];
                           case 5:
                             if (isLinearGradient(backgroundImage3)) {
-                              _d = calculateBackgroundRendering(container, index, [null, null, null]), path = _d[0], x = _d[1], y = _d[2], width = _d[3], height = _d[4];
-                              _e = calculateGradientDirection(backgroundImage3.angle, width, height), lineLength = _e[0], x0 = _e[1], x1 = _e[2], y0 = _e[3], y1 = _e[4];
+                              _d = calculateBackgroundRendering(container, index, [null, null, null]), path = _d[0], x2 = _d[1], y2 = _d[2], width = _d[3], height = _d[4];
+                              _e2 = calculateGradientDirection(backgroundImage3.angle, width, height), lineLength = _e2[0], x0 = _e2[1], x1 = _e2[2], y0 = _e2[3], y1 = _e2[4];
                               canvas = document.createElement("canvas");
                               canvas.width = width;
                               canvas.height = height;
@@ -7206,7 +7206,7 @@ var require_html2canvas = __commonJS({
                               ctx.fillRect(0, 0, width, height);
                               if (width > 0 && height > 0) {
                                 pattern = this_1.ctx.createPattern(canvas, "repeat");
-                                this_1.renderRepeat(path, pattern, x, y);
+                                this_1.renderRepeat(path, pattern, x2, y2);
                               }
                             } else if (isRadialGradient(backgroundImage3)) {
                               _f = calculateBackgroundRendering(container, index, [
@@ -7215,11 +7215,11 @@ var require_html2canvas = __commonJS({
                                 null
                               ]), path = _f[0], left = _f[1], top_1 = _f[2], width = _f[3], height = _f[4];
                               position2 = backgroundImage3.position.length === 0 ? [FIFTY_PERCENT] : backgroundImage3.position;
-                              x = getAbsoluteValue(position2[0], width);
-                              y = getAbsoluteValue(position2[position2.length - 1], height);
-                              _g = calculateRadius(backgroundImage3, x, y, width, height), rx = _g[0], ry = _g[1];
+                              x2 = getAbsoluteValue(position2[0], width);
+                              y2 = getAbsoluteValue(position2[position2.length - 1], height);
+                              _g = calculateRadius(backgroundImage3, x2, y2, width, height), rx = _g[0], ry = _g[1];
                               if (rx > 0 && ry > 0) {
-                                radialGradient_1 = this_1.ctx.createRadialGradient(left + x, top_1 + y, 0, left + x, top_1 + y, rx);
+                                radialGradient_1 = this_1.ctx.createRadialGradient(left + x2, top_1 + y2, 0, left + x2, top_1 + y2, rx);
                                 processColorStops(backgroundImage3.stops, rx * 2).forEach(function(colorStop) {
                                   return radialGradient_1.addColorStop(colorStop.stop, asString(colorStop.color));
                                 });
@@ -7252,11 +7252,11 @@ var require_html2canvas = __commonJS({
                       });
                     };
                     this_1 = this;
-                    _i = 0, _a = container.styles.backgroundImage.slice(0).reverse();
+                    _i = 0, _a2 = container.styles.backgroundImage.slice(0).reverse();
                     _b.label = 1;
                   case 1:
-                    if (!(_i < _a.length)) return [3, 4];
-                    backgroundImage2 = _a[_i];
+                    if (!(_i < _a2.length)) return [3, 4];
+                    backgroundImage2 = _a2[_i];
                     return [5, _loop_1(backgroundImage2)];
                   case 2:
                     _b.sent();
@@ -7275,7 +7275,7 @@ var require_html2canvas = __commonJS({
           };
           CanvasRenderer2.prototype.renderSolidBorder = function(color2, side, curvePoints) {
             return __awaiter(this, void 0, void 0, function() {
-              return __generator(this, function(_a) {
+              return __generator(this, function(_a2) {
                 this.path(parsePathForBorder(curvePoints, side));
                 this.ctx.fillStyle = asString(color2);
                 this.ctx.fill();
@@ -7289,13 +7289,13 @@ var require_html2canvas = __commonJS({
           CanvasRenderer2.prototype.renderDoubleBorder = function(color2, width, side, curvePoints) {
             return __awaiter(this, void 0, void 0, function() {
               var outerPaths, innerPaths;
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     if (!(width < 3)) return [3, 2];
                     return [4, this.renderSolidBorder(color2, side, curvePoints)];
                   case 1:
-                    _a.sent();
+                    _a2.sent();
                     return [
                       2
                       /*return*/
@@ -7320,8 +7320,8 @@ var require_html2canvas = __commonJS({
             return __awaiter(this, void 0, void 0, function() {
               var styles, hasBackground, borders, backgroundPaintingArea, side, _i, borders_1, border;
               var _this = this;
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     this.applyEffects(paint.getEffects(
                       2
@@ -7346,7 +7346,7 @@ var require_html2canvas = __commonJS({
                     }
                     return [4, this.renderBackgroundImage(paint.container)];
                   case 1:
-                    _a.sent();
+                    _a2.sent();
                     this.ctx.restore();
                     styles.boxShadow.slice(0).reverse().forEach(function(shadow) {
                       _this.ctx.save();
@@ -7370,11 +7370,11 @@ var require_html2canvas = __commonJS({
                       _this.ctx.fill();
                       _this.ctx.restore();
                     });
-                    _a.label = 2;
+                    _a2.label = 2;
                   case 2:
                     side = 0;
                     _i = 0, borders_1 = borders;
-                    _a.label = 3;
+                    _a2.label = 3;
                   case 3:
                     if (!(_i < borders_1.length)) return [3, 13];
                     border = borders_1[_i];
@@ -7389,7 +7389,7 @@ var require_html2canvas = __commonJS({
                       /* DASHED */
                     )];
                   case 4:
-                    _a.sent();
+                    _a2.sent();
                     return [3, 11];
                   case 5:
                     if (!(border.style === 3)) return [3, 7];
@@ -7402,22 +7402,22 @@ var require_html2canvas = __commonJS({
                       /* DOTTED */
                     )];
                   case 6:
-                    _a.sent();
+                    _a2.sent();
                     return [3, 11];
                   case 7:
                     if (!(border.style === 4)) return [3, 9];
                     return [4, this.renderDoubleBorder(border.color, border.width, side, paint.curves)];
                   case 8:
-                    _a.sent();
+                    _a2.sent();
                     return [3, 11];
                   case 9:
                     return [4, this.renderSolidBorder(border.color, side, paint.curves)];
                   case 10:
-                    _a.sent();
-                    _a.label = 11;
+                    _a2.sent();
+                    _a2.label = 11;
                   case 11:
                     side++;
-                    _a.label = 12;
+                    _a2.label = 12;
                   case 12:
                     _i++;
                     return [3, 3];
@@ -7433,7 +7433,7 @@ var require_html2canvas = __commonJS({
           CanvasRenderer2.prototype.renderDashedDottedBorder = function(color2, width, side, curvePoints, style) {
             return __awaiter(this, void 0, void 0, function() {
               var strokePaths, boxPaths, startX, startY, endX, endY, length, dashLength, spaceLength, useLineDash, multiplier, numberOfDashes, minSpace, maxSpace, path1, path2, path1, path2;
-              return __generator(this, function(_a) {
+              return __generator(this, function(_a2) {
                 this.ctx.save();
                 strokePaths = parsePathForBorderStroke(curvePoints, side);
                 boxPaths = parsePathForBorder(curvePoints, side);
@@ -7528,8 +7528,8 @@ var require_html2canvas = __commonJS({
           CanvasRenderer2.prototype.render = function(element) {
             return __awaiter(this, void 0, void 0, function() {
               var stack;
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     if (this.options.backgroundColor) {
                       this.ctx.fillStyle = asString(this.options.backgroundColor);
@@ -7538,7 +7538,7 @@ var require_html2canvas = __commonJS({
                     stack = parseStackingContexts(element);
                     return [4, this.renderStack(stack)];
                   case 1:
-                    _a.sent();
+                    _a2.sent();
                     this.applyEffects([]);
                     return [2, this.canvas];
                 }
@@ -7607,13 +7607,13 @@ var require_html2canvas = __commonJS({
           ForeignObjectRenderer2.prototype.render = function(element) {
             return __awaiter(this, void 0, void 0, function() {
               var svg, img;
-              return __generator(this, function(_a) {
-                switch (_a.label) {
+              return __generator(this, function(_a2) {
+                switch (_a2.label) {
                   case 0:
                     svg = createForeignObjectSVG(this.options.width * this.options.scale, this.options.height * this.options.scale, this.options.scale, this.options.scale, element);
                     return [4, loadSerializedSVG(svg)];
                   case 1:
-                    img = _a.sent();
+                    img = _a2.sent();
                     if (this.options.backgroundColor) {
                       this.ctx.fillStyle = asString(this.options.backgroundColor);
                       this.ctx.fillRect(0, 0, this.options.width * this.options.scale, this.options.height * this.options.scale);
@@ -7640,8 +7640,8 @@ var require_html2canvas = __commonJS({
       var Logger = (
         /** @class */
         (function() {
-          function Logger2(_a) {
-            var id = _a.id, enabled = _a.enabled;
+          function Logger2(_a2) {
+            var id = _a2.id, enabled = _a2.enabled;
             this.id = id;
             this.enabled = enabled;
             this.start = Date.now();
@@ -7707,11 +7707,11 @@ var require_html2canvas = __commonJS({
         /** @class */
         (function() {
           function Context2(options2, windowBounds) {
-            var _a;
+            var _a2;
             this.windowBounds = windowBounds;
             this.instanceName = "#" + Context2.instanceCount++;
             this.logger = new Logger({ id: this.instanceName, enabled: options2.logging });
-            this.cache = (_a = options2.cache) !== null && _a !== void 0 ? _a : new Cache(this, options2);
+            this.cache = (_a2 = options2.cache) !== null && _a2 !== void 0 ? _a2 : new Cache(this, options2);
           }
           Context2.instanceCount = 1;
           return Context2;
@@ -7728,8 +7728,8 @@ var require_html2canvas = __commonJS({
       }
       var renderElement = function(element, opts) {
         return __awaiter(void 0, void 0, void 0, function() {
-          var ownerDocument, defaultView, resourceOptions, contextOptions, windowOptions, windowBounds, context, foreignObjectRendering, cloneOptions, documentCloner, clonedElement, container, _a, width, height, left, top, backgroundColor2, renderOptions, canvas, renderer, root2, renderer;
-          var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+          var ownerDocument, defaultView, resourceOptions, contextOptions, windowOptions, windowBounds, context, foreignObjectRendering, cloneOptions, documentCloner, clonedElement, container, _a2, width, height, left, top, backgroundColor2, renderOptions, canvas, renderer, root2, renderer;
+          var _b, _c, _d, _e2, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
           return __generator(this, function(_u) {
             switch (_u.label) {
               case 0:
@@ -7750,7 +7750,7 @@ var require_html2canvas = __commonJS({
                   proxy: opts.proxy,
                   useCORS: (_d = opts.useCORS) !== null && _d !== void 0 ? _d : false
                 };
-                contextOptions = __assign({ logging: (_e = opts.logging) !== null && _e !== void 0 ? _e : true, cache: opts.cache }, resourceOptions);
+                contextOptions = __assign({ logging: (_e2 = opts.logging) !== null && _e2 !== void 0 ? _e2 : true, cache: opts.cache }, resourceOptions);
                 windowOptions = {
                   windowWidth: (_f = opts.windowWidth) !== null && _f !== void 0 ? _f : defaultView.innerWidth,
                   windowHeight: (_g = opts.windowHeight) !== null && _g !== void 0 ? _g : defaultView.innerHeight,
@@ -7776,7 +7776,7 @@ var require_html2canvas = __commonJS({
                 return [4, documentCloner.toIFrame(ownerDocument, windowBounds)];
               case 1:
                 container = _u.sent();
-                _a = isBodyElement(clonedElement) || isHTMLElement(clonedElement) ? parseDocumentSize(clonedElement.ownerDocument) : parseBounds(context, clonedElement), width = _a.width, height = _a.height, left = _a.left, top = _a.top;
+                _a2 = isBodyElement(clonedElement) || isHTMLElement(clonedElement) ? parseDocumentSize(clonedElement.ownerDocument) : parseBounds(context, clonedElement), width = _a2.width, height = _a2.height, left = _a2.left, top = _a2.top;
                 backgroundColor2 = parseBackgroundColor(context, clonedElement, opts.backgroundColor);
                 renderOptions = {
                   canvas: opts.canvas,
@@ -7834,9 +7834,9 @@ var require_html2canvas = __commonJS({
 // node_modules/picocolors/picocolors.browser.js
 var require_picocolors_browser = __commonJS({
   "node_modules/picocolors/picocolors.browser.js"(exports, module2) {
-    var x = String;
+    var x2 = String;
     var create = function() {
-      return { isColorSupported: false, reset: x, bold: x, dim: x, italic: x, underline: x, inverse: x, hidden: x, strikethrough: x, black: x, red: x, green: x, yellow: x, blue: x, magenta: x, cyan: x, white: x, gray: x, bgBlack: x, bgRed: x, bgGreen: x, bgYellow: x, bgBlue: x, bgMagenta: x, bgCyan: x, bgWhite: x, blackBright: x, redBright: x, greenBright: x, yellowBright: x, blueBright: x, magentaBright: x, cyanBright: x, whiteBright: x, bgBlackBright: x, bgRedBright: x, bgGreenBright: x, bgYellowBright: x, bgBlueBright: x, bgMagentaBright: x, bgCyanBright: x, bgWhiteBright: x };
+      return { isColorSupported: false, reset: x2, bold: x2, dim: x2, italic: x2, underline: x2, inverse: x2, hidden: x2, strikethrough: x2, black: x2, red: x2, green: x2, yellow: x2, blue: x2, magenta: x2, cyan: x2, white: x2, gray: x2, bgBlack: x2, bgRed: x2, bgGreen: x2, bgYellow: x2, bgBlue: x2, bgMagenta: x2, bgCyan: x2, bgWhite: x2, blackBright: x2, redBright: x2, greenBright: x2, yellowBright: x2, blueBright: x2, magentaBright: x2, cyanBright: x2, whiteBright: x2, bgBlackBright: x2, bgRedBright: x2, bgGreenBright: x2, bgYellowBright: x2, bgBlueBright: x2, bgMagentaBright: x2, bgCyanBright: x2, bgWhiteBright: x2 };
     };
     module2.exports = create();
     module2.exports.createColors = create;
@@ -8375,10 +8375,10 @@ var require_node = __commonJS({
           } else if (Array.isArray(value)) {
             let children = [];
             target[i] = children;
-            for (let j of value) {
-              let childClone = new j.constructor();
+            for (let j2 of value) {
+              let childClone = new j2.constructor();
               children.push(childClone);
-              stack.push([j, childClone, target]);
+              stack.push([j2, childClone, target]);
             }
           } else {
             if (type === "object" && value !== null) {
@@ -8679,7 +8679,7 @@ var require_node = __commonJS({
         }
         return result;
       }
-      toJSON(_, inputs) {
+      toJSON(_2, inputs) {
         let emitInputs = inputs == null;
         inputs = inputs || /* @__PURE__ */ new Map();
         let holderOfRoot = [];
@@ -9474,7 +9474,7 @@ var require_input = __commonJS({
       let lines = input.css.split("\n");
       let lineToIndex = new Array(lines.length);
       let prevIndex = 0;
-      for (let i = 0, l = lines.length; i < l; i++) {
+      for (let i = 0, l3 = lines.length; i < l3; i++) {
         lineToIndex[i] = prevIndex;
         prevIndex += lines[i].length + 1;
       }
@@ -10592,8 +10592,8 @@ var require_parser = __commonJS({
         if (colon === false) return;
         let founded = 0;
         let token;
-        for (let j = colon - 1; j >= 0; j--) {
-          token = tokens[j];
+        for (let j2 = colon - 1; j2 >= 0; j2--) {
+          token = tokens[j2];
           if (token[0] !== "space") {
             founded += 1;
             if (founded === 2) break;
@@ -10712,8 +10712,8 @@ var require_parser = __commonJS({
           } else if (token[1].toLowerCase() === "important") {
             let cache = tokens.slice(0);
             let str = "";
-            for (let j = i; j > 0; j--) {
-              let type = cache[j][0];
+            for (let j2 = i; j2 > 0; j2--) {
+              let type = cache[j2][0];
               if (str.trim().startsWith("!") && type !== "space") {
                 break;
               }
@@ -11935,10 +11935,10 @@ var require_ms = __commonJS({
   "node_modules/ms/index.js"(exports, module2) {
     var s = 1e3;
     var m = s * 60;
-    var h = m * 60;
-    var d = h * 24;
+    var h2 = m * 60;
+    var d = h2 * 24;
     var w = d * 7;
-    var y = d * 365.25;
+    var y2 = d * 365.25;
     module2.exports = function(val, options2) {
       options2 = options2 || {};
       var type = typeof val;
@@ -11970,7 +11970,7 @@ var require_ms = __commonJS({
         case "yrs":
         case "yr":
         case "y":
-          return n * y;
+          return n * y2;
         case "weeks":
         case "week":
         case "w":
@@ -11984,7 +11984,7 @@ var require_ms = __commonJS({
         case "hrs":
         case "hr":
         case "h":
-          return n * h;
+          return n * h2;
         case "minutes":
         case "minute":
         case "mins":
@@ -12012,8 +12012,8 @@ var require_ms = __commonJS({
       if (msAbs >= d) {
         return Math.round(ms / d) + "d";
       }
-      if (msAbs >= h) {
-        return Math.round(ms / h) + "h";
+      if (msAbs >= h2) {
+        return Math.round(ms / h2) + "h";
       }
       if (msAbs >= m) {
         return Math.round(ms / m) + "m";
@@ -12028,8 +12028,8 @@ var require_ms = __commonJS({
       if (msAbs >= d) {
         return plural(ms, msAbs, d, "day");
       }
-      if (msAbs >= h) {
-        return plural(ms, msAbs, h, "hour");
+      if (msAbs >= h2) {
+        return plural(ms, msAbs, h2, "hour");
       }
       if (msAbs >= m) {
         return plural(ms, msAbs, m, "minute");
@@ -12397,18 +12397,18 @@ var require_browser = __commonJS({
 var require_helpers = __commonJS({
   "node_modules/agent-base/dist/helpers.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -12419,7 +12419,7 @@ var require_helpers = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -12467,18 +12467,18 @@ var require_helpers = __commonJS({
 var require_dist = __commonJS({
   "node_modules/agent-base/dist/index.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -12489,7 +12489,7 @@ var require_dist = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -12524,7 +12524,7 @@ var require_dist = __commonJS({
         const { stack } = new Error();
         if (typeof stack !== "string")
           return false;
-        return stack.split("\n").some((l) => l.indexOf("(https.js:") !== -1 || l.indexOf("node:https:") !== -1);
+        return stack.split("\n").some((l3) => l3.indexOf("(https.js:") !== -1 || l3.indexOf("node:https:") !== -1);
       }
       // In order to support async signatures in `connect()` and Node's native
       // connection pooling in `http.Agent`, the array of sockets for each origin
@@ -12599,8 +12599,8 @@ var require_dist = __commonJS({
         return socket;
       }
       get defaultPort() {
-        var _a;
-        return (_a = this[INTERNAL].defaultPort) != null ? _a : this.protocol === "https:" ? 443 : 80;
+        var _a2;
+        return (_a2 = this[INTERNAL].defaultPort) != null ? _a2 : this.protocol === "https:" ? 443 : 80;
       }
       set defaultPort(v) {
         if (this[INTERNAL]) {
@@ -12608,8 +12608,8 @@ var require_dist = __commonJS({
         }
       }
       get protocol() {
-        var _a;
-        return (_a = this[INTERNAL].protocol) != null ? _a : this.isSecureEndpoint() ? "https:" : "http:";
+        var _a2;
+        return (_a2 = this[INTERNAL].protocol) != null ? _a2 : this.isSecureEndpoint() ? "https:" : "http:";
       }
       set protocol(v) {
         if (this[INTERNAL]) {
@@ -12721,18 +12721,18 @@ var require_parse_proxy_response = __commonJS({
 var require_dist2 = __commonJS({
   "node_modules/https-proxy-agent/dist/index.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -12743,7 +12743,7 @@ var require_dist2 = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -12772,11 +12772,11 @@ var require_dist2 = __commonJS({
     };
     var HttpsProxyAgent2 = class extends agent_base_1.Agent {
       constructor(proxy, opts) {
-        var _a;
+        var _a2;
         super(opts);
         this.options = { path: void 0 };
         this.proxy = typeof proxy === "string" ? new url_1.URL(proxy) : proxy;
-        this.proxyHeaders = (_a = opts == null ? void 0 : opts.headers) != null ? _a : {};
+        this.proxyHeaders = (_a2 = opts == null ? void 0 : opts.headers) != null ? _a2 : {};
         debug("Creating new HttpsProxyAgent instance: %o", this.proxy.href);
         const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, "");
         const port = this.proxy.port ? parseInt(this.proxy.port, 10) : this.proxy.protocol === "https:" ? 443 : 80;
@@ -14227,8 +14227,8 @@ var require_util = __commonJS({
     exports.SocksClientError = SocksClientError;
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        const j2 = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j2]] = [array[j2], array[i]];
       }
     }
     exports.shuffleArray = shuffleArray;
@@ -14344,18 +14344,18 @@ var require_constants2 = __commonJS({
 var require_ipv4 = __commonJS({
   "node_modules/ip-address/dist/ipv4.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -14366,7 +14366,7 @@ var require_ipv4 = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -14871,23 +14871,23 @@ var require_helpers2 = __commonJS({
   "node_modules/ip-address/dist/v6/helpers.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.escapeHtml = escapeHtml;
+    exports.escapeHtml = escapeHtml2;
     exports.spanAllZeroes = spanAllZeroes;
     exports.spanAll = spanAll;
     exports.spanLeadingZeroes = spanLeadingZeroes;
     exports.simpleGroup = simpleGroup;
-    function escapeHtml(s) {
+    function escapeHtml2(s) {
       return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
     }
     function spanAllZeroes(s) {
-      return escapeHtml(s).replace(/(0+)/g, '<span class="zero">$1</span>');
+      return escapeHtml2(s).replace(/(0+)/g, '<span class="zero">$1</span>');
     }
     function spanAll(s, offset = 0) {
       const letters = s.split("");
-      return letters.map((n, i) => `<span class="digit value-${escapeHtml(n)} position-${i + offset}">${spanAllZeroes(n)}</span>`).join("");
+      return letters.map((n, i) => `<span class="digit value-${escapeHtml2(n)} position-${i + offset}">${spanAllZeroes(n)}</span>`).join("");
     }
     function spanLeadingZeroesSimple(group) {
-      return escapeHtml(group).replace(/^(0+)/, '<span class="zero">$1</span>');
+      return escapeHtml2(group).replace(/^(0+)/, '<span class="zero">$1</span>');
     }
     function spanLeadingZeroes(address) {
       const groups = address.split(":");
@@ -14909,18 +14909,18 @@ var require_helpers2 = __commonJS({
 var require_regular_expressions = __commonJS({
   "node_modules/ip-address/dist/v6/regular-expressions.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -14931,7 +14931,7 @@ var require_regular_expressions = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -15001,18 +15001,18 @@ var require_regular_expressions = __commonJS({
 var require_ipv6 = __commonJS({
   "node_modules/ip-address/dist/ipv6.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -15023,7 +15023,7 @@ var require_ipv6 = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -15160,7 +15160,7 @@ var require_ipv6 = __commonJS({
        * addressAndPort.port; // 8080
        */
       static fromURL(url) {
-        var _a;
+        var _a2;
         let host;
         let port = null;
         let result;
@@ -15185,7 +15185,7 @@ var require_ipv6 = __commonJS({
               port: null
             };
           }
-          host = (_a = result[1]) !== null && _a !== void 0 ? _a : result[2];
+          host = (_a2 = result[1]) !== null && _a2 !== void 0 ? _a2 : result[2];
         }
         if (port) {
           port = parseInt(port, 10);
@@ -16235,18 +16235,18 @@ var require_ipv6 = __commonJS({
 var require_ip_address = __commonJS({
   "node_modules/ip-address/dist/ip-address.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -16257,7 +16257,7 @@ var require_ip_address = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -16440,13 +16440,13 @@ var require_receivebuffer = __commonJS({
 var require_socksclient = __commonJS({
   "node_modules/socks/build/client/socksclient.js"(exports) {
     "use strict";
-    var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
+    var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
+        return value instanceof P2 ? value : new P2(function(resolve) {
           resolve(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve, reject) {
+      return new (P2 || (P2 = Promise))(function(resolve, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -17119,18 +17119,18 @@ var require_socksclient = __commonJS({
 var require_build = __commonJS({
   "node_modules/socks/build/index.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __exportStar = exports && exports.__exportStar || function(m, exports2) {
       for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p)) __createBinding(exports2, m, p);
@@ -17144,18 +17144,18 @@ var require_build = __commonJS({
 var require_dist3 = __commonJS({
   "node_modules/socks-proxy-agent/dist/index.js"(exports) {
     "use strict";
-    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
+    var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      var desc = Object.getOwnPropertyDescriptor(m, k2);
       if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
         desc = { enumerable: true, get: function() {
-          return m[k];
+          return m[k2];
         } };
       }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
+      Object.defineProperty(o, k22, desc);
+    }) : (function(o, m, k2, k22) {
+      if (k22 === void 0) k22 = k2;
+      o[k22] = m[k2];
     }));
     var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
       Object.defineProperty(o, "default", { enumerable: true, value: v });
@@ -17166,7 +17166,7 @@ var require_dist3 = __commonJS({
       if (mod && mod.__esModule) return mod;
       var result = {};
       if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        for (var k2 in mod) if (k2 !== "default" && Object.prototype.hasOwnProperty.call(mod, k2)) __createBinding(result, mod, k2);
       }
       __setModuleDefault(result, mod);
       return result;
@@ -17242,13 +17242,13 @@ var require_dist3 = __commonJS({
     }
     var SocksProxyAgent2 = class extends agent_base_1.Agent {
       constructor(uri, opts) {
-        var _a, _b;
+        var _a2, _b;
         super(opts);
         const url = typeof uri === "string" ? new url_1.URL(uri) : uri;
         const { proxy, lookup } = parseSocksURL(url);
         this.shouldLookup = lookup;
         this.proxy = proxy;
-        this.timeout = (_a = opts == null ? void 0 : opts.timeout) != null ? _a : null;
+        this.timeout = (_a2 = opts == null ? void 0 : opts.timeout) != null ? _a2 : null;
         this.socketOptions = (_b = opts == null ? void 0 : opts.socketOptions) != null ? _b : null;
       }
       /**
@@ -17256,7 +17256,7 @@ var require_dist3 = __commonJS({
        * which in turn connects to the specified remote host and port.
        */
       async connect(req, opts) {
-        var _a;
+        var _a2;
         const { shouldLookup, proxy, timeout } = this;
         if (!opts.host) {
           throw new Error("No `host` defined!");
@@ -17284,7 +17284,7 @@ var require_dist3 = __commonJS({
           timeout: timeout != null ? timeout : void 0,
           // @ts-expect-error the type supplied by socks for socket_options is wider
           // than necessary since socks will always override the host and port
-          socket_options: (_a = this.socketOptions) != null ? _a : void 0
+          socket_options: (_a2 = this.socketOptions) != null ? _a2 : void 0
         };
         const cleanup = (tlsSocket) => {
           req.destroy();
@@ -17341,7 +17341,7 @@ __export(main_exports, {
   default: () => WeChatPublisherPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian8 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/types/index.ts
 var DEFAULT_SETTINGS = {
@@ -17356,15 +17356,19 @@ var DEFAULT_SETTINGS = {
   excludeFrontmatter: false,
   defaultCoverImage: "",
   defaultAuthor: "",
-  defaultOpenComment: false
+  defaultOpenComment: false,
+  relayBase: "http://127.0.0.1:8765",
+  relayToken: "",
+  openXAfterPush: true,
+  xSelected: false
 };
 
 // src/views/publisher-view.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 var import_html2canvas = __toESM(require_html2canvas());
 
 // src/modals/draft-confirm-modal.ts
-var import_obsidian = require("obsidian");
+var import_obsidian3 = require("obsidian");
 
 // src/utils/image.ts
 async function compressImage(data, mimeType, maxSizeKB = 500) {
@@ -17403,6 +17407,2392 @@ function canvasToBlob(canvas, mimeType, quality) {
     canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("\u56FE\u7247\u538B\u7F29\u5931\u8D25")), mimeType, quality);
   });
 }
+
+// src/x/x-preview-modal.ts
+var import_obsidian2 = require("obsidian");
+
+// vendor/kaitox/x-article/types.ts
+var INLINE_STYLES = {
+  Bold: true,
+  Italic: true,
+  Strikethrough: true
+};
+function assertNever(x2, site) {
+  throw new Error(`unhandled ${site}: ${String(x2)}`);
+}
+
+// node_modules/marked18/lib/marked.esm.js
+function I() {
+  return { async: false, breaks: false, extensions: null, gfm: true, hooks: null, pedantic: false, renderer: null, silent: false, tokenizer: null, walkTokens: null };
+}
+var y = I();
+function W(l3) {
+  y = l3;
+}
+var A = { exec: () => null };
+function C(l3) {
+  let e = [];
+  return (t) => {
+    let n = Math.max(0, Math.min(3, t - 1)), s = e[n];
+    return s || (s = l3(n), e[n] = s), s;
+  };
+}
+function h(l3, e = "") {
+  let t = typeof l3 == "string" ? l3 : l3.source, n = { replace: (s, r) => {
+    let o = typeof r == "string" ? r : r.source;
+    return o = o.replace(x.caret, "$1"), t = t.replace(s, o), n;
+  }, getRegex: () => new RegExp(t, e) };
+  return n;
+}
+var _e = ((l3 = "") => {
+  try {
+    return !!new RegExp("(?<=1)(?<!1)" + l3);
+  } catch (e) {
+    return false;
+  }
+})();
+var x = { codeRemoveIndent: /^(?: {0,3}\t| {1,4})/gm, outputLinkReplace: /\\([\[\]])/g, indentCodeCompensation: /^(\s+)(?:```)/, beginningSpace: /^\s+/, endingHash: /#$/, startingSpaceChar: /^ /, endingSpaceChar: / $/, endingSpaceTabChar: /[ \t]$/, nonSpaceChar: /[^ ]/, newLineCharGlobal: /\n/g, tabCharGlobal: /\t/g, leadingSpaceTab: /^[ \t]+/, multipleSpaceGlobal: /\s+/g, blankLine: /^[ \t]*$/, doubleBlankLine: /\n[ \t]*\n[ \t]*$/, blockquoteStart: /^ {0,3}>/, blockquoteSetextReplace: /\n {0,3}((?:=+|-+) *)(?=\n|$)/g, blockquoteSetextReplace2: /^ {0,3}>[ \t]?/gm, listReplaceNesting: /^ {1,4}(?=( {4})*[^ ])/g, listIsTask: /^\[[ xX]\] +\S/, listReplaceTask: /^\[[ xX]\] +/, listTaskCheckbox: /\[[ xX]\]/, anyLine: /\n.*\n/, hrefBrackets: /^<(.*)>$/, tableDelimiter: /[:|]/, tableAlignChars: /^\||\| *$/g, tableRowBlankLine: /\n[ \t]*$/, tableAlignRight: /^ *-+: *$/, tableAlignCenter: /^ *:-+: *$/, tableAlignLeft: /^ *:-+ *$/, startATag: /^<a /i, endATag: /^<\/a>/i, startPreScriptTag: /^<(pre|code|kbd|script)(\s|>)/i, endPreScriptTag: /^<\/(pre|code|kbd|script)(\s|>)/i, startAngleBracket: /^</, endAngleBracket: />$/, pedanticHrefTitle: /^([^'"]*[^\s])\s+(['"])(.*)\2/, unicodeAlphaNumeric: /[\p{L}\p{N}]/u, numericCharacterReference: /&#(?:(\d{1,7})|[Xx]([A-Fa-f0-9]{1,6}));/g, escapeTest: /[&<>"']/, escapeReplace: /[&<>"']/g, escapeTestNoEncode: /[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/, escapeReplaceNoEncode: /[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/g, caret: /(^|[^\[])\^/g, percentDecode: /%25/g, findPipe: /\|/g, splitPipe: / \|/, slashPipe: /\\\|/g, carriageReturn: /\r\n|\r/g, spaceLine: /^ +$/gm, notSpaceStart: /^\S*/, endingNewline: /\n$/, listItemRegex: (l3) => new RegExp(`^( {0,3}${l3})((?:[	 ][^\\n]*)?(?:\\n|$))`), nextBulletRegex: C((l3) => new RegExp(`^ {0,${l3}}(?:[*+-]|\\d{1,9}[.)])((?:[ 	][^\\n]*)?(?:\\n|$))`)), hrRegex: C((l3) => new RegExp(`^ {0,${l3}}((?:-[ 	]*){3,}|(?:_[ 	]*){3,}|(?:\\*[ 	]*){3,})(?:\\n+|$)`)), fencesBeginRegex: C((l3) => new RegExp(`^ {0,${l3}}(?:\`\`\`|~~~)`)), headingBeginRegex: C((l3) => new RegExp(`^ {0,${l3}}#`)), htmlBeginRegex: C((l3) => new RegExp(`^ {0,${l3}}(?:</?(?:${N})(?: +|$|/?>)|<(?:script|pre|style|textarea|!--))`, "i")), blockquoteBeginRegex: C((l3) => new RegExp(`^ {0,${l3}}>`)) };
+var $e = /^(?:[ \t]*(?:\n|$))+/;
+var Le = /^((?: {4}| {0,3}\t)[^\n]+(?:\n(?:[ \t]*(?:\n|$))*)?)+/;
+var ze = /^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/;
+var G = /^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/;
+var Ae = /^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/;
+var J = / {0,3}(?:[*+-]|\d{1,9}[.)])/;
+var ce = /^(?!bull |blockCode|fences|blockquote|heading|html|table)((?:.|\n(?!\s*?\n|bull |fences|blockquote|heading|hr|html|table))+?)\n {0,3}(=+|-+) *(?:\n+|$)/;
+var he = h(ce).replace(/bull/g, J).replace(/blockCode/g, /(?: {4}| {0,3}\t)/).replace(/fences/g, / {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g, / {0,3}>/).replace(/heading/g, / {0,3}#{1,6}(?:\s|$)/).replace(/hr/g, / {0,3}(?:(?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/).replace(/html/g, / {0,3}<[^\n>]+>\n/).replace(/\|table/g, "").getRegex();
+var Ee = h(ce).replace(/bull/g, J).replace(/blockCode/g, /(?: {4}| {0,3}\t)/).replace(/fences/g, / {0,3}(?:`{3,}|~{3,})/).replace(/blockquote/g, / {0,3}>/).replace(/heading/g, / {0,3}#{1,6}(?:\s|$)/).replace(/hr/g, / {0,3}(?:(?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/).replace(/html/g, / {0,3}<[^\n>]+>\n/).replace(/table/g, / {0,3}\|?(?:[:\- ]*\|)+[\:\- ]*\n/).getRegex();
+var V = /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table|[ \t]+\n)[^\n]+)*)/;
+var Me = /^[^\n]+/;
+var Y = /(?!\s*\])(?:\\[\s\S]|[^\[\]\\])+/;
+var Ie = h(/^ {0,3}\[(label)\]: *(?:\n[ \t]*)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n[ \t]*)?| *\n[ \t]*)(title))? *(?:\n+|$)/).replace("label", Y).replace("title", /(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/).getRegex();
+var Ce = h(/^(bull)([ \t][^\n]*?)?(?:\n|$)/).replace(/bull/g, J).getRegex();
+var N = "address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|search|section|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul";
+var ee = /<!--(?:-?>|[\s\S]*?(?:-->|$))/;
+var Be = h("^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n*|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>[^\\n]*\\n*|$)|<![A-Z][\\s\\S]*?(?:>[^\\n]*\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>[^\\n]*\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|<(?!script|pre|style|textarea)([a-z][a-z0-9-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$)|</(?!script|pre|style|textarea)[a-z][a-z0-9-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n[ 	]*)+\\n|$))", "i").replace("comment", ee).replace("tag", N).replace("attribute", / +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex();
+var de = (l3) => h(V).replace("hr", G).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("|table", "").replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*(?:\\n|$))|~~~)[^\\n]*(?:\\n|$)").replace("list", l3).replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", N).getRegex();
+var De = de(/ {0,3}(?:[*+-]|1[.)])[ \t]+[^ \t\n]/);
+var qe = de(/ {0,3}(?:[*+-]|\d{1,9}[.)])(?:[ \t]|\n|$)/);
+var ve = h(/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/).replace("paragraph", qe).getRegex();
+var te = { blockquote: ve, code: Le, def: Ie, fences: ze, heading: Ae, hr: G, html: Be, lheading: he, list: Ce, newline: $e, paragraph: De, table: A, text: Me };
+var le = h("^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)").replace("hr", G).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("blockquote", " {0,3}>").replace("code", "(?: {4}| {0,3}	)[^\\n]").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*(?:\\n|$))|~~~)[^\\n]*(?:\\n|$)").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", N).getRegex();
+var Ze = { ...te, lheading: Ee, table: le, paragraph: h(V).replace("hr", G).replace("heading", " {0,3}#{1,6}(?:\\s|$)").replace("|lheading", "").replace("table", le).replace("blockquote", " {0,3}>").replace("fences", " {0,3}(?:`{3,}(?=[^`\\n]*(?:\\n|$))|~~~)[^\\n]*(?:\\n|$)").replace("list", " {0,3}(?:[*+-]|1[.)])[ \\t]+[^ \\t\\n]").replace("html", "</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag", N).getRegex() };
+var He = { ...te, html: h(`^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:"[^"]*"|'[^']*'|\\s[^'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))`).replace("comment", ee).replace(/tag/g, "(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(), def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/, heading: /^(#{1,6})(.*)(?:\n+|$)/, fences: A, lheading: /^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/, paragraph: h(V).replace("hr", G).replace("heading", ` *#{1,6} *[^
+]`).replace("lheading", he).replace("|table", "").replace("blockquote", " {0,3}>").replace("|fences", "").replace("|list", "").replace("|html", "").replace("|tag", "").getRegex() };
+var Ge = /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/;
+var Ne = /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/;
+var ke = /^( {2,}|\\)\n(?!\s*$)[ \t]*/;
+var Qe = /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/;
+var $ = /[\p{P}\p{S}]/u;
+var B = /[\s\p{P}\p{S}]/u;
+var Q = /[^\s\p{P}\p{S}]/u;
+var je = h(/^((?![*_])punctSpace)/, "u").replace(/punctSpace/g, B).getRegex();
+var Fe = /[\p{Pi}\p{Ps}"']/u;
+var ge = /(?!~)[\p{P}\p{S}]/u;
+var Ue = /(?!~)[\s\p{P}\p{S}]/u;
+var Ke = /(?:[^\s\p{P}\p{S}]|~)/u;
+var We = h(/link|precode-code|html/, "g").replace("link", /\[(?:[^\[\]`]|(?<a>`+)[^`]+\k<a>(?!`))*?\]\((?:\\[\s\S]|[^\\\(\)]|\((?:\\[\s\S]|[^\\\(\)])*\))*\)/).replace("precode-", _e ? "(?<!`)()" : "(^^|[^`])").replace("code", /(?<b>`+)[^`]+\k<b>(?!`)/).replace("html", /<(?! )[^<>]*?>/).getRegex();
+var fe = /^(?:\*+(?:((?!\*)punct)|([^\s*]))?)|^_+(?:((?!_)punct)|([^\s_]))?/;
+var Xe = h(fe, "u").replace(/punct/g, $).getRegex();
+var Je = h(fe, "u").replace(/punct/g, ge).getRegex();
+var Ve = /^(?:\*+(?:((?!\*)(?!openQuote)punct)|([^\s*]))?)|^_+(?:((?!_)(?!openQuote)punct)|([^\s_]))?/;
+var Ye = h(Ve, "u").replace(/openQuote/g, Fe).replace(/punct/g, $).getRegex();
+var me = "^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)punctSpace(\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|notPunctSpace(\\*+)(?=notPunctSpace)";
+var et = h(me, "gu").replace(/notPunctSpace/g, Q).replace(/punctSpace/g, B).replace(/punct/g, $).getRegex();
+var tt = h(me, "gu").replace(/notPunctSpace/g, Ke).replace(/punctSpace/g, Ue).replace(/punct/g, ge).getRegex();
+var nt = "^[^_*]*?__[^_*]*?\\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\\*)punct(\\*+)(?=[\\s]|$)|notPunctSpace(\\*+)(?!\\*)(?=punctSpace|$)|(?!\\*)[\\s](\\*+)(?=notPunctSpace)|[\\s](\\*+)(?!\\*)(?=punct)|(?!\\*)punct(\\*+)(?!\\*)(?=punct)|(?:(?!\\*)punct|notPunctSpace)(\\*+)(?!\\*)(?=notPunctSpace)";
+var rt = h(nt, "gu").replace(/notPunctSpace/g, Q).replace(/punctSpace/g, B).replace(/punct/g, $).getRegex();
+var st = h("^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)punctSpace(_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)", "gu").replace(/notPunctSpace/g, Q).replace(/punctSpace/g, B).replace(/punct/g, $).getRegex();
+var it = "^[^_*]*?\\*\\*[^_*]*?_[^_*]*?(?=\\*\\*)|[^_]+(?=[^_])|(?!_)punct(_+)(?=[\\s]|$)|notPunctSpace(_+)(?!_)(?=punctSpace|$)|(?!_)[\\s](_+)(?=notPunctSpace)|[\\s](_+)(?!_)(?=punct)|(?!_)punct(_+)(?!_)(?=punct)|(?:(?!_)punct|notPunctSpace)(_+)(?!_)(?=notPunctSpace)";
+var ot = h(it, "gu").replace(/notPunctSpace/g, Q).replace(/punctSpace/g, B).replace(/punct/g, $).getRegex();
+var at = h(/^~~?(?:((?!~)punct)|[^\s~])/, "u").replace(/punct/g, $).getRegex();
+var lt = "^[^~]+(?=[^~])|(?!~)punct(~~?)(?=[\\s]|$)|notPunctSpace(~~?)(?!~)(?=punctSpace|$)|(?!~)punctSpace(~~?)(?=notPunctSpace)|[\\s](~~?)(?!~)(?=punct)|(?!~)punct(~~?)(?!~)(?=punct)|notPunctSpace(~~?)(?=notPunctSpace)";
+var ut = h(lt, "gu").replace(/notPunctSpace/g, Q).replace(/punctSpace/g, B).replace(/punct/g, $).getRegex();
+var pt = h(/\\(punct)/, "gu").replace(/punct/g, $).getRegex();
+var ct = h(/^<(scheme:[^\s\x00-\x1f<>]*|email)>/).replace("scheme", /[a-zA-Z][a-zA-Z0-9+.-]{1,31}/).replace("email", /[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/).getRegex();
+var ht = h(ee).replace("(?:-->|$)", "-->").getRegex();
+var dt = h("^comment|^</[a-zA-Z][a-zA-Z0-9-]*\\s*>|^<[a-zA-Z][a-zA-Z0-9-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>").replace("comment", ht).replace("attribute", /\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/).getRegex();
+var xe = /\[(?:\\[\s\S]|[^\[\]\\])*\]/;
+var U = h(/(?:\[(?:brackets|\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\])|[^\[\]\\`])*?/).replace("brackets", xe).getRegex();
+var kt = h(/^!?\[(label)\]\(\s*(href)(?:(?:[ \t]+(?:\n[ \t]*)?|\n[ \t]*)(title))?\s*\)/).replace("label", U).replace("href", /<(?:\\.|[^\n<>\\])+>|[^ \t\n\x00-\x1f]+|(?=\))/).replace("title", /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/).getRegex();
+var gt = h(/^!?\[(label)\]\[(ref)\]/).replace("label", U).replace("ref", Y).getRegex();
+var ft = h(/^!?\[(ref)\](?:\[\])?/).replace("ref", Y).getRegex();
+var ue = /(?!\s*\])(?:\\[\s\S]|[^\[\]\\]){1,999}/;
+var mt = h(/(?:[^\[\]\\`]*(?:\[(?:brackets|\\[\s\S]|[^\[\]\\])*\]|\\[\s\S]|`+(?!`)[^`]*?`+(?!`)|``+(?=\]))){0,999}?[^\[\]\\`]*?/).replace("brackets", xe).getRegex();
+var xt = h("reflink|nolink(?!\\()", "g").replace("reflink", h(/^!?\[(label)\]\[(ref)\]/).replace("label", mt).replace("ref", ue).getRegex()).replace("nolink", h(/^!?\[(ref)\](?:\[\])?/).replace("ref", ue).getRegex()).getRegex();
+var pe = /[hH][tT][tT][pP][sS]?|[fF][tT][pP]/;
+var bt = /[A-Za-z0-9._+-]+@[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![\w-])/;
+var Rt = h(/(?:mailto:email|xmpp:email(?:\/[A-Za-z0-9@.]+)?)/).replace(/email/g, bt).getRegex();
+var ne = { _backpedal: A, anyPunctuation: pt, autolink: ct, blockSkip: We, br: ke, code: Ne, del: A, delLDelim: A, delRDelim: A, emStrongLDelim: Xe, emStrongRDelimAst: et, emStrongRDelimUnd: st, escape: Ge, link: kt, nolink: ft, punctuation: je, reflink: gt, reflinkSearch: xt, tag: dt, text: Qe, url: A };
+var Tt = { ...ne, emStrongLDelim: Ye, emStrongRDelimAst: rt, emStrongRDelimUnd: ot, link: h(/^!?\[(label)\]\((.*?)\)/).replace("label", U).getRegex(), reflink: h(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label", U).getRegex() };
+var X = { ...ne, emStrongRDelimAst: tt, emStrongLDelim: Je, delLDelim: at, delRDelim: ut, url: h(/^emailProtocol|^((?:protocol):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/).replace("emailProtocol", Rt).replace("protocol", pe).replace("email", /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![\w-])/).getRegex(), _backpedal: /(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/, del: /^(~~?)(?=[^\s~])((?:\\[\s\S]|[^\\])*?(?:\\[\s\S]|[^\s~\\]))\1(?=[^~]|$)/, text: h(/^(?:[^a-zA-Z0-9](?=emailProtocol)|(`+|~+|[^`~])(?:(?=[`~])|(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|protocol:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9](?=emailProtocol)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))))/).replace("protocol", pe).replace(/emailProtocol/g, /(?:mailto|xmpp):/).getRegex() };
+var Ot = { ...X, br: h(ke).replace("{2,}", "*").getRegex(), text: h(X.text).replace("\\b_", "\\b_| {2,}\\n").replace(/\{2,\}/g, "*").getRegex() };
+var j = { normal: te, gfm: Ze, pedantic: He };
+var D = { normal: ne, gfm: X, breaks: Ot, pedantic: Tt };
+var wt = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+var be = (l3) => wt[l3];
+function O(l3, e) {
+  if (e) {
+    if (x.escapeTest.test(l3)) return l3.replace(x.escapeReplace, be);
+  } else if (x.escapeTestNoEncode.test(l3)) return l3.replace(x.escapeReplaceNoEncode, be);
+  return l3;
+}
+function Re(l3) {
+  return l3.replace(x.numericCharacterReference, (e, t, n) => {
+    let s = t === void 0 ? Number.parseInt(n, 16) : Number.parseInt(t, 10);
+    return s === 0 || s > 1114111 || s >= 55296 && s <= 57343 ? "\uFFFD" : String.fromCodePoint(s);
+  });
+}
+function re(l3) {
+  try {
+    l3 = encodeURI(l3).replace(x.percentDecode, "%");
+  } catch (e) {
+    return null;
+  }
+  return l3;
+}
+function se(l3, e) {
+  var _a2;
+  let t = l3.replace(x.findPipe, (r, o, i) => {
+    let u = false, a = o;
+    for (; --a >= 0 && i[a] === "\\"; ) u = !u;
+    return u ? "|" : " |";
+  }), n = t.split(x.splitPipe), s = 0;
+  if (n[0].trim() || n.shift(), n.length > 0 && !((_a2 = n.at(-1)) == null ? void 0 : _a2.trim()) && n.pop(), e) if (n.length > e) n.splice(e);
+  else for (; n.length < e; ) n.push("");
+  for (; s < n.length; s++) n[s] = n[s].trim().replace(x.slashPipe, "|");
+  return n;
+}
+function L(l3, e, t) {
+  let n = l3.length;
+  if (n === 0) return "";
+  let s = 0;
+  for (; s < n; ) {
+    let r = l3.charAt(n - s - 1);
+    if (r === e && !t) s++;
+    else if (r !== e && t) s++;
+    else break;
+  }
+  return l3.slice(0, n - s);
+}
+function ie(l3) {
+  let e = l3.split(`
+`), t = e.length - 1;
+  for (; t >= 0 && x.blankLine.test(e[t]); ) t--;
+  return e.length - t <= 2 ? l3 : e.slice(0, t + 1).join(`
+`);
+}
+function q(l3) {
+  return l3.trim().toLowerCase().toUpperCase().toLowerCase();
+}
+function Te(l3, e) {
+  if (l3.indexOf(e[1]) === -1) return -1;
+  let t = 0;
+  for (let n = 0; n < l3.length; n++) if (l3[n] === "\\") n++;
+  else if (l3[n] === e[0]) t++;
+  else if (l3[n] === e[1] && (t--, t < 0)) return n;
+  return t > 0 ? -2 : -1;
+}
+function oe(l3, e = 0) {
+  let t = e, n = "";
+  for (let s of l3) if (s === "	") {
+    let r = 4 - t % 4;
+    n += " ".repeat(r), t += r;
+  } else n += s, t++;
+  return n;
+}
+function Oe(l3, e, t, n, s) {
+  let r = e.href, o = e.title || null, i = l3[1].replace(s.other.outputLinkReplace, "$1"), u = l3[0].charAt(0) === "!";
+  n.state.inLink = true;
+  let a = n.state.linkEmitted, p = n.state.inRawBlock;
+  n.state.linkEmitted = false;
+  let c = n.inlineTokens(i), d = n.state.linkEmitted;
+  if (n.state.linkEmitted = a, n.state.inLink = false, !u) {
+    if (d) {
+      n.state.inRawBlock = p;
+      return;
+    }
+    n.state.linkEmitted = true;
+  }
+  return { type: u ? "image" : "link", raw: t, href: r, title: o, text: i, tokens: c };
+}
+function yt(l3, e, t) {
+  let n = l3.match(t.other.indentCodeCompensation);
+  if (n === null) return e;
+  let s = n[1];
+  return e.split(`
+`).map((r) => {
+    let o = r.match(t.other.beginningSpace);
+    if (o === null) return r;
+    let [i] = o;
+    return r.slice(Math.min(i.length, s.length));
+  }).join(`
+`);
+}
+function we(l3, e, t, n) {
+  if (!e.includes("<")) return false;
+  for (let s = 0; s < e.length; s++) {
+    if (e[s] === "\\") {
+      s++;
+      continue;
+    }
+    if (e[s] === "`") {
+      let i = n.inline.code.exec(e.slice(s));
+      if (i) {
+        s += i[0].length - 1;
+        continue;
+      }
+    }
+    if (e[s] !== "<") continue;
+    let r = l3.slice(t + s), o = n.inline.tag.exec(r) || n.inline.autolink.exec(r);
+    if (o) {
+      if (o[0].length > e.length - s) return true;
+      s += o[0].length - 1;
+    }
+  }
+  return false;
+}
+var P = class {
+  constructor(e) {
+    __publicField(this, "options");
+    __publicField(this, "rules");
+    __publicField(this, "lexer");
+    this.options = e || y;
+  }
+  space(e) {
+    let t = this.rules.block.newline.exec(e);
+    if (t && t[0].length > 0) return { type: "space", raw: t[0] };
+  }
+  code(e) {
+    let t = this.rules.block.code.exec(e);
+    if (t) {
+      let n = this.options.pedantic ? t[0] : ie(t[0]), s = n.replace(this.rules.other.codeRemoveIndent, "");
+      return { type: "code", raw: n, codeBlockStyle: "indented", text: s };
+    }
+  }
+  fences(e) {
+    let t = this.rules.block.fences.exec(e);
+    if (t) {
+      let n = t[0], s = yt(n, t[3] || "", this.rules);
+      return { type: "code", raw: n, lang: t[2] ? t[2].trim().replace(this.rules.inline.anyPunctuation, "$1") : t[2], text: s };
+    }
+  }
+  heading(e) {
+    let t = this.rules.block.heading.exec(e);
+    if (t) {
+      let n = t[2].trim();
+      if (this.rules.other.endingHash.test(n)) {
+        let s = L(n, "#");
+        (this.options.pedantic || !s || this.rules.other.endingSpaceTabChar.test(s)) && (n = s.trim());
+      }
+      return { type: "heading", raw: L(t[0], `
+`), depth: t[1].length, text: n, tokens: this.lexer.inline(n) };
+    }
+  }
+  hr(e) {
+    let t = this.rules.block.hr.exec(e);
+    if (t) return { type: "hr", raw: L(t[0], `
+`) };
+  }
+  blockquote(e) {
+    let t = this.rules.block.blockquote.exec(e);
+    if (t) {
+      let n = L(t[0], `
+`).split(`
+`), s = "", r = "", o = [];
+      for (; n.length > 0; ) {
+        let i = false, u = [], a;
+        for (a = 0; a < n.length; a++) if (this.rules.other.blockquoteStart.test(n[a])) u.push(n[a]), i = true;
+        else if (!i) u.push(n[a]);
+        else break;
+        n = n.slice(a);
+        let p = u.join(`
+`), c = p.replace(this.rules.other.blockquoteSetextReplace, `
+    $1`).replace(this.rules.other.blockquoteSetextReplace2, "");
+        s = s ? `${s}
+${p}` : p, r = r ? `${r}
+${c}` : c;
+        let d = this.lexer.state.top;
+        if (this.lexer.state.top = true, this.lexer.blockTokens(c, o, true), this.lexer.state.top = d, n.length === 0) break;
+        let m = o.at(-1);
+        if ((m == null ? void 0 : m.type) === "code") break;
+        if ((m == null ? void 0 : m.type) === "blockquote") {
+          let b = m, g = n.join(`
+`), w = b.raw + `
+` + g.replace(this.rules.other.blockquoteSetextReplace2, ""), f = this.blockquote(w);
+          o[o.length - 1] = f;
+          let M = w.substring(f.raw.length).replace(/^\n/, ""), v = M ? M.split(`
+`).length : 0, Z = v ? n.slice(0, -v) : n;
+          Z.length > 0 && (s = `${s}
+${Z.join(`
+`)}`), r = r.substring(0, r.length - b.text.length) + f.text;
+          break;
+        } else if ((m == null ? void 0 : m.type) === "list") {
+          let b = m, g = b.raw + `
+` + n.join(`
+`), w = this.list(g);
+          o[o.length - 1] = w, s = s.substring(0, s.length - m.raw.length) + w.raw, r = r.substring(0, r.length - b.raw.length) + w.raw, n = g.substring(o.at(-1).raw.length).split(`
+`);
+          continue;
+        }
+      }
+      return { type: "blockquote", raw: s, tokens: o, text: r };
+    }
+  }
+  list(e) {
+    let t = this.rules.block.list.exec(e);
+    if (t) {
+      let n = t[1].trim(), s = n.length > 1, r = { type: "list", raw: "", ordered: s, start: s ? +n.slice(0, -1) : "", loose: false, items: [] };
+      n = s ? `\\d{1,9}\\${n.slice(-1)}` : `\\${n}`, this.options.pedantic && (n = s ? n : "[*+-]");
+      let o = this.rules.other.listItemRegex(n), i = false;
+      for (; e; ) {
+        let a = false, p = "", c = "";
+        if (!(t = o.exec(e)) || this.rules.block.hr.test(e)) break;
+        p = t[0], e = e.substring(p.length);
+        let d = t[2].split(`
+`, 1)[0], m = t[1].length, b = this.options.pedantic ? oe(d, m) : d.replace(this.rules.other.leadingSpaceTab, (M) => oe(M, m)), g = e.split(`
+`, 1)[0], w = !b.trim(), f = 0;
+        if (this.options.pedantic ? (f = 2, c = b.trimStart()) : w ? f = m + 1 : (f = b.search(this.rules.other.nonSpaceChar), f = f > 4 ? 1 : f, c = b.slice(f), f += m), w && this.rules.other.blankLine.test(g) && (p += g + `
+`, e = e.substring(g.length + 1), a = true), !a) {
+          let M = this.rules.other.nextBulletRegex(f), v = this.rules.other.hrRegex(f), Z = this.rules.other.fencesBeginRegex(f), ae = this.rules.other.headingBeginRegex(f), ye = this.rules.other.htmlBeginRegex(f), Pe = this.rules.other.blockquoteBeginRegex(f);
+          for (; e; ) {
+            let K = e.split(`
+`, 1)[0], H;
+            if (g = K, this.options.pedantic ? (g = g.replace(this.rules.other.listReplaceNesting, "  "), H = g) : H = g.replace(this.rules.other.leadingSpaceTab, (Se) => Se.replace(this.rules.other.tabCharGlobal, "    ")), Z.test(g) || ae.test(g) || ye.test(g) || Pe.test(g) || M.test(g) || v.test(g)) break;
+            if (H.search(this.rules.other.nonSpaceChar) >= f || !g.trim()) c += `
+` + H.slice(f);
+            else {
+              if (w || b.replace(this.rules.other.tabCharGlobal, "    ").search(this.rules.other.nonSpaceChar) >= 4 || Z.test(b) || ae.test(b) || v.test(b)) break;
+              c += `
+` + g;
+            }
+            w = !g.trim(), p += K + `
+`, e = e.substring(K.length + 1), b = H.slice(f);
+          }
+        }
+        r.loose || (i ? r.loose = true : this.rules.other.doubleBlankLine.test(p) && (i = true)), r.items.push({ type: "list_item", raw: p, task: !!this.options.gfm && this.rules.other.listIsTask.test(c), loose: false, text: c, tokens: [] }), r.raw += p;
+      }
+      let u = r.items.at(-1);
+      if (u) u.raw = u.raw.trimEnd(), u.text = u.text.trimEnd();
+      else return;
+      r.raw = r.raw.trimEnd();
+      for (let a of r.items) if (this.lexer.state.top = false, a.tokens = this.lexer.blockTokens(a.text, []), !r.loose) {
+        let p = a.tokens.filter((d) => d.type === "space"), c = p.length > 0 && p.some((d) => this.rules.other.anyLine.test(d.raw));
+        r.loose = c;
+      }
+      for (let a of r.items) {
+        let p = a.tokens[0];
+        if (a.task && ((p == null ? void 0 : p.type) === "text" || (p == null ? void 0 : p.type) === "paragraph")) {
+          a.text = a.text.replace(this.rules.other.listReplaceTask, ""), p.raw = p.raw.replace(this.rules.other.listReplaceTask, ""), p.text = p.text.replace(this.rules.other.listReplaceTask, "");
+          for (let d = this.lexer.inlineQueue.length - 1; d >= 0; d--) if (this.rules.other.listIsTask.test(this.lexer.inlineQueue[d].src)) {
+            this.lexer.inlineQueue[d].src = this.lexer.inlineQueue[d].src.replace(this.rules.other.listReplaceTask, "");
+            break;
+          }
+          let c = this.rules.other.listTaskCheckbox.exec(a.raw);
+          if (c) {
+            let d = { type: "checkbox", raw: c[0] + " ", checked: c[0] !== "[ ]" };
+            a.checked = d.checked, r.loose ? a.tokens[0] && ["paragraph", "text"].includes(a.tokens[0].type) && "tokens" in a.tokens[0] && a.tokens[0].tokens ? (a.tokens[0].raw = d.raw + a.tokens[0].raw, a.tokens[0].text = d.raw + a.tokens[0].text, a.tokens[0].tokens.unshift(d)) : a.tokens.unshift({ type: "paragraph", raw: d.raw, text: d.raw, tokens: [d] }) : a.tokens.unshift(d);
+          }
+        } else a.task && (a.task = false);
+      }
+      if (r.loose) for (let a of r.items) {
+        a.loose = true;
+        for (let p of a.tokens) p.type === "text" && (p.type = "paragraph");
+      }
+      return r;
+    }
+  }
+  html(e) {
+    let t = this.rules.block.html.exec(e);
+    if (t) {
+      let n = ie(t[0]);
+      return { type: "html", block: true, raw: n, pre: t[1] === "pre" || t[1] === "script" || t[1] === "style", text: n };
+    }
+  }
+  def(e) {
+    let t = this.rules.block.def.exec(e);
+    if (t) {
+      let n = q(t[1]).replace(this.rules.other.multipleSpaceGlobal, " "), s = t[2] ? t[2].replace(this.rules.other.hrefBrackets, "$1").replace(this.rules.inline.anyPunctuation, "$1") : "", r = t[3] ? t[3].substring(1, t[3].length - 1).replace(this.rules.inline.anyPunctuation, "$1") : t[3];
+      return { type: "def", tag: n, raw: L(t[0], `
+`), href: s, title: r };
+    }
+  }
+  table(e) {
+    var _a2;
+    let t = this.rules.block.table.exec(e);
+    if (!t || !this.rules.other.tableDelimiter.test(t[2])) return;
+    let n = se(t[1]), s = t[2].replace(this.rules.other.tableAlignChars, "").split("|"), r = ((_a2 = t[3]) == null ? void 0 : _a2.trim()) ? t[3].replace(this.rules.other.tableRowBlankLine, "").split(`
+`) : [], o = { type: "table", raw: L(t[0], `
+`), header: [], align: [], rows: [] };
+    if (n.length === s.length) {
+      for (let i of s) this.rules.other.tableAlignRight.test(i) ? o.align.push("right") : this.rules.other.tableAlignCenter.test(i) ? o.align.push("center") : this.rules.other.tableAlignLeft.test(i) ? o.align.push("left") : o.align.push(null);
+      for (let i = 0; i < n.length; i++) o.header.push({ text: n[i], tokens: this.lexer.inline(n[i]), header: true, align: o.align[i] });
+      for (let i of r) o.rows.push(se(i, o.header.length).map((u, a) => ({ text: u, tokens: this.lexer.inline(u), header: false, align: o.align[a] })));
+      return o;
+    }
+  }
+  lheading(e) {
+    let t = this.rules.block.lheading.exec(e);
+    if (t) {
+      let n = t[1].trim();
+      return { type: "heading", raw: L(t[0], `
+`), depth: t[2].charAt(0) === "=" ? 1 : 2, text: n, tokens: this.lexer.inline(n) };
+    }
+  }
+  paragraph(e) {
+    let t = this.rules.block.paragraph.exec(e);
+    if (t) {
+      let n = t[1].charAt(t[1].length - 1) === `
+` ? t[1].slice(0, -1) : t[1];
+      return { type: "paragraph", raw: t[0], text: n, tokens: this.lexer.inline(n) };
+    }
+  }
+  text(e) {
+    let t = this.rules.block.text.exec(e);
+    if (t) return { type: "text", raw: t[0], text: t[0], tokens: this.lexer.inline(t[0]) };
+  }
+  escape(e) {
+    let t = this.rules.inline.escape.exec(e);
+    if (t) return { type: "escape", raw: t[0], text: t[1] };
+  }
+  tag(e) {
+    let t = this.rules.inline.tag.exec(e);
+    if (t) return !this.lexer.state.inLink && this.rules.other.startATag.test(t[0]) ? this.lexer.state.inLink = true : this.lexer.state.inLink && this.rules.other.endATag.test(t[0]) && (this.lexer.state.inLink = false), !this.lexer.state.inRawBlock && this.rules.other.startPreScriptTag.test(t[0]) ? this.lexer.state.inRawBlock = true : this.lexer.state.inRawBlock && this.rules.other.endPreScriptTag.test(t[0]) && (this.lexer.state.inRawBlock = false), { type: "html", raw: t[0], inLink: this.lexer.state.inLink, inRawBlock: this.lexer.state.inRawBlock, block: false, text: t[0] };
+  }
+  link(e) {
+    let t = this.rules.inline.link.exec(e);
+    if (t) {
+      let n = t[0].charAt(0) === "!" ? 2 : 1;
+      if (!this.options.pedantic && we(e, t[1], n, this.rules)) return;
+      let s = t[2].trim();
+      if (!this.options.pedantic && this.rules.other.startAngleBracket.test(s)) {
+        if (!this.rules.other.endAngleBracket.test(s)) return;
+        let i = L(s.slice(0, -1), "\\");
+        if ((s.length - i.length) % 2 === 0) return;
+      } else {
+        let i = Te(t[2], "()");
+        if (i === -2) return;
+        if (i > -1) {
+          let a = (t[0].indexOf("!") === 0 ? 5 : 4) + t[1].length + i;
+          t[2] = t[2].substring(0, i), t[0] = t[0].substring(0, a).trim(), t[3] = "";
+        }
+      }
+      let r = t[2], o = "";
+      if (this.options.pedantic) {
+        let i = this.rules.other.pedanticHrefTitle.exec(r);
+        i && (r = i[1], o = i[3]);
+      } else o = t[3] ? t[3].slice(1, -1) : "";
+      return r = r.trim(), this.rules.other.startAngleBracket.test(r) && (this.options.pedantic && !this.rules.other.endAngleBracket.test(s) ? r = r.slice(1) : r = r.slice(1, -1)), Oe(t, { href: r && r.replace(this.rules.inline.anyPunctuation, "$1"), title: o && o.replace(this.rules.inline.anyPunctuation, "$1") }, t[0], this.lexer, this.rules);
+    }
+  }
+  reflink(e, t) {
+    let n;
+    if ((n = this.rules.inline.reflink.exec(e)) || (n = this.rules.inline.nolink.exec(e))) {
+      let s = n[0].charAt(0) === "!" ? 2 : 1;
+      if (!this.options.pedantic && we(e, n[1], s, this.rules)) return;
+      let r = (n[2] || n[1]).replace(this.rules.other.multipleSpaceGlobal, " "), o = t[q(r)];
+      if (!o) {
+        let i = n[0].charAt(0);
+        return { type: "text", raw: i, text: i };
+      }
+      return Oe(n, o, n[0], this.lexer, this.rules);
+    }
+  }
+  emStrong(e, t, n = "") {
+    let s = this.rules.inline.emStrongLDelim.exec(e);
+    if (!s || !s[1] && !s[2] && !s[3] && !s[4] || s[4] && n.match(this.rules.other.unicodeAlphaNumeric)) return;
+    if (!(s[1] || s[3] || "") || !n || this.rules.inline.punctuation.exec(n)) {
+      let o = [...s[0]].length - 1, i, u, a = o, p = 0, c = s[0][0], d = n === c, m = c === "*" ? this.rules.inline.emStrongRDelimAst : this.rules.inline.emStrongRDelimUnd;
+      for (m.lastIndex = 0, t = t.slice(-1 * e.length + o); (s = m.exec(t)) !== null; ) {
+        if (i = s[1] || s[2] || s[3] || s[4] || s[5] || s[6], !i) continue;
+        if (u = [...i].length, s[3] || s[4]) {
+          a += u;
+          continue;
+        } else if (s[5] || s[6]) {
+          if (o % 3 && !((o + u) % 3)) {
+            p += u;
+            continue;
+          }
+          if (d) break;
+        }
+        if (a -= u, a > 0) continue;
+        u = Math.min(u, u + a + p);
+        let b = [...s[0]][0].length, g = e.slice(0, o + s.index + b + u);
+        if (Math.min(o, u) % 2) {
+          let f = g.slice(1, -1);
+          return { type: "em", raw: g, text: f, tokens: this.lexer.inlineTokens(f) };
+        }
+        let w = g.slice(2, -2);
+        return { type: "strong", raw: g, text: w, tokens: this.lexer.inlineTokens(w) };
+      }
+    }
+  }
+  codespan(e) {
+    let t = this.rules.inline.code.exec(e);
+    if (t) {
+      let n = t[2].replace(this.rules.other.newLineCharGlobal, " "), s = this.rules.other.nonSpaceChar.test(n), r = this.rules.other.startingSpaceChar.test(n) && this.rules.other.endingSpaceChar.test(n);
+      return s && r && (n = n.substring(1, n.length - 1)), { type: "codespan", raw: t[0], text: n };
+    }
+  }
+  br(e) {
+    let t = this.rules.inline.br.exec(e);
+    if (t) return { type: "br", raw: t[0] };
+  }
+  del(e, t, n = "") {
+    let s = this.rules.inline.delLDelim.exec(e);
+    if (!s) return;
+    if (!(s[1] || "") || !n || this.rules.inline.punctuation.exec(n)) {
+      let o = [...s[0]].length - 1, i, u, a = o, p = this.rules.inline.delRDelim;
+      for (p.lastIndex = 0, t = t.slice(-1 * e.length + o); (s = p.exec(t)) !== null; ) {
+        if (i = s[1] || s[2] || s[3] || s[4] || s[5] || s[6], !i || (u = [...i].length, u !== o)) continue;
+        if (s[3] || s[4]) {
+          a += u;
+          continue;
+        }
+        if (a -= u, a > 0) continue;
+        u = Math.min(u, u + a);
+        let c = [...s[0]][0].length, d = e.slice(0, o + s.index + c + u), m = d.slice(o, -o);
+        return { type: "del", raw: d, text: m, tokens: this.lexer.inlineTokens(m) };
+      }
+    }
+  }
+  autolink(e) {
+    let t = this.rules.inline.autolink.exec(e);
+    if (t) {
+      let n, s;
+      return t[2] === "@" ? (n = t[1], s = "mailto:" + n) : (n = t[1], s = n), { type: "link", raw: t[0], text: n, href: s, autolink: true, tokens: [{ type: "text", raw: n, text: n }] };
+    }
+  }
+  url(e) {
+    var _a2, _b;
+    let t;
+    if (t = this.rules.inline.url.exec(e)) {
+      let n, s;
+      if (t[2] === "@") n = t[0], s = "mailto:" + n;
+      else {
+        let r;
+        do
+          r = t[0], t[0] = (_b = (_a2 = this.rules.inline._backpedal.exec(t[0])) == null ? void 0 : _a2[0]) != null ? _b : "";
+        while (r !== t[0]);
+        n = t[0], t[1] === "www." ? s = "http://" + t[0] : s = t[0];
+      }
+      return { type: "link", raw: t[0], text: n, href: s, autolink: true, tokens: [{ type: "text", raw: n, text: n }] };
+    }
+  }
+  inlineText(e) {
+    let t = this.rules.inline.text.exec(e);
+    if (t) {
+      let n = this.lexer.state.inRawBlock;
+      return { type: "text", raw: t[0], text: n ? t[0] : Re(t[0]), escaped: n };
+    }
+  }
+};
+var R = class l {
+  constructor(e) {
+    __publicField(this, "tokens");
+    __publicField(this, "options");
+    __publicField(this, "state");
+    __publicField(this, "inlineQueue");
+    __publicField(this, "tokenizer");
+    this.tokens = [], this.tokens.links = /* @__PURE__ */ Object.create(null), this.options = e || y, this.options.tokenizer = this.options.tokenizer || new P(), this.tokenizer = this.options.tokenizer, this.tokenizer.options = this.options, this.tokenizer.lexer = this, this.inlineQueue = [], this.state = { inLink: false, inRawBlock: false, linkEmitted: false, top: true };
+    let t = { other: x, block: j.normal, inline: D.normal };
+    this.options.pedantic ? (t.block = j.pedantic, t.inline = D.pedantic) : this.options.gfm && (t.block = j.gfm, this.options.breaks ? t.inline = D.breaks : t.inline = D.gfm), this.tokenizer.rules = t;
+  }
+  static get rules() {
+    return { block: j, inline: D };
+  }
+  static lex(e, t) {
+    return new l(t).lex(e);
+  }
+  static lexInline(e, t) {
+    return new l(t).inlineTokens(e);
+  }
+  lex(e) {
+    e = e.replace(x.carriageReturn, `
+`), this.blockTokens(e, this.tokens);
+    for (let t = 0; t < this.inlineQueue.length; t++) {
+      let n = this.inlineQueue[t];
+      this.inlineTokens(n.src, n.tokens);
+    }
+    return this.inlineQueue = [], this.tokens;
+  }
+  blockTokens(e, t = [], n = false) {
+    var _a2, _b, _c;
+    this.tokenizer.lexer = this, this.options.pedantic && (e = e.replace(x.tabCharGlobal, "    ").replace(x.spaceLine, ""));
+    let s = 1 / 0;
+    for (; e; ) {
+      if (e.length < s) s = e.length;
+      else {
+        this.infiniteLoopError(e.charCodeAt(0));
+        break;
+      }
+      let r;
+      if ((_b = (_a2 = this.options.extensions) == null ? void 0 : _a2.block) == null ? void 0 : _b.some((i) => (r = i.call({ lexer: this }, e, t)) ? (e = e.substring(r.raw.length), t.push(r), true) : false)) continue;
+      if (r = this.tokenizer.space(e)) {
+        e = e.substring(r.raw.length);
+        let i = t.at(-1);
+        r.raw.length === 1 && i !== void 0 ? i.raw += `
+` : t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.code(e)) {
+        e = e.substring(r.raw.length);
+        let i = t.at(-1);
+        (i == null ? void 0 : i.type) === "paragraph" || (i == null ? void 0 : i.type) === "text" ? (i.raw += (i.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, i.text += `
+` + r.text, this.inlineQueue.at(-1).src = i.text) : t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.fences(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.heading(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.hr(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.blockquote(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.list(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.html(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.def(e)) {
+        e = e.substring(r.raw.length);
+        let i = t.at(-1);
+        (i == null ? void 0 : i.type) === "paragraph" || (i == null ? void 0 : i.type) === "text" ? (i.raw += (i.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, i.text += `
+` + r.raw, this.inlineQueue.at(-1).src = i.text) : this.tokens.links[r.tag] || (this.tokens.links[r.tag] = { href: r.href, title: r.title }, t.push(r));
+        continue;
+      }
+      if (r = this.tokenizer.table(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      if (r = this.tokenizer.lheading(e)) {
+        e = e.substring(r.raw.length), t.push(r);
+        continue;
+      }
+      let o = e;
+      if ((_c = this.options.extensions) == null ? void 0 : _c.startBlock) {
+        let i = 1 / 0, u = e.slice(1), a;
+        this.options.extensions.startBlock.forEach((p) => {
+          a = p.call({ lexer: this }, u), typeof a == "number" && a >= 0 && (i = Math.min(i, a));
+        }), i < 1 / 0 && i >= 0 && (o = e.substring(0, i + 1));
+      }
+      if (this.state.top && (r = this.tokenizer.paragraph(o))) {
+        let i = t.at(-1);
+        n && (i == null ? void 0 : i.type) === "paragraph" ? (i.raw += (i.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, i.text += `
+` + r.text, this.inlineQueue.pop(), this.inlineQueue.at(-1).src = i.text) : t.push(r), n = o.length !== e.length, e = e.substring(r.raw.length);
+        continue;
+      }
+      if (r = this.tokenizer.text(e)) {
+        e = e.substring(r.raw.length);
+        let i = t.at(-1);
+        (i == null ? void 0 : i.type) === "text" ? (i.raw += (i.raw.endsWith(`
+`) ? "" : `
+`) + r.raw, i.text += `
+` + r.text, this.inlineQueue.pop(), this.inlineQueue.at(-1).src = i.text) : t.push(r);
+        continue;
+      }
+      if (e) {
+        this.infiniteLoopError(e.charCodeAt(0));
+        break;
+      }
+    }
+    return this.state.top = true, t;
+  }
+  inline(e, t = []) {
+    return this.inlineQueue.push({ src: e, tokens: t }), t;
+  }
+  linkInText(e) {
+    if (!e.includes("[")) return false;
+    let t = this.tokenizer.rules.inline.link;
+    for (let n of e.matchAll(this.tokenizer.rules.inline.blockSkip)) if (t.test(n[0]) && e.charAt(n.index - 1) !== "!") return true;
+    for (let n of e.matchAll(this.tokenizer.rules.inline.reflinkSearch)) {
+      let s = n[0], r = s.lastIndexOf("[");
+      if (!(s.charAt(0) === "!" || !Object.hasOwn(this.tokens.links, q(s.slice(r + 1, -1)))) && !(r > 1 && this.linkInText(s.slice(1, r - 1)))) return true;
+    }
+    return false;
+  }
+  inlineTokens(e, t = []) {
+    var _a2, _b, _c, _d, _e2, _f;
+    this.tokenizer.lexer = this;
+    let n = e;
+    if (this.tokens.links && e.includes("[")) {
+      let i = this.tokenizer.rules.inline.reflinkSearch, u = (a) => {
+        let p = a.lastIndexOf("[");
+        if (!Object.hasOwn(this.tokens.links, q(a.slice(p + 1, -1)))) return a;
+        if (p > 1 && a.charAt(0) !== "!") {
+          let c = a.slice(1, p - 1);
+          if (this.linkInText(c)) return "[" + c.replace(i, u) + "][" + "a".repeat(a.length - p - 2) + "]";
+        }
+        return "[" + "a".repeat(a.length - 2) + "]";
+      };
+      n = n.replace(i, u);
+    }
+    n = n.replace(this.tokenizer.rules.inline.anyPunctuation, (i) => "+".repeat(i.length)), n = n.replace(this.tokenizer.rules.inline.blockSkip, (i, u, a) => {
+      let p = a ? a.length : 0;
+      return i.slice(0, p) + "[" + "a".repeat(i.length - p - 2) + "]";
+    }), n = (_c = (_b = (_a2 = this.options.hooks) == null ? void 0 : _a2.emStrongMask) == null ? void 0 : _b.call({ lexer: this }, n)) != null ? _c : n;
+    let s = false, r = "", o = 1 / 0;
+    for (; e; ) {
+      if (e.length < o) o = e.length;
+      else {
+        this.infiniteLoopError(e.charCodeAt(0));
+        break;
+      }
+      s || (r = ""), s = false;
+      let i;
+      if ((_e2 = (_d = this.options.extensions) == null ? void 0 : _d.inline) == null ? void 0 : _e2.some((a) => (i = a.call({ lexer: this }, e, t)) ? (e = e.substring(i.raw.length), t.push(i), true) : false)) continue;
+      if (i = this.tokenizer.escape(e)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.tag(e)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.link(e)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.reflink(e, this.tokens.links)) {
+        e = e.substring(i.raw.length);
+        let a = t.at(-1);
+        i.type === "text" && (a == null ? void 0 : a.type) === "text" ? (a.raw += i.raw, a.text += i.text) : t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.emStrong(e, n, r)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.codespan(e)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.br(e)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.del(e, n, r)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (i = this.tokenizer.autolink(e)) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      if (!this.state.inLink && (i = this.tokenizer.url(e))) {
+        e = e.substring(i.raw.length), t.push(i);
+        continue;
+      }
+      let u = e;
+      if ((_f = this.options.extensions) == null ? void 0 : _f.startInline) {
+        let a = 1 / 0, p = e.slice(1), c;
+        this.options.extensions.startInline.forEach((d) => {
+          c = d.call({ lexer: this }, p), typeof c == "number" && c >= 0 && (a = Math.min(a, c));
+        }), a < 1 / 0 && a >= 0 && (u = e.substring(0, a + 1));
+      }
+      if (i = this.tokenizer.inlineText(u)) {
+        e = e.substring(i.raw.length), i.raw.slice(-1) !== "_" && (r = i.raw.slice(-1)), s = true;
+        let a = t.at(-1);
+        (a == null ? void 0 : a.type) === "text" ? (a.raw += i.raw, a.text += i.text) : t.push(i);
+        continue;
+      }
+      if (e) {
+        this.infiniteLoopError(e.charCodeAt(0));
+        break;
+      }
+    }
+    return t;
+  }
+  infiniteLoopError(e) {
+    let t = "Infinite loop on byte: " + e;
+    if (this.options.silent) console.error(t);
+    else throw new Error(t);
+  }
+};
+var S = class {
+  constructor(e) {
+    __publicField(this, "options");
+    __publicField(this, "parser");
+    this.options = e || y;
+  }
+  space(e) {
+    return "";
+  }
+  code({ text: e, lang: t, escaped: n }) {
+    var _a2;
+    let s = (_a2 = (t || "").match(x.notSpaceStart)) == null ? void 0 : _a2[0], r = e ? e.replace(x.endingNewline, "") + `
+` : "";
+    return s ? '<pre><code class="language-' + O(s) + '">' + (n ? r : O(r, true)) + `</code></pre>
+` : "<pre><code>" + (n ? r : O(r, true)) + `</code></pre>
+`;
+  }
+  blockquote({ tokens: e }) {
+    return `<blockquote>
+${this.parser.parse(e)}</blockquote>
+`;
+  }
+  html({ text: e }) {
+    return e;
+  }
+  def(e) {
+    return "";
+  }
+  heading({ tokens: e, depth: t }) {
+    return `<h${t}>${this.parser.parseInline(e)}</h${t}>
+`;
+  }
+  hr(e) {
+    return `<hr>
+`;
+  }
+  list(e) {
+    let t = e.ordered, n = e.start, s = "";
+    for (let i = 0; i < e.items.length; i++) {
+      let u = e.items[i];
+      s += this.listitem(u);
+    }
+    let r = t ? "ol" : "ul", o = t && n !== 1 ? ' start="' + n + '"' : "";
+    return "<" + r + o + `>
+` + s + "</" + r + `>
+`;
+  }
+  listitem(e) {
+    return `<li>${this.parser.parse(e.tokens)}</li>
+`;
+  }
+  checkbox({ checked: e }) {
+    return "<input " + (e ? 'checked="" ' : "") + 'disabled="" type="checkbox"> ';
+  }
+  paragraph({ tokens: e }) {
+    return `<p>${this.parser.parseInline(e)}</p>
+`;
+  }
+  table(e) {
+    let t = "", n = "";
+    for (let r = 0; r < e.header.length; r++) n += this.tablecell(e.header[r]);
+    t += this.tablerow({ text: n });
+    let s = "";
+    for (let r = 0; r < e.rows.length; r++) {
+      let o = e.rows[r];
+      n = "";
+      for (let i = 0; i < o.length; i++) n += this.tablecell(o[i]);
+      s += this.tablerow({ text: n });
+    }
+    return s && (s = `<tbody>${s}</tbody>`), `<table>
+<thead>
+` + t + `</thead>
+` + s + `</table>
+`;
+  }
+  tablerow({ text: e }) {
+    return `<tr>
+${e}</tr>
+`;
+  }
+  tablecell(e) {
+    let t = this.parser.parseInline(e.tokens), n = e.header ? "th" : "td";
+    return (e.align ? `<${n} align="${e.align}">` : `<${n}>`) + t + `</${n}>
+`;
+  }
+  strong({ tokens: e }) {
+    return `<strong>${this.parser.parseInline(e)}</strong>`;
+  }
+  em({ tokens: e }) {
+    return `<em>${this.parser.parseInline(e)}</em>`;
+  }
+  codespan({ text: e }) {
+    return `<code>${O(e, true)}</code>`;
+  }
+  br(e) {
+    return "<br>";
+  }
+  del({ tokens: e }) {
+    return `<del>${this.parser.parseInline(e)}</del>`;
+  }
+  link({ href: e, title: t, text: n, tokens: s, autolink: r }) {
+    let o = r ? O(n, true) : this.parser.parseInline(s), i = re(e);
+    if (i === null) return o;
+    e = O(i, r);
+    let u = '<a href="' + e + '"';
+    return t && (u += ' title="' + O(t) + '"'), u += ">" + o + "</a>", u;
+  }
+  image({ href: e, title: t, text: n, tokens: s }) {
+    s && (n = this.parser.parseInline(s, this.parser.textRenderer));
+    let r = re(e);
+    if (r === null) return O(n);
+    e = r;
+    let o = `<img src="${O(e)}" alt="${O(n)}"`;
+    return t && (o += ` title="${O(t)}"`), o += ">", o;
+  }
+  text(e) {
+    return "tokens" in e && e.tokens ? this.parser.parseInline(e.tokens) : "escaped" in e && e.escaped ? e.text : O(e.text);
+  }
+};
+var z = class {
+  strong({ text: e }) {
+    return e;
+  }
+  em({ text: e }) {
+    return e;
+  }
+  codespan({ text: e }) {
+    return e;
+  }
+  del({ text: e }) {
+    return e;
+  }
+  html({ text: e }) {
+    return e;
+  }
+  text({ text: e }) {
+    return e;
+  }
+  link({ text: e }) {
+    return "" + e;
+  }
+  image({ text: e }) {
+    return "" + e;
+  }
+  br() {
+    return "";
+  }
+  checkbox({ raw: e }) {
+    return e;
+  }
+};
+var T = class l2 {
+  constructor(e) {
+    __publicField(this, "options");
+    __publicField(this, "renderer");
+    __publicField(this, "textRenderer");
+    this.options = e || y, this.options.renderer = this.options.renderer || new S(), this.renderer = this.options.renderer, this.renderer.options = this.options, this.renderer.parser = this, this.textRenderer = new z();
+  }
+  static parse(e, t) {
+    return new l2(t).parse(e);
+  }
+  static parseInline(e, t) {
+    return new l2(t).parseInline(e);
+  }
+  parse(e) {
+    var _a2, _b;
+    this.renderer.parser = this;
+    let t = "";
+    for (let n = 0; n < e.length; n++) {
+      let s = e[n];
+      if ((_b = (_a2 = this.options.extensions) == null ? void 0 : _a2.renderers) == null ? void 0 : _b[s.type]) {
+        let o = s, i = this.options.extensions.renderers[o.type].call({ parser: this }, o);
+        if (i !== false || !["space", "hr", "heading", "code", "table", "blockquote", "list", "checkbox", "html", "def", "paragraph", "text"].includes(o.type)) {
+          t += i || "";
+          continue;
+        }
+      }
+      let r = s;
+      switch (r.type) {
+        case "space": {
+          t += this.renderer.space(r);
+          break;
+        }
+        case "hr": {
+          t += this.renderer.hr(r);
+          break;
+        }
+        case "heading": {
+          t += this.renderer.heading(r);
+          break;
+        }
+        case "code": {
+          t += this.renderer.code(r);
+          break;
+        }
+        case "table": {
+          t += this.renderer.table(r);
+          break;
+        }
+        case "blockquote": {
+          t += this.renderer.blockquote(r);
+          break;
+        }
+        case "list": {
+          t += this.renderer.list(r);
+          break;
+        }
+        case "checkbox": {
+          t += this.renderer.checkbox(r);
+          break;
+        }
+        case "html": {
+          t += this.renderer.html(r);
+          break;
+        }
+        case "def": {
+          t += this.renderer.def(r);
+          break;
+        }
+        case "paragraph": {
+          t += this.renderer.paragraph(r);
+          break;
+        }
+        case "text": {
+          t += this.renderer.text(r);
+          break;
+        }
+        default: {
+          let o = 'Token with "' + r.type + '" type was not found.';
+          if (this.options.silent) return console.error(o), "";
+          throw new Error(o);
+        }
+      }
+    }
+    return t;
+  }
+  parseInline(e, t = this.renderer) {
+    var _a2, _b;
+    this.renderer.parser = this;
+    let n = "";
+    for (let s = 0; s < e.length; s++) {
+      let r = e[s];
+      if ((_b = (_a2 = this.options.extensions) == null ? void 0 : _a2.renderers) == null ? void 0 : _b[r.type]) {
+        let i = this.options.extensions.renderers[r.type].call({ parser: this }, r);
+        if (i !== false || !["escape", "html", "link", "image", "checkbox", "strong", "em", "codespan", "br", "del", "text"].includes(r.type)) {
+          n += i || "";
+          continue;
+        }
+      }
+      let o = r;
+      switch (o.type) {
+        case "escape": {
+          n += t.text(o);
+          break;
+        }
+        case "html": {
+          n += t.html(o);
+          break;
+        }
+        case "link": {
+          n += t.link(o);
+          break;
+        }
+        case "image": {
+          n += t.image(o);
+          break;
+        }
+        case "checkbox": {
+          n += t.checkbox(o);
+          break;
+        }
+        case "strong": {
+          n += t.strong(o);
+          break;
+        }
+        case "em": {
+          n += t.em(o);
+          break;
+        }
+        case "codespan": {
+          n += t.codespan(o);
+          break;
+        }
+        case "br": {
+          n += t.br(o);
+          break;
+        }
+        case "del": {
+          n += t.del(o);
+          break;
+        }
+        case "text": {
+          n += t.text(o);
+          break;
+        }
+        default: {
+          let i = 'Token with "' + o.type + '" type was not found.';
+          if (this.options.silent) return console.error(i), "";
+          throw new Error(i);
+        }
+      }
+    }
+    return n;
+  }
+};
+var _a;
+var _ = (_a = class {
+  constructor(e) {
+    __publicField(this, "options");
+    __publicField(this, "block");
+    this.options = e || y;
+  }
+  preprocess(e) {
+    return e;
+  }
+  postprocess(e) {
+    return e;
+  }
+  processAllTokens(e) {
+    return e;
+  }
+  emStrongMask(e) {
+    return e;
+  }
+  provideLexer(e = this.block) {
+    return e ? R.lex : R.lexInline;
+  }
+  provideParser(e = this.block) {
+    return e ? T.parse : T.parseInline;
+  }
+}, __publicField(_a, "passThroughHooks", /* @__PURE__ */ new Set(["preprocess", "postprocess", "processAllTokens", "emStrongMask"])), __publicField(_a, "passThroughHooksRespectAsync", /* @__PURE__ */ new Set(["preprocess", "postprocess", "processAllTokens"])), _a);
+var F = class {
+  constructor(...e) {
+    __publicField(this, "defaults", I());
+    __publicField(this, "options", this.setOptions);
+    __publicField(this, "parse", this.parseMarkdown(true));
+    __publicField(this, "parseInline", this.parseMarkdown(false));
+    __publicField(this, "Parser", T);
+    __publicField(this, "Renderer", S);
+    __publicField(this, "TextRenderer", z);
+    __publicField(this, "Lexer", R);
+    __publicField(this, "Tokenizer", P);
+    __publicField(this, "Hooks", _);
+    this.use(...e);
+  }
+  walkTokens(e, t) {
+    var _a2, _b;
+    let n = [];
+    for (let s of e) switch (n = n.concat(t.call(this, s)), s.type) {
+      case "table": {
+        let r = s;
+        for (let o of r.header) n = n.concat(this.walkTokens(o.tokens, t));
+        for (let o of r.rows) for (let i of o) n = n.concat(this.walkTokens(i.tokens, t));
+        break;
+      }
+      case "list": {
+        let r = s;
+        n = n.concat(this.walkTokens(r.items, t));
+        break;
+      }
+      default: {
+        let r = s;
+        ((_b = (_a2 = this.defaults.extensions) == null ? void 0 : _a2.childTokens) == null ? void 0 : _b[r.type]) ? this.defaults.extensions.childTokens[r.type].forEach((o) => {
+          let i = r[o].flat(1 / 0);
+          n = n.concat(this.walkTokens(i, t));
+        }) : r.tokens && (n = n.concat(this.walkTokens(r.tokens, t)));
+      }
+    }
+    return n;
+  }
+  use(...e) {
+    let t = this.defaults.extensions || { renderers: {}, childTokens: {} };
+    return e.forEach((n) => {
+      let s = { ...n };
+      if (s.async = this.defaults.async || s.async || false, n.extensions && (n.extensions.forEach((r) => {
+        if (!r.name) throw new Error("extension name required");
+        if ("renderer" in r) {
+          let o = t.renderers[r.name];
+          o ? t.renderers[r.name] = function(...i) {
+            let u = r.renderer.apply(this, i);
+            return u === false && (u = o.apply(this, i)), u;
+          } : t.renderers[r.name] = r.renderer;
+        }
+        if ("tokenizer" in r) {
+          if (!r.level || r.level !== "block" && r.level !== "inline") throw new Error("extension level must be 'block' or 'inline'");
+          let o = t[r.level];
+          o ? o.unshift(r.tokenizer) : t[r.level] = [r.tokenizer], r.start && (r.level === "block" ? t.startBlock ? t.startBlock.push(r.start) : t.startBlock = [r.start] : r.level === "inline" && (t.startInline ? t.startInline.push(r.start) : t.startInline = [r.start]));
+        }
+        "childTokens" in r && r.childTokens && (t.childTokens[r.name] = r.childTokens);
+      }), s.extensions = t), n.renderer) {
+        let r = this.defaults.renderer || new S(this.defaults);
+        for (let o in n.renderer) {
+          if (!(o in r)) throw new Error(`renderer '${o}' does not exist`);
+          if (["options", "parser"].includes(o)) continue;
+          let i = o, u = n.renderer[i], a = r[i];
+          r[i] = (...p) => {
+            let c = u.apply(r, p);
+            return c === false && (c = a.apply(r, p)), c || "";
+          };
+        }
+        s.renderer = r;
+      }
+      if (n.tokenizer) {
+        let r = this.defaults.tokenizer || new P(this.defaults);
+        for (let o in n.tokenizer) {
+          if (!(o in r)) throw new Error(`tokenizer '${o}' does not exist`);
+          if (["options", "rules", "lexer"].includes(o)) continue;
+          let i = o, u = n.tokenizer[i], a = r[i];
+          r[i] = (...p) => {
+            let c = u.apply(r, p);
+            return c === false && (c = a.apply(r, p)), c;
+          };
+        }
+        s.tokenizer = r;
+      }
+      if (n.hooks) {
+        let r = this.defaults.hooks || new _();
+        for (let o in n.hooks) {
+          if (!(o in r)) throw new Error(`hook '${o}' does not exist`);
+          if (["options", "block"].includes(o)) continue;
+          let i = o, u = n.hooks[i], a = r[i];
+          _.passThroughHooks.has(o) ? r[i] = (p) => {
+            if (this.defaults.async && _.passThroughHooksRespectAsync.has(o)) return (async () => {
+              let d = await u.call(r, p);
+              return a.call(r, d);
+            })();
+            let c = u.call(r, p);
+            return a.call(r, c);
+          } : r[i] = (...p) => {
+            if (this.defaults.async) return (async () => {
+              let d = await u.apply(r, p);
+              return d === false && (d = await a.apply(r, p)), d;
+            })();
+            let c = u.apply(r, p);
+            return c === false && (c = a.apply(r, p)), c;
+          };
+        }
+        s.hooks = r;
+      }
+      if (n.walkTokens) {
+        let r = this.defaults.walkTokens, o = n.walkTokens;
+        s.walkTokens = function(i) {
+          let u = [];
+          return u.push(o.call(this, i)), r && (u = u.concat(r.call(this, i))), u;
+        };
+      }
+      this.defaults = { ...this.defaults, ...s };
+    }), this;
+  }
+  setOptions(e) {
+    return this.defaults = { ...this.defaults, ...e }, this;
+  }
+  lexer(e, t) {
+    return R.lex(e, t != null ? t : this.defaults);
+  }
+  parser(e, t) {
+    return T.parse(e, t != null ? t : this.defaults);
+  }
+  parseMarkdown(e) {
+    return (n, s) => {
+      let r = { ...s }, o = { ...this.defaults, ...r }, i = this.onError(!!o.silent, !!o.async);
+      if (this.defaults.async === true && r.async === false) return i(new Error("marked(): The async option was set to true by an extension. Remove async: false from the parse options object to return a Promise."));
+      if (typeof n > "u" || n === null) return i(new Error("marked(): input parameter is undefined or null"));
+      if (typeof n != "string") return i(new Error("marked(): input parameter is of type " + Object.prototype.toString.call(n) + ", string expected"));
+      if (o.hooks && (o.hooks.options = o, o.hooks.block = e), o.async) return (async () => {
+        let u = o.hooks ? await o.hooks.preprocess(n) : n, p = await (o.hooks ? await o.hooks.provideLexer(e) : e ? R.lex : R.lexInline)(u, o), c = o.hooks ? await o.hooks.processAllTokens(p) : p;
+        o.walkTokens && await Promise.all(this.walkTokens(c, o.walkTokens));
+        let m = await (o.hooks ? await o.hooks.provideParser(e) : e ? T.parse : T.parseInline)(c, o);
+        return o.hooks ? await o.hooks.postprocess(m) : m;
+      })().catch(i);
+      try {
+        o.hooks && (n = o.hooks.preprocess(n));
+        let a = (o.hooks ? o.hooks.provideLexer(e) : e ? R.lex : R.lexInline)(n, o);
+        o.hooks && (a = o.hooks.processAllTokens(a)), o.walkTokens && this.walkTokens(a, o.walkTokens);
+        let c = (o.hooks ? o.hooks.provideParser(e) : e ? T.parse : T.parseInline)(a, o);
+        return o.hooks && (c = o.hooks.postprocess(c)), c;
+      } catch (u) {
+        return i(u);
+      }
+    };
+  }
+  onError(e, t) {
+    return (n) => {
+      if (n.message += `
+Please report this to https://github.com/markedjs/marked.`, e) {
+        let s = "<p>An error occurred:</p><pre>" + O(n.message + "", true) + "</pre>";
+        return t ? Promise.resolve(s) : s;
+      }
+      if (t) return Promise.reject(n);
+      throw n;
+    };
+  }
+};
+var E = new F();
+function k(l3, e) {
+  return E.parse(l3, e);
+}
+k.options = k.setOptions = function(l3) {
+  return E.setOptions(l3), k.defaults = E.defaults, W(k.defaults), k;
+};
+k.getDefaults = I;
+k.defaults = y;
+function Pt(...l3) {
+  return E.use(...l3), k.defaults = E.defaults, W(k.defaults), k;
+}
+k.use = Pt;
+k.walkTokens = function(l3, e) {
+  return E.walkTokens(l3, e);
+};
+k.parseInline = E.parseInline;
+k.Parser = T;
+k.parser = T.parse;
+k.Renderer = S;
+k.TextRenderer = z;
+k.Lexer = R;
+k.lexer = R.lex;
+k.Tokenizer = P;
+k.Hooks = _;
+k.parse = k;
+var gn = k.options;
+var fn = k.setOptions;
+var mn = k.walkTokens;
+var xn = k.parseInline;
+var Rn = T.parse;
+var Tn = R.lex;
+
+// vendor/kaitox/x-article/contentState.ts
+function randomBlockKey() {
+  const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let key = "";
+  for (let i = 0; i < 5; i++) {
+    key += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return key;
+}
+var ContentStateBuilder = class {
+  /**
+   * @param resolveMediaId  给一个图片 src，返回它上传到 X 后的 media_id。
+   *                        返回 undefined 表示没上传成功——该图片会被跳过并记录。
+   */
+  constructor(resolveMediaId) {
+    this.resolveMediaId = resolveMediaId;
+    this.blocks = [];
+    this.entityMap = [];
+    this.nextEntityKey = 0;
+    this.skippedImages = [];
+  }
+  build(markdown) {
+    const tokens = k.lexer(markdown);
+    for (const token of tokens) {
+      this.handleBlockToken(token);
+    }
+    if (this.blocks.length === 0) {
+      this.pushBlock("unstyled", { text: "", styleRanges: [], entityRanges: [] });
+    }
+    return { blocks: this.blocks, entity_map: this.entityMap };
+  }
+  // --- entity / block 基础操作 ---------------------------------------------
+  addEntity(value) {
+    const key = this.nextEntityKey++;
+    this.entityMap.push({ key, value });
+    return key;
+  }
+  pushBlock(type, inline2) {
+    this.blocks.push({
+      key: randomBlockKey(),
+      text: inline2.text,
+      type,
+      data: {},
+      entity_ranges: inline2.entityRanges,
+      inline_style_ranges: inline2.styleRanges
+    });
+  }
+  /** 块级实体（图片/分割线/代码/表格）统一走 atomic 宿主块。 */
+  pushAtomic(entityKey) {
+    this.blocks.push({
+      key: randomBlockKey(),
+      text: " ",
+      type: "atomic",
+      data: {},
+      entity_ranges: [{ key: entityKey, offset: 0, length: 1 }],
+      inline_style_ranges: []
+    });
+  }
+  /**
+   * MARKDOWN 实体（代码块/表格）。X 编辑器实测载荷（2026-07 抓包）：
+   * mutability 是 Mutable、markdown 前后带换行——Immutable 能过校验但渲染端丢内容。
+   */
+  pushMarkdownEntity(markdown) {
+    const md = "\n" + markdown + (markdown.endsWith("\n") ? "" : "\n");
+    const key = this.addEntity({ type: "MARKDOWN", mutability: "Mutable", data: { markdown: md } });
+    this.pushAtomic(key);
+  }
+  // --- block 级分发 ---------------------------------------------------------
+  handleBlockToken(token) {
+    var _a2, _b, _c, _d, _e2, _f, _g;
+    switch (token.type) {
+      case "heading": {
+        const depth = (_a2 = token.depth) != null ? _a2 : 2;
+        const inline2 = this.processInline((_b = token.tokens) != null ? _b : textFallback(token));
+        if (depth <= 1 && this.derivedTitle === void 0) {
+          this.derivedTitle = inline2.text.trim();
+          break;
+        }
+        const type = depth <= 2 ? "header-one" : "header-two";
+        this.pushBlock(type, inline2);
+        break;
+      }
+      case "paragraph":
+        if (!this.tryStandaloneTweets(token)) this.handleParagraph(token);
+        break;
+      case "blockquote":
+        for (const child of (_c = token.tokens) != null ? _c : []) {
+          if (child.type === "paragraph") {
+            this.pushBlock("blockquote", this.processInline((_d = child.tokens) != null ? _d : textFallback(child)));
+          } else if (child.type === "text") {
+            this.pushBlock("blockquote", this.processInline((_e2 = child.tokens) != null ? _e2 : textFallback(child)));
+          } else {
+            this.handleBlockToken(child);
+          }
+        }
+        break;
+      case "list":
+        this.handleList(token);
+        break;
+      case "code": {
+        const lang = (token.lang || "plaintext").trim() || "plaintext";
+        const fenced = "```" + lang + "\n" + ((_f = token.text) != null ? _f : "") + "\n```";
+        this.pushMarkdownEntity(fenced);
+        break;
+      }
+      case "table": {
+        this.pushMarkdownEntity((_g = token.raw) != null ? _g : "");
+        break;
+      }
+      case "hr": {
+        const key = this.addEntity({ type: "DIVIDER", mutability: "Immutable", data: {} });
+        this.pushAtomic(key);
+        break;
+      }
+      case "space":
+      case "html":
+        break;
+      default:
+        if (token.text) {
+          this.pushBlock("unstyled", { text: token.text, styleRanges: [], entityRanges: [] });
+        }
+    }
+  }
+  /**
+   * 段落可能夹着图片。图片在 X 里是块级的，所以要把段落按图片切开：
+   * 文字部分各自成 unstyled block，图片各自成 atomic MEDIA block。
+   */
+  handleParagraph(token) {
+    var _a2, _b;
+    const inlineTokens = (_a2 = token.tokens) != null ? _a2 : textFallback(token);
+    const runs = [];
+    const flushRun = () => {
+      if (runs.length === 0) return;
+      const inline2 = this.processInline(runs);
+      if (inline2.text.trim().length > 0 || inline2.entityRanges.length > 0) {
+        this.pushBlock("unstyled", inline2);
+      }
+      runs.length = 0;
+    };
+    for (const t of inlineTokens) {
+      if (t.type === "image") {
+        flushRun();
+        this.pushImage((_b = t.href) != null ? _b : "");
+      } else {
+        runs.push(t);
+      }
+    }
+    flushRun();
+  }
+  pushImage(src) {
+    const mediaId = src ? this.resolveMediaId(src) : void 0;
+    if (!mediaId) {
+      if (src) this.skippedImages.push(src);
+      return;
+    }
+    const key = this.nextEntityKey;
+    this.addEntity({
+      type: "MEDIA",
+      mutability: "Immutable",
+      data: {
+        media_items: [{ local_media_id: key, media_id: mediaId, media_category: "DraftTweetImage" }]
+      }
+    });
+    this.pushAtomic(key);
+  }
+  /**
+   * 若整段就是「一行或多行、每行都是一条 x/twitter 帖子链接」，把每行转成一个内嵌
+   * TWEET 块并返回 true；否则不动、返回 false（交回普通段落处理，链接照常成 LINK）。
+   * 段内混了正文的裸链接不算——保持「独占才内嵌」，与 X 粘贴即嵌入的体感一致。
+   */
+  tryStandaloneTweets(token) {
+    var _a2;
+    const raw = ((_a2 = token.text) != null ? _a2 : "").trim();
+    if (!raw) return false;
+    const lines = raw.split("\n").map((l3) => l3.trim()).filter((l3) => l3.length > 0);
+    if (lines.length === 0) return false;
+    const ids = lines.map(parseTweetId);
+    if (ids.some((id) => id === void 0)) return false;
+    for (const id of ids) this.pushTweet(id);
+    return true;
+  }
+  /** 内嵌引用推文：TWEET 实体 + atomic 宿主块（与 DIVIDER 同构）。 */
+  pushTweet(tweetId) {
+    const key = this.addEntity({ type: "TWEET", mutability: "Immutable", data: { tweet_id: tweetId } });
+    this.pushAtomic(key);
+  }
+  handleList(token) {
+    var _a2;
+    const ordered = !!token.ordered;
+    const type = ordered ? "ordered-list-item" : "unordered-list-item";
+    for (const item of (_a2 = token.items) != null ? _a2 : []) {
+      const inlineTokens = collectListItemInline(item);
+      this.pushBlock(type, this.processInline(inlineTokens));
+    }
+  }
+  // --- inline 级解析 --------------------------------------------------------
+  /**
+   * 把一串 inline token 拍平成 { 纯文本, 样式区间, 实体区间 }。
+   * 递归处理 strong/em/link 等嵌套，offset 用累计文本长度。
+   */
+  processInline(tokens) {
+    var _a2, _b, _c, _d, _e2, _f, _g, _h, _i, _j;
+    let text = "";
+    const styleRanges = [];
+    const entityRanges = [];
+    const appendChild = (child) => {
+      const base = text.length;
+      text += child.text;
+      for (const s of child.styleRanges) styleRanges.push({ ...s, offset: s.offset + base });
+      for (const e of child.entityRanges) entityRanges.push({ ...e, offset: e.offset + base });
+      return { base, length: child.text.length };
+    };
+    for (const token of tokens) {
+      switch (token.type) {
+        case "text":
+        case "escape":
+        case "html": {
+          if (token.tokens && token.tokens.length) {
+            appendChild(this.processInline(token.tokens));
+          } else {
+            text += decodeEntities((_b = (_a2 = token.text) != null ? _a2 : token.raw) != null ? _b : "");
+          }
+          break;
+        }
+        case "strong": {
+          const { base, length } = appendChild(this.processInline((_c = token.tokens) != null ? _c : textFallback(token)));
+          if (length > 0) styleRanges.push({ offset: base, length, style: "Bold" });
+          break;
+        }
+        case "em": {
+          const { base, length } = appendChild(this.processInline((_d = token.tokens) != null ? _d : textFallback(token)));
+          if (length > 0) styleRanges.push({ offset: base, length, style: "Italic" });
+          break;
+        }
+        case "del": {
+          const { base, length } = appendChild(this.processInline((_e2 = token.tokens) != null ? _e2 : textFallback(token)));
+          if (length > 0) styleRanges.push({ offset: base, length, style: "Strikethrough" });
+          break;
+        }
+        case "codespan": {
+          text += decodeEntities((_f = token.text) != null ? _f : "");
+          break;
+        }
+        case "link": {
+          const { base, length } = appendChild(this.processInline((_g = token.tokens) != null ? _g : textFallback(token)));
+          if (length > 0 && token.href) {
+            const key = this.addEntity({ type: "LINK", mutability: "Mutable", data: { url: token.href } });
+            entityRanges.push({ key, offset: base, length });
+          }
+          break;
+        }
+        case "br":
+          text += "\n";
+          break;
+        case "image":
+          text += (_h = token.text) != null ? _h : "";
+          break;
+        default:
+          text += decodeEntities((_j = (_i = token.text) != null ? _i : token.raw) != null ? _j : "");
+      }
+    }
+    return { text, styleRanges, entityRanges };
+  }
+};
+function textFallback(token) {
+  var _a2, _b;
+  return [{ type: "text", text: (_b = (_a2 = token.text) != null ? _a2 : token.raw) != null ? _b : "" }];
+}
+function collectListItemInline(item) {
+  var _a2, _b;
+  const children = (_a2 = item.tokens) != null ? _a2 : [];
+  const out = [];
+  for (const c of children) {
+    if (c.type === "text" || c.type === "paragraph") {
+      if (c.tokens && c.tokens.length) out.push(...c.tokens);
+      else out.push({ type: "text", text: (_b = c.text) != null ? _b : "" });
+    }
+  }
+  return out.length ? out : textFallback(item);
+}
+function decodeEntities(s) {
+  return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x27;/g, "'");
+}
+function parseTweetId(url) {
+  const m = /^https?:\/\/(?:[a-z0-9-]+\.)*(?:twitter|x)\.com\/(?:[^/\s]+\/)*status(?:es)?\/(\d+)(?:[/?#]\S*)?$/i.exec(
+    url.trim()
+  );
+  return m ? m[1] : void 0;
+}
+function collectImageSources(markdown) {
+  const tokens = k.lexer(markdown);
+  const srcs = [];
+  const seen = /* @__PURE__ */ new Set();
+  const visit = (list2) => {
+    for (const t of list2) {
+      if (t.type === "image" && t.href) {
+        if (!seen.has(t.href)) {
+          seen.add(t.href);
+          srcs.push(t.href);
+        }
+      }
+      if (t.tokens) visit(t.tokens);
+      if (t.items) visit(t.items);
+    }
+  };
+  visit(tokens);
+  return srcs;
+}
+function markdownToContentState(markdown, mediaIdBySrc = {}) {
+  const lookup = mediaIdBySrc instanceof Map ? (src) => mediaIdBySrc.get(src) : (src) => mediaIdBySrc[src];
+  const builder = new ContentStateBuilder(lookup);
+  const contentState = builder.build(markdown);
+  return { contentState, skippedImages: builder.skippedImages, title: builder.derivedTitle };
+}
+
+// vendor/kaitox/x-article/xArticleClient.ts
+var APPEND_CHUNK_SIZE = 4 * 1024 * 1024;
+var VALID_INLINE_STYLES = new Set(Object.keys(INLINE_STYLES));
+
+// vendor/kaitox/x-article/publishArticle.ts
+function deriveTitle(markdown) {
+  let fallback = "";
+  for (const line of markdown.split("\n")) {
+    const m = line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (!m) continue;
+    if (m[1].length === 1) return m[2].trim();
+    if (!fallback) fallback = m[2].trim();
+  }
+  return fallback;
+}
+
+// vendor/kaitox/x-article/styleCheck.ts
+var DEFAULT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+var AUTO_COMPRESSED_MIMES = /* @__PURE__ */ new Set(["image/png", "image/jpeg", "image/webp"]);
+function checkMarkdownStyle(markdown, opts = {}) {
+  var _a2, _b, _c, _d, _e2;
+  const issues = [];
+  const maxBytes = (_a2 = opts.maxImageBytes) != null ? _a2 : DEFAULT_MAX_IMAGE_BYTES;
+  const tokens = k.lexer(markdown);
+  let offset = 0;
+  let seenH1 = false;
+  for (const t of tokens) {
+    const line = lineAt(markdown, offset);
+    switch (t.type) {
+      case "table":
+        issues.push({
+          rule: "table",
+          severity: "info",
+          message: "\u8868\u683C\u4F1A\u4EE5 Markdown \u5757\u4E0A\u4F20\uFF0CX Article \u539F\u751F\u6E32\u67D3\u4E3A\u8868\u683C\u3002",
+          line
+        });
+        break;
+      case "html":
+        issues.push({
+          rule: "html-block",
+          severity: "warning",
+          message: "HTML \u5757\u4E0D\u88AB\u652F\u6301\uFF0C\u8F6C\u6362\u65F6\u4F1A\u88AB\u6574\u6BB5\u4E22\u5F03\u3001\u5185\u5BB9\u4E22\u5931\u3002",
+          suggestion: "\u628A HTML \u6539\u5199\u6210\u7B49\u4EF7\u7684 Markdown\u3002",
+          line,
+          excerpt: excerpt(t.raw)
+        });
+        break;
+      case "code": {
+        const isMermaid = ((_b = t.lang) != null ? _b : "").trim().split(/\s+/)[0].toLowerCase() === "mermaid";
+        issues.push({
+          rule: isMermaid ? "mermaid-block" : "code-block",
+          severity: "info",
+          message: isMermaid ? "mermaid \u4EE3\u7801\u5757\u4F1A\u5728\u4E0A\u4F20\u65F6\u6E32\u67D3\u6210\u56FE\u7247\uFF08\u8BED\u6CD5\u9519\u8BEF\u4F1A\u5BFC\u81F4\u4E0A\u4F20\u5931\u8D25\uFF0C\u8BF7\u5148\u786E\u8BA4\u56FE\u80FD\u753B\u51FA\u6765\uFF09\u3002" : "\u4EE3\u7801\u5757\u4F1A\u4EE5\u7EAF\u6587\u672C\u4EE3\u7801\u6846\u5448\u73B0\uFF08\u65E0\u8BED\u6CD5\u9AD8\u4EAE\uFF09\uFF0C\u4E00\u822C\u53EF\u63A5\u53D7\u3002",
+          line
+        });
+        break;
+      }
+      case "heading": {
+        const d = (_c = t.depth) != null ? _c : 2;
+        if (d === 1) {
+          if (seenH1) {
+            issues.push({
+              rule: "extra-h1",
+              severity: "info",
+              message: "\u53EA\u6709\u7B2C\u4E00\u4E2A H1 \u4F1A\u4F5C\u4E3A\u6587\u7AE0\u4E3B\u6807\u9898\uFF0C\u6B64\u5904 H1 \u4F1A\u6309 Heading\uFF08##\uFF09\u5904\u7406\u3002",
+              suggestion: "\u4E00\u7BC7\u6587\u7AE0\u4FDD\u7559\u4E00\u4E2A H1\uFF0C\u5176\u4F59\u964D\u4E3A ##\u3002",
+              line,
+              excerpt: excerpt(t.raw)
+            });
+          }
+          seenH1 = true;
+        } else if (d > 3) {
+          issues.push({
+            rule: "heading-depth",
+            severity: "info",
+            message: `h${d} \u6807\u9898\u4F1A\u88AB\u94B3\u5230 SubHeading\uFF08\u4E0E ### \u76F8\u540C\uFF0CX Article \u6B63\u6587\u53EA\u652F\u6301\u4E24\u7EA7\u6807\u9898\uFF09\u3002`,
+            suggestion: "\u628A\u7ED3\u6784\u6536\u655B\u5230 \u2264 h3\u3002",
+            line
+          });
+        }
+        break;
+      }
+      case "list":
+        if (hasNestedList(t)) {
+          issues.push({
+            rule: "nested-list",
+            severity: "warning",
+            message: "\u5D4C\u5957\u5217\u8868\u7684\u5B50\u9879\u4F1A\u88AB\u9759\u9ED8\u4E22\u5F03\uFF08\u8F6C\u6362\u5668\u53EA\u4FDD\u7559\u4E00\u7EA7\u5217\u8868\u9879\uFF09\u3002",
+            suggestion: "\u628A\u5217\u8868\u62CD\u5E73\u6210\u4E00\u7EA7\u3002",
+            line,
+            excerpt: excerpt(t.raw)
+          });
+        }
+        if (hasTaskItem(t)) {
+          issues.push({
+            rule: "task-list",
+            severity: "info",
+            message: "\u4EFB\u52A1\u5217\u8868\u4F1A\u6E32\u67D3\u6210\u666E\u901A\u5217\u8868\u9879\uFF0C\u52FE\u9009\u6846\u4F1A\u4E22\u5931\u3002",
+            line
+          });
+        }
+        break;
+      default:
+        break;
+    }
+    offset += ((_d = t.raw) != null ? _d : "").length;
+  }
+  const footnoteRe = /\[\^[^\]]+\]/g;
+  let m;
+  const seenFootnoteLines = /* @__PURE__ */ new Set();
+  while (m = footnoteRe.exec(markdown)) {
+    const line = lineAt(markdown, m.index);
+    if (seenFootnoteLines.has(line)) continue;
+    seenFootnoteLines.add(line);
+    issues.push({
+      rule: "footnote",
+      severity: "warning",
+      message: "\u811A\u6CE8\u8BED\u6CD5 [^n] \u4E0D\u88AB\u89E3\u6790\uFF0C\u4F1A\u539F\u6837\u663E\u793A\u6210\u6587\u672C\u3002",
+      suggestion: "\u628A\u811A\u6CE8\u5185\u5BB9\u5185\u8054\u5230\u6B63\u6587\uFF0C\u6216\u6539\u6210\u666E\u901A\u94FE\u63A5\u3002",
+      line,
+      excerpt: m[0]
+    });
+  }
+  const assetMap = (_e2 = opts.assetMap) != null ? _e2 : {};
+  for (const src of collectImageSources(markdown)) {
+    const meta = assetMap[src];
+    const line = firstLineOfSubstring(markdown, src);
+    const isRemote = /^https?:\/\//i.test(src);
+    if (meta && meta.resolved === false) {
+      issues.push({
+        rule: "image-missing",
+        severity: "error",
+        message: `\u56FE\u7247\u8DEF\u5F84\u89E3\u6790\u4E0D\u5230\u672C\u5730\u6587\u4EF6\uFF0C\u4E0A\u4F20\u65F6\u4F1A\u88AB\u8DF3\u8FC7\uFF1A${src}`,
+        suggestion: "\u4FEE\u6B63\u56FE\u7247\u8DEF\u5F84\u3002",
+        line,
+        excerpt: src
+      });
+      continue;
+    }
+    if (!meta && isRemote) {
+      issues.push({
+        rule: "image-remote",
+        severity: "warning",
+        message: `\u8FDC\u7A0B\u56FE\u7247 ${src} \u63D2\u4EF6\u4E0D\u4F1A\u4E3B\u52A8\u4E0B\u8F7D\uFF1B\u4E0A\u4F20\u7AEF\u9700\u5148\u628A\u5B83\u4E0B\u8F7D\u8FDB\u8349\u7A3F\u5305\u3002`,
+        suggestion: "\u4E0A\u4F20\u7AEF\u9884\u4E0B\u8F7D\u8FDC\u7A0B\u56FE\u7247\uFF0C\u6216\u6539\u7528\u672C\u5730\u56FE\u7247\u3002",
+        line,
+        excerpt: src
+      });
+      continue;
+    }
+    if (!meta && !isRemote) {
+      issues.push({
+        rule: "image-missing",
+        severity: "error",
+        message: `\u672C\u5730\u56FE\u7247\u672A\u968F\u8349\u7A3F\u5305\u63D0\u4F9B\u5B57\u8282\uFF0C\u4E0A\u4F20\u65F6\u4F1A\u88AB\u8DF3\u8FC7\uFF1A${src}`,
+        suggestion: "\u786E\u8BA4\u56FE\u7247\u5B58\u5728\u4E14\u88AB\u4E0A\u4F20\u7AEF\u89E3\u6790\u5230\u3002",
+        line,
+        excerpt: src
+      });
+      continue;
+    }
+    if (meta && typeof meta.bytesLen === "number" && meta.bytesLen > maxBytes && meta.mime !== void 0 && !AUTO_COMPRESSED_MIMES.has(meta.mime)) {
+      issues.push({
+        rule: "image-too-large",
+        severity: "warning",
+        message: `\u56FE\u7247 ${src} \u7EA6 ${(meta.bytesLen / 1024 / 1024).toFixed(1)}MB\uFF0C\u8D85\u8FC7 ${(maxBytes / 1024 / 1024).toFixed(0)}MB\uFF0C\u4E14 ${meta.mime} \u4E0D\u4F1A\u88AB\u81EA\u52A8\u538B\u7F29\uFF0CX \u53EF\u80FD\u62D2\u7EDD\u3002`,
+        suggestion: "\u6362\u6210 PNG / JPEG / WebP\uFF08\u8D85\u9650\u4F1A\u81EA\u52A8\u538B\u7F29\uFF09\uFF0C\u6216\u624B\u52A8\u7F29\u5C0F\u3002",
+        line,
+        excerpt: src
+      });
+    }
+  }
+  const hasContent = tokens.some((t) => {
+    var _a3;
+    return t.type !== "space" && ((_a3 = t.raw) != null ? _a3 : "").trim().length > 0;
+  });
+  if (!hasContent) {
+    issues.push({
+      rule: "empty-doc",
+      severity: "error",
+      message: "\u6587\u6863\u4E3A\u7A7A\uFF0CX Article \u9700\u8981\u975E\u7A7A\u6B63\u6587\u3002",
+      suggestion: "\u6DFB\u52A0\u5185\u5BB9\u540E\u518D\u4E0A\u4F20\u3002",
+      line: 1
+    });
+  }
+  const counts = { error: 0, warning: 0, info: 0 };
+  for (const i of issues) counts[i.severity]++;
+  const rank = { error: 0, warning: 1, info: 2 };
+  issues.sort((a, b) => {
+    var _a3, _b2;
+    return rank[a.severity] - rank[b.severity] || ((_a3 = a.line) != null ? _a3 : 0) - ((_b2 = b.line) != null ? _b2 : 0);
+  });
+  return { friendly: counts.error === 0 && counts.warning === 0, issues, counts };
+}
+function hasNestedList(listToken) {
+  var _a2, _b;
+  for (const item of (_a2 = listToken.items) != null ? _a2 : []) {
+    for (const c of (_b = item.tokens) != null ? _b : []) {
+      if (c.type === "list") return true;
+    }
+  }
+  return false;
+}
+function hasTaskItem(listToken) {
+  var _a2;
+  return ((_a2 = listToken.items) != null ? _a2 : []).some((it2) => it2.task === true);
+}
+function lineAt(text, index) {
+  let line = 1;
+  const end = Math.min(index, text.length);
+  for (let i = 0; i < end; i++) if (text.charCodeAt(i) === 10) line++;
+  return line;
+}
+function firstLineOfSubstring(text, sub) {
+  const idx = text.indexOf(sub);
+  return idx >= 0 ? lineAt(text, idx) : void 0;
+}
+function excerpt(raw, max = 80) {
+  if (!raw) return void 0;
+  const one = raw.replace(/\s+/g, " ").trim();
+  return one.length > max ? one.slice(0, max) + "\u2026" : one;
+}
+
+// vendor/kaitox/x-article/pushHelpers.ts
+function parseFrontmatter(md) {
+  const m = md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!m) return { fields: {}, body: md };
+  const fields = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const kv = line.match(/^([A-Za-z0-9_-]+)\s*:(.*)$/);
+    if (!kv) continue;
+    const value = kv[2].trim().replace(/^["']|["']$/g, "");
+    if (value) fields[kv[1]] = value;
+  }
+  return { fields, body: md.slice(m[0].length) };
+}
+function baseName(pathOrUrl) {
+  return pathOrUrl.split("?")[0].split("#")[0].split("/").pop() || "";
+}
+var MIME_BY_EXT = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  svg: "image/svg+xml"
+};
+function guessMimeFromName(name) {
+  const m = /\.([a-zA-Z0-9]+)$/.exec(baseName(name));
+  return m && MIME_BY_EXT[m[1].toLowerCase()] || "application/octet-stream";
+}
+function safeFileName(rawName, taken) {
+  let n = (rawName || "image").replace(/[^a-zA-Z0-9._-]/g, "_");
+  if (!/\.[a-zA-Z0-9]+$/.test(n)) n += ".bin";
+  let cand = n;
+  let i = 1;
+  while (taken.has(cand)) {
+    const dot = n.lastIndexOf(".");
+    cand = `${n.slice(0, dot)}-${i}${n.slice(dot)}`;
+    i++;
+  }
+  taken.add(cand);
+  return cand;
+}
+function makeCoverAsset(bytes, mime, rawName, taken) {
+  const fileName = safeFileName(`cover-${baseName(rawName) || "image"}`, taken);
+  return { key: "cover", src: "__cover__", fileName, mime, bytes };
+}
+
+// vendor/kaitox/x-article/mermaid.ts
+var MERMAID_SRC_PREFIX = "mermaid://";
+function extractMermaidBlocks(markdown) {
+  var _a2, _b, _c;
+  const tokens = k.lexer(markdown);
+  const blocks = [];
+  let out = "";
+  for (const token of tokens) {
+    const lang = ((_a2 = token.lang) != null ? _a2 : "").trim().split(/\s+/)[0].toLowerCase();
+    if (token.type === "code" && lang === "mermaid") {
+      const src = `${MERMAID_SRC_PREFIX}diagram-${blocks.length + 1}`;
+      blocks.push({ src, code: (_b = token.text) != null ? _b : "" });
+      out += `
+![mermaid diagram ${blocks.length}](${src})
+
+`;
+    } else {
+      out += (_c = token.raw) != null ? _c : "";
+    }
+  }
+  return blocks.length ? { markdown: out, blocks } : { markdown, blocks };
+}
+
+// vendor/kaitox/x-article/previewModel.ts
+function buildPreviewModel(markdown) {
+  const mediaIdBySrc = new Map(collectImageSources(markdown).map((src) => [src, src]));
+  const { contentState, title } = markdownToContentState(markdown, mediaIdBySrc);
+  return {
+    derivedTitle: title,
+    blocks: contentState.blocks,
+    entities: new Map(contentState.entity_map.map((e) => [e.key, e.value]))
+  };
+}
+function segmentText(text, styles, entities) {
+  var _a2;
+  if (text.length === 0) return [];
+  const clamp = (n) => Math.max(0, Math.min(text.length, n));
+  const cuts = /* @__PURE__ */ new Set([0, text.length]);
+  for (const r of styles) {
+    cuts.add(clamp(r.offset));
+    cuts.add(clamp(r.offset + r.length));
+  }
+  for (const r of entities) {
+    cuts.add(clamp(r.offset));
+    cuts.add(clamp(r.offset + r.length));
+  }
+  const points = [...cuts].sort((a, b) => a - b);
+  const segments = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (a >= b) continue;
+    const covers = (r) => r.offset <= a && b <= r.offset + r.length;
+    segments.push({
+      text: text.slice(a, b),
+      bold: styles.some((r) => r.style === "Bold" && covers(r)),
+      italic: styles.some((r) => r.style === "Italic" && covers(r)),
+      strikethrough: styles.some((r) => r.style === "Strikethrough" && covers(r)),
+      entityKey: (_a2 = entities.find(covers)) == null ? void 0 : _a2.key
+    });
+  }
+  const merged = [];
+  for (const s of segments) {
+    const prev = merged[merged.length - 1];
+    if (prev && prev.bold === s.bold && prev.italic === s.italic && prev.strikethrough === s.strikethrough && prev.entityKey === s.entityKey) {
+      prev.text += s.text;
+    } else {
+      merged.push({ ...s });
+    }
+  }
+  return merged;
+}
+function groupBlocks(blocks) {
+  const groups = [];
+  for (const block2 of blocks) {
+    const listOrdered = block2.type === "ordered-list-item" ? true : block2.type === "unordered-list-item" ? false : void 0;
+    if (listOrdered === void 0) {
+      groups.push({ kind: "single", block: block2 });
+      continue;
+    }
+    const prev = groups[groups.length - 1];
+    if (prev && prev.kind === "list" && prev.ordered === listOrdered) {
+      prev.items.push(block2);
+    } else {
+      groups.push({ kind: "list", ordered: listOrdered, items: [block2] });
+    }
+  }
+  return groups;
+}
+
+// vendor/kaitox/x-article/previewHtml.ts
+function renderPreviewHtml(markdown, opts = {}) {
+  return renderModelHtml(buildPreviewModel(markdown), opts);
+}
+function renderModelHtml(model, opts = {}) {
+  var _a2, _b;
+  const parts = [];
+  if (opts.coverUrl) {
+    parts.push(`<img class="xp-cover" src="${escapeHtml(opts.coverUrl)}" alt="">`);
+  }
+  const title = ((_b = (_a2 = opts.title) != null ? _a2 : model.derivedTitle) != null ? _b : "").trim();
+  parts.push(
+    title ? `<h1 class="xp-title">${escapeHtml(title)}</h1>` : `<h1 class="xp-title xp-title-empty">\uFF08\u65E0\u6807\u9898\uFF09</h1>`
+  );
+  if (isEmptyBody(model.blocks)) {
+    parts.push(`<div class="xp-empty">\uFF08\u6B63\u6587\u4E3A\u7A7A\uFF09</div>`);
+  } else {
+    for (const group of groupBlocks(model.blocks)) {
+      if (group.kind === "list") {
+        const tag = group.ordered ? "ol" : "ul";
+        const cls = group.ordered ? "xp-ol" : "xp-ul";
+        const items = group.items.map((b) => `<li>${renderInline(b, model.entities)}</li>`).join("");
+        parts.push(`<${tag} class="${cls}">${items}</${tag}>`);
+      } else {
+        const html = renderSingleBlock(group.block, model.entities, opts);
+        if (html) parts.push(html);
+      }
+    }
+  }
+  return `<article class="xp-article">${parts.join("")}</article>`;
+}
+function isEmptyBody(blocks) {
+  return blocks.every((b) => b.type === "unstyled" && b.text.trim() === "" && b.entity_ranges.length === 0);
+}
+function renderSingleBlock(block2, entities, opts) {
+  switch (block2.type) {
+    case "unstyled":
+      return `<p class="xp-p">${renderInline(block2, entities)}</p>`;
+    case "header-one":
+      return `<h2 class="xp-h1">${renderInline(block2, entities)}</h2>`;
+    case "header-two":
+      return `<h3 class="xp-h2">${renderInline(block2, entities)}</h3>`;
+    case "blockquote":
+      return `<blockquote class="xp-quote">${renderInline(block2, entities)}</blockquote>`;
+    // 列表项正常路径已被 groupBlocks 归入 list 组，这里是防御渲染（单项也不丢内容）。
+    case "unordered-list-item":
+      return `<ul class="xp-ul"><li>${renderInline(block2, entities)}</li></ul>`;
+    case "ordered-list-item":
+      return `<ol class="xp-ol"><li>${renderInline(block2, entities)}</li></ol>`;
+    case "atomic":
+      return renderAtomic(block2, entities, opts);
+    default:
+      return assertNever(block2.type, "preview block type");
+  }
+}
+function renderAtomic(block2, entities, opts) {
+  var _a2, _b, _c;
+  const key = (_a2 = block2.entity_ranges[0]) == null ? void 0 : _a2.key;
+  const entity = key === void 0 ? void 0 : entities.get(key);
+  if (!entity) return "";
+  switch (entity.type) {
+    case "DIVIDER":
+      return `<hr class="xp-divider">`;
+    case "MARKDOWN": {
+      const table = tryRenderTable(entity.data.markdown);
+      if (table) return table;
+      return `<pre class="xp-md">${escapeHtml(stripCodeFence(entity.data.markdown))}</pre>`;
+    }
+    case "MEDIA": {
+      const src = (_c = (_b = entity.data.media_items[0]) == null ? void 0 : _b.media_id) != null ? _c : "";
+      const resolved = opts.resolveImage ? opts.resolveImage(src) : src;
+      if (resolved === null) {
+        return `<div class="xp-img-missing">\u56FE\u7247\u672A\u6253\u5305\uFF0C\u4E0A\u4F20\u65F6\u5C06\u88AB\u8DF3\u8FC7\uFF1A${escapeHtml(src)}</div>`;
+      }
+      if (resolved === void 0) {
+        return `<figure class="xp-fig"><div class="xp-img-loading">\u56FE\u7247\u52A0\u8F7D\u4E2D\u2026</div></figure>`;
+      }
+      return `<figure class="xp-fig"><img class="xp-img" src="${escapeHtml(resolved)}" alt=""></figure>`;
+    }
+    case "TWEET": {
+      const id = entity.data.tweet_id;
+      const url = `https://x.com/i/status/${encodeURIComponent(id)}`;
+      return `<figure class="xp-tweet"><a class="xp-tweet-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">View post on X \xB7 ${escapeHtml(id)}</a></figure>`;
+    }
+    // LINK 是行内实体，不会出现在 atomic 块里（行内渲染见 renderSegment）。
+    case "LINK":
+      return "";
+    default:
+      return assertNever(entity, "preview atomic entity");
+  }
+}
+function renderInline(block2, entities) {
+  const segments = segmentText(block2.text, block2.inline_style_ranges, block2.entity_ranges);
+  return segments.map((s) => renderSegment(s, entities)).join("");
+}
+function renderSegment(seg, entities) {
+  let html = escapeHtml(seg.text).replace(/\n/g, "<br>");
+  if (seg.strikethrough) html = `<s>${html}</s>`;
+  if (seg.italic) html = `<em>${html}</em>`;
+  if (seg.bold) html = `<strong>${html}</strong>`;
+  if (seg.entityKey !== void 0) {
+    const entity = entities.get(seg.entityKey);
+    if ((entity == null ? void 0 : entity.type) === "LINK" && isSafeUrl(entity.data.url)) {
+      html = `<a class="xp-link" href="${escapeHtml(entity.data.url)}" target="_blank" rel="noopener noreferrer">${html}</a>`;
+    }
+  }
+  return html;
+}
+function stripCodeFence(md) {
+  const m = /^```[^\n]*\n([\s\S]*?)\n?```\s*$/.exec(md.trim());
+  return m ? m[1] : md;
+}
+function tryRenderTable(md) {
+  var _a2;
+  const tokens = k.lexer(md);
+  const meaningful = tokens.filter((t2) => t2.type !== "space");
+  const t = meaningful.length === 1 && meaningful[0].type === "table" ? meaningful[0] : null;
+  if (!(t == null ? void 0 : t.header)) return null;
+  const cell = (c) => {
+    var _a3;
+    return ((_a3 = c.tokens) == null ? void 0 : _a3.length) ? renderInlineMd(c.tokens) : escapeHtml(decodeMdEntities(c.text));
+  };
+  const th = t.header.map((c) => `<th>${cell(c)}</th>`).join("");
+  const rows = ((_a2 = t.rows) != null ? _a2 : []).map((r) => `<tr>${r.map((c) => `<td>${cell(c)}</td>`).join("")}</tr>`).join("");
+  return `<div class="xp-table-wrap"><table class="xp-table"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function renderInlineMd(tokens) {
+  var _a2, _b, _c, _d, _e2, _f, _g, _h;
+  let out = "";
+  for (const t of tokens) {
+    switch (t.type) {
+      case "codespan":
+        out += `<code class="xp-code">${escapeHtml(decodeMdEntities((_a2 = t.text) != null ? _a2 : ""))}</code>`;
+        break;
+      case "strong":
+        out += `<strong>${renderInlineMd((_b = t.tokens) != null ? _b : [])}</strong>`;
+        break;
+      case "em":
+        out += `<em>${renderInlineMd((_c = t.tokens) != null ? _c : [])}</em>`;
+        break;
+      case "del":
+        out += `<s>${renderInlineMd((_d = t.tokens) != null ? _d : [])}</s>`;
+        break;
+      case "link": {
+        const inner = ((_e2 = t.tokens) == null ? void 0 : _e2.length) ? renderInlineMd(t.tokens) : escapeHtml(decodeMdEntities((_f = t.text) != null ? _f : ""));
+        out += t.href && isSafeUrl(t.href) ? `<a class="xp-link" href="${escapeHtml(t.href)}" target="_blank" rel="noopener noreferrer">${inner}</a>` : inner;
+        break;
+      }
+      case "br":
+        out += "<br>";
+        break;
+      default:
+        out += escapeHtml(decodeMdEntities((_h = (_g = t.text) != null ? _g : t.raw) != null ? _h : ""));
+    }
+  }
+  return out;
+}
+function decodeMdEntities(s) {
+  return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#x27;/g, "'");
+}
+function isSafeUrl(url) {
+  return /^(https?:|mailto:)/i.test(url.trim());
+}
+function escapeHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// src/x/resolve.ts
+var import_obsidian = require("obsidian");
+async function resolveActiveNote(app, file) {
+  var _a2;
+  const raw = await app.vault.cachedRead(file);
+  const { fields, body } = parseFrontmatter(raw);
+  const fmTitle = fields.title;
+  const fmCover = fields.cover;
+  const assets = [];
+  const assetMap = {};
+  const unresolved = [];
+  const taken = /* @__PURE__ */ new Set();
+  const byIdentity = /* @__PURE__ */ new Map();
+  const addAsset = (bytes, rawName, mime, identity) => {
+    const existing = byIdentity.get(identity);
+    if (existing) return existing;
+    const fileName = safeFileName(rawName, taken);
+    const src = fileName;
+    assets.push({ key: `img-${assets.length}`, src, fileName, mime, bytes });
+    assetMap[src] = { bytesLen: bytes.byteLength, mime, resolved: true };
+    byIdentity.set(identity, src);
+    return src;
+  };
+  let work = await replaceAsync(body, /!\[\[([^\]\n]+?)\]\]/g, async (whole, inner) => {
+    const { link, alias } = splitWiki(inner);
+    const tfile = app.metadataCache.getFirstLinkpathDest(link, file.path);
+    if (!tfile || !isImageExt(tfile.extension)) {
+      unresolved.push(inner);
+      return whole;
+    }
+    const bytes = new Uint8Array(await app.vault.readBinary(tfile));
+    const src = addAsset(bytes, tfile.name, guessMimeFromName(tfile.name), tfile.path);
+    return `![${alias != null ? alias : ""}](${src})`;
+  });
+  work = await replaceAsync(work, /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, async (whole, alt, src) => {
+    if (assetMap[src]) return whole;
+    try {
+      if (/^https?:\/\//i.test(src)) {
+        const r = await (0, import_obsidian.requestUrl)({ url: src });
+        const bytes2 = new Uint8Array(r.arrayBuffer);
+        const mime = (r.headers["content-type"] || r.headers["Content-Type"] || "").split(";")[0] || guessMimeFromName(src);
+        const newSrc2 = addAsset(bytes2, baseName(src) || "image", mime, src);
+        return `![${alt}](${newSrc2})`;
+      }
+      const dec = decodeURIComponent(src);
+      const tfile = app.metadataCache.getFirstLinkpathDest(dec, file.path);
+      if (!tfile) {
+        unresolved.push(src);
+        return whole;
+      }
+      const bytes = new Uint8Array(await app.vault.readBinary(tfile));
+      const newSrc = addAsset(bytes, tfile.name, guessMimeFromName(tfile.name), tfile.path);
+      return `![${alt}](${newSrc})`;
+    } catch (e) {
+      unresolved.push(src);
+      return whole;
+    }
+  });
+  let cover;
+  if (fmCover) {
+    cover = (_a2 = await resolveCover(app, fmCover, file, taken)) != null ? _a2 : void 0;
+    if (!cover) unresolved.push(`cover: ${fmCover}`);
+  }
+  const title = fmTitle || deriveTitle(work) || file.basename;
+  return { title, body: work, assets, assetMap, unresolved, cover };
+}
+async function resolveCover(app, ref, file, taken) {
+  try {
+    let bytes;
+    let mime;
+    let rawName;
+    if (/^https?:\/\//i.test(ref)) {
+      const r = await (0, import_obsidian.requestUrl)({ url: ref });
+      bytes = new Uint8Array(r.arrayBuffer);
+      mime = (r.headers["content-type"] || r.headers["Content-Type"] || "").split(";")[0] || guessMimeFromName(ref);
+      rawName = baseName(ref) || "cover";
+    } else {
+      const wiki = ref.match(/^!?\[\[([^\]]+?)\]\]$/);
+      const link = wiki ? splitWiki(wiki[1]).link : ref;
+      const tfile = app.metadataCache.getFirstLinkpathDest(link, file.path);
+      if (!tfile || !isImageExt(tfile.extension)) return null;
+      bytes = new Uint8Array(await app.vault.readBinary(tfile));
+      mime = guessMimeFromName(tfile.name);
+      rawName = tfile.name;
+    }
+    return makeCoverAsset(bytes, mime, rawName, taken);
+  } catch (e) {
+    return null;
+  }
+}
+async function replaceAsync(str, regex, fn2) {
+  var _a2;
+  const matches = [...str.matchAll(regex)];
+  let out = "";
+  let last = 0;
+  for (const m of matches) {
+    out += str.slice(last, m.index);
+    out += await fn2(m[0], ...m.slice(1));
+    last = ((_a2 = m.index) != null ? _a2 : 0) + m[0].length;
+  }
+  out += str.slice(last);
+  return out;
+}
+function splitWiki(inner) {
+  let link = inner;
+  let alias;
+  const pipe = inner.indexOf("|");
+  if (pipe >= 0) {
+    link = inner.slice(0, pipe);
+    alias = inner.slice(pipe + 1).trim();
+  }
+  const hash = link.indexOf("#");
+  if (hash >= 0) link = link.slice(0, hash);
+  return { link: link.trim(), alias };
+}
+function isImageExt(ext) {
+  return /^(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(ext.replace(/^\./, ""));
+}
+function bytesToBlobUrl(bytes, mime) {
+  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+}
+
+// src/x/x-preview-modal.ts
+function renderStyleReport(container, report, unresolved) {
+  var _a2, _b;
+  const issues = (_a2 = report == null ? void 0 : report.issues) != null ? _a2 : [];
+  const c = (_b = report == null ? void 0 : report.counts) != null ? _b : { error: 0, warning: 0, info: 0 };
+  const box = container.createDiv({ cls: "wechatpb-x-report" });
+  if (issues.length === 0 && unresolved.length === 0) {
+    box.createDiv({ cls: "wechatpb-x-ok", text: "\u2713 X \u683C\u5F0F\u68C0\u67E5\u901A\u8FC7" });
+    return;
+  }
+  const chips = box.createDiv({ cls: "wechatpb-x-chips" });
+  if (c.error) chips.createSpan({ cls: "wechatpb-chip is-error", text: `${c.error} \u5904\u9519\u8BEF` });
+  if (c.warning) chips.createSpan({ cls: "wechatpb-chip is-warn", text: `${c.warning} \u5904\u63D0\u793A` });
+  if (c.info) chips.createSpan({ cls: "wechatpb-chip is-info", text: `${c.info} \u6761\u4FE1\u606F` });
+  if (unresolved.length) chips.createSpan({ cls: "wechatpb-chip is-error", text: `${unresolved.length} \u4E2A\u5F15\u7528\u627E\u4E0D\u5230` });
+  const details = box.createEl("details");
+  details.createEl("summary", { text: "\u67E5\u770B\u8BE6\u60C5" });
+  const list2 = details.createDiv({ cls: "wechatpb-x-issues" });
+  for (const issue of issues) {
+    const row = list2.createDiv({ cls: `wechatpb-x-issue is-${issue.severity}` });
+    const ic = row.createSpan({ cls: "wechatpb-x-issue-ic" });
+    (0, import_obsidian2.setIcon)(ic, issue.severity === "error" ? "x-circle" : issue.severity === "warning" ? "alert-triangle" : "info");
+    const txt = row.createDiv();
+    txt.createDiv({ text: issue.message });
+    const meta = [];
+    if (issue.suggestion) meta.push(issue.suggestion);
+    if (issue.line) meta.push(`\u7B2C ${issue.line} \u884C`);
+    if (meta.length) txt.createDiv({ cls: "wechatpb-x-issue-meta", text: meta.join(" \xB7 ") });
+  }
+  if (unresolved.length) {
+    const row = list2.createDiv({ cls: "wechatpb-x-issue is-error" });
+    row.createDiv({ text: `\u627E\u4E0D\u5230\u3001\u5C06\u88AB\u8DF3\u8FC7\uFF1A${unresolved.join("\u3001")}` });
+  }
+}
+var XPreviewModal = class extends import_obsidian2.Modal {
+  constructor(app, resolved, report, title, coverDataUrl) {
+    super(app);
+    this.resolved = resolved;
+    this.report = report;
+    this.title = title;
+    this.coverDataUrl = coverDataUrl;
+    this.urls = [];
+  }
+  onOpen() {
+    this.modalEl.addClass("wechatpb-x-preview-modal");
+    const { contentEl } = this;
+    contentEl.createEl("h3", { text: "X \u6587\u7AE0\u9884\u89C8" });
+    renderStyleReport(contentEl, this.report, this.resolved.unresolved);
+    const bySrc = {};
+    for (const a of this.resolved.assets) {
+      const u = bytesToBlobUrl(a.bytes, a.mime);
+      this.urls.push(u);
+      bySrc[a.src] = u;
+    }
+    let coverUrl = this.coverDataUrl;
+    if (!coverUrl && this.resolved.cover) {
+      coverUrl = bytesToBlobUrl(this.resolved.cover.bytes, this.resolved.cover.mime);
+      this.urls.push(coverUrl);
+    }
+    const { markdown } = extractMermaidBlocks(this.resolved.body);
+    const html = renderPreviewHtml(markdown, {
+      title: this.title,
+      coverUrl,
+      resolveImage: (src) => {
+        var _a2;
+        return src.startsWith(MERMAID_SRC_PREFIX) ? null : (_a2 = bySrc[src]) != null ? _a2 : null;
+      }
+    });
+    const frame = contentEl.createDiv({ cls: "wechatpb-x-preview-frame" });
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    for (const node of Array.from(doc.body.childNodes)) frame.appendChild(document.importNode(node, true));
+  }
+  onClose() {
+    for (const u of this.urls) URL.revokeObjectURL(u);
+    this.urls = [];
+    this.contentEl.empty();
+  }
+};
 
 // src/modals/draft-confirm-modal.ts
 var DRAFT_LIMITS = { title: 64, author: 8, digest: 120 };
@@ -17457,13 +19847,13 @@ async function convertToJpeg(data, mimeType) {
   }
 }
 async function resolveImageRef(app, ref, sourcePath) {
-  var _a;
+  var _a2;
   let link = ref.trim();
   if (!link) return null;
   if (link.startsWith("data:image/")) return link;
   if (/^https?:\/\//i.test(link)) {
     try {
-      const res = await (0, import_obsidian.requestUrl)({ url: link, method: "GET" });
+      const res = await (0, import_obsidian3.requestUrl)({ url: link, method: "GET" });
       const type = (res.headers["content-type"] || res.headers["Content-Type"] || "image/jpeg").split(";")[0];
       return await toCoverDataUrl(res.arrayBuffer, type);
     } catch (e) {
@@ -17478,17 +19868,17 @@ async function resolveImageRef(app, ref, sourcePath) {
     link = decodeURIComponent(link);
   } catch (e) {
   }
-  const file = (_a = app.metadataCache.getFirstLinkpathDest(link, sourcePath)) != null ? _a : app.vault.getAbstractFileByPath(link);
-  if (!(file instanceof import_obsidian.TFile) || !IMAGE_EXT.test(file.extension)) return null;
+  const file = (_a2 = app.metadataCache.getFirstLinkpathDest(link, sourcePath)) != null ? _a2 : app.vault.getAbstractFileByPath(link);
+  if (!(file instanceof import_obsidian3.TFile) || !IMAGE_EXT.test(file.extension)) return null;
   const data = await app.vault.readBinary(file);
   return await toCoverDataUrl(data, mimeFromExt(file.extension));
 }
 function findFirstImageRef(markdown) {
-  var _a, _b, _c;
-  const re = /!\[\[([^\]]+)\]\]|!\[[^\]]*\]\(([^)\s]+)[^)]*\)/g;
+  var _a2, _b, _c;
+  const re2 = /!\[\[([^\]]+)\]\]|!\[[^\]]*\]\(([^)\s]+)[^)]*\)/g;
   let m;
-  while ((m = re.exec(markdown)) !== null) {
-    const ref = ((_b = (_a = m[1]) != null ? _a : m[2]) != null ? _b : "").split("|")[0];
+  while ((m = re2.exec(markdown)) !== null) {
+    const ref = ((_b = (_a2 = m[1]) != null ? _a2 : m[2]) != null ? _b : "").split("|")[0];
     const ext = (_c = ref.split("?")[0].split(".").pop()) != null ? _c : "";
     if (IMAGE_EXT.test(ext) || /^https?:\/\//i.test(ref)) return ref;
   }
@@ -17496,8 +19886,8 @@ function findFirstImageRef(markdown) {
 }
 function fmString(fm, keys) {
   if (!fm) return "";
-  for (const k of keys) {
-    const v = fm[k];
+  for (const k2 of keys) {
+    const v = fm[k2];
     if (typeof v === "string" && v.trim()) return v.trim();
     if (Array.isArray(v) && typeof v[0] === "string" && v[0].trim()) return v[0].trim();
   }
@@ -17505,8 +19895,8 @@ function fmString(fm, keys) {
 }
 function fmBool(fm, keys) {
   if (!fm) return void 0;
-  for (const k of keys) {
-    const v = fm[k];
+  for (const k2 of keys) {
+    const v = fm[k2];
     if (typeof v === "boolean") return v;
     if (typeof v === "string") {
       if (/^(true|yes|on|1|开|开启|是)$/i.test(v.trim())) return true;
@@ -17516,13 +19906,13 @@ function fmBool(fm, keys) {
   return void 0;
 }
 async function detectCover(app, file, markdown, notifyMissing = false) {
-  var _a;
-  const fm = (_a = app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
+  var _a2;
+  const fm = (_a2 = app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter;
   const fmCover = fmString(fm, ["cover", "\u5C01\u9762", "banner", "image"]);
   if (fmCover) {
     const base64 = await resolveImageRef(app, fmCover, file.path);
     if (base64) return { base64, source: "\u7B14\u8BB0\u5C5E\u6027 cover" };
-    if (notifyMissing) new import_obsidian.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
+    if (notifyMissing) new import_obsidian3.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
   }
   const body = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
   const first = findFirstImageRef(body);
@@ -17533,8 +19923,8 @@ async function detectCover(app, file, markdown, notifyMissing = false) {
   return null;
 }
 async function buildDraftDefaults(app, input) {
-  var _a, _b;
-  const fm = (_a = app.metadataCache.getFileCache(input.file)) == null ? void 0 : _a.frontmatter;
+  var _a2, _b;
+  const fm = (_a2 = app.metadataCache.getFileCache(input.file)) == null ? void 0 : _a2.frontmatter;
   const title = fmString(fm, ["title", "\u6807\u9898"]) || input.file.basename;
   const cleanName = (v) => v.replace(/^\[\[|\]\]$/g, "").split("|").pop().replace(/^@/, "").trim();
   const fmAuthor = cleanName(fmString(fm, ["author", "\u4F5C\u8005"]));
@@ -17578,14 +19968,18 @@ async function buildDraftDefaults(app, input) {
     coverSource
   };
 }
-var DraftConfirmModal = class extends import_obsidian.Modal {
-  constructor(app, meta, coverSource, accountNames) {
+var DraftConfirmModal = class extends import_obsidian3.Modal {
+  constructor(app, meta, coverSource, accountNames, xInfo) {
     super(app);
     this.resolver = null;
     this.submitted = false;
     this.meta = { ...meta };
     this.coverSource = coverSource;
     this.accountNames = accountNames;
+    this.xInfo = xInfo;
+  }
+  get hasWechat() {
+    return this.accountNames.length > 0;
   }
   /** 打开弹窗，确认返回 DraftMeta，取消返回 null */
   openAndWait() {
@@ -17599,23 +19993,36 @@ var DraftConfirmModal = class extends import_obsidian.Modal {
     this.render();
   }
   onClose() {
-    var _a;
+    var _a2;
     this.contentEl.empty();
-    if (!this.submitted) (_a = this.resolver) == null ? void 0 : _a.call(this, null);
+    if (!this.submitted) (_a2 = this.resolver) == null ? void 0 : _a2.call(this, null);
   }
   render() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h3", { text: "\u63A8\u9001\u5230\u516C\u4F17\u53F7\u8349\u7A3F\u7BB1" });
+    contentEl.createEl("h3", { text: "\u63A8\u9001\u5230\u8349\u7A3F\u7BB1" });
+    const targets = [...this.accountNames.map((n) => `\u516C\u4F17\u53F7\u300C${n}\u300D`)];
+    if (this.xInfo) targets.push("X \u6587\u7AE0\u8349\u7A3F");
     contentEl.createEl("p", {
       cls: "wechatpb-draft-target",
-      text: `\u5C06\u53D1\u9001\u5230\uFF1A${this.accountNames.join("\u3001")}`
+      text: `\u5C06\u53D1\u9001\u5230\uFF1A${targets.join("\u3001")}`
     });
+    if (this.xInfo) {
+      const xBox = contentEl.createDiv({ cls: "wechatpb-x-confirm" });
+      xBox.createEl("div", { cls: "wechatpb-x-confirm-title", text: "X \u6587\u7AE0" });
+      if (!this.xInfo.relayOnline) {
+        xBox.createDiv({
+          cls: "wechatpb-x-warn",
+          text: "\u26A0 Kaitox \u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF0CX \u4F1A\u63A8\u9001\u5931\u8D25\u3002\u8BF7\u5148\u5728\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon"
+        });
+      }
+      renderStyleReport(xBox, this.xInfo.report, this.xInfo.unresolved);
+    }
     const counter = (el, value, max) => {
       el.setText(`${value.length} / ${max}`);
       el.toggleClass("is-over", value.length > max);
     };
-    const titleSetting = new import_obsidian.Setting(contentEl).setName("\u6807\u9898").setDesc("");
+    const titleSetting = new import_obsidian3.Setting(contentEl).setName("\u6807\u9898").setDesc("");
     const titleCount = titleSetting.descEl.createSpan({ cls: "wechatpb-counter" });
     counter(titleCount, this.meta.title, DRAFT_LIMITS.title);
     titleSetting.addText((text) => {
@@ -17625,43 +20032,47 @@ var DraftConfirmModal = class extends import_obsidian.Modal {
       });
       text.inputEl.addClass("wechatpb-wide-input");
     });
-    const authorSetting = new import_obsidian.Setting(contentEl).setName("\u4F5C\u8005").setDesc("");
-    const authorCount = authorSetting.descEl.createSpan({ cls: "wechatpb-counter" });
-    counter(authorCount, this.meta.author, DRAFT_LIMITS.author);
-    authorSetting.addText((text) => text.setPlaceholder("\u53EF\u7559\u7A7A").setValue(this.meta.author).onChange((v) => {
-      this.meta.author = v;
-      counter(authorCount, v, DRAFT_LIMITS.author);
-    }));
-    const digestSetting = new import_obsidian.Setting(contentEl).setName("\u6458\u8981").setDesc("\u7559\u7A7A\u5219\u5FAE\u4FE1\u81EA\u52A8\u622A\u53D6\u6B63\u6587\u524D 54 \u5B57\u3002");
-    const digestCount = digestSetting.descEl.createSpan({ cls: "wechatpb-counter" });
-    counter(digestCount, this.meta.digest, DRAFT_LIMITS.digest);
-    digestSetting.addTextArea((area) => {
-      area.setValue(this.meta.digest).onChange((v) => {
-        this.meta.digest = v;
-        counter(digestCount, v, DRAFT_LIMITS.digest);
+    if (this.hasWechat) {
+      const authorSetting = new import_obsidian3.Setting(contentEl).setName("\u4F5C\u8005\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("");
+      const authorCount = authorSetting.descEl.createSpan({ cls: "wechatpb-counter" });
+      counter(authorCount, this.meta.author, DRAFT_LIMITS.author);
+      authorSetting.addText((text) => text.setPlaceholder("\u53EF\u7559\u7A7A").setValue(this.meta.author).onChange((v) => {
+        this.meta.author = v;
+        counter(authorCount, v, DRAFT_LIMITS.author);
+      }));
+      const digestSetting = new import_obsidian3.Setting(contentEl).setName("\u6458\u8981\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("\u7559\u7A7A\u5219\u5FAE\u4FE1\u81EA\u52A8\u622A\u53D6\u6B63\u6587\u524D 54 \u5B57\u3002");
+      const digestCount = digestSetting.descEl.createSpan({ cls: "wechatpb-counter" });
+      counter(digestCount, this.meta.digest, DRAFT_LIMITS.digest);
+      digestSetting.addTextArea((area) => {
+        area.setValue(this.meta.digest).onChange((v) => {
+          this.meta.digest = v;
+          counter(digestCount, v, DRAFT_LIMITS.digest);
+        });
+        area.inputEl.rows = 3;
+        area.inputEl.addClass("wechatpb-wide-input");
       });
-      area.inputEl.rows = 3;
-      area.inputEl.addClass("wechatpb-wide-input");
-    });
-    new import_obsidian.Setting(contentEl).setName("\u539F\u6587\u94FE\u63A5").setDesc("\u53EF\u9009\uFF0C\u6587\u672B\u300C\u9605\u8BFB\u539F\u6587\u300D\u8DF3\u8F6C\u5730\u5740").addText((text) => text.setPlaceholder("https://").setValue(this.meta.contentSourceUrl).onChange((v) => {
-      this.meta.contentSourceUrl = v.trim();
-    }));
-    const coverSetting = new import_obsidian.Setting(contentEl).setName("\u5C01\u9762\uFF08\u5FC5\u586B\uFF09").setDesc(this.meta.coverBase64 ? `\u6765\u6E90\uFF1A${this.coverSource}` : "\u8FD8\u6CA1\u6709\u5C01\u9762\uFF1A\u5728\u7B14\u8BB0\u5C5E\u6027\u5199 cover\uFF0C\u6216\u70B9\u51FB\u53F3\u4FA7\u9009\u62E9\u56FE\u7247");
+      new import_obsidian3.Setting(contentEl).setName("\u539F\u6587\u94FE\u63A5\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("\u53EF\u9009\uFF0C\u6587\u672B\u300C\u9605\u8BFB\u539F\u6587\u300D\u8DF3\u8F6C\u5730\u5740").addText((text) => text.setPlaceholder("https://").setValue(this.meta.contentSourceUrl).onChange((v) => {
+        this.meta.contentSourceUrl = v.trim();
+      }));
+    }
+    const coverSetting = new import_obsidian3.Setting(contentEl).setName(this.hasWechat ? "\u5C01\u9762\uFF08\u5FC5\u586B\uFF09" : "\u5C01\u9762").setDesc(this.meta.coverBase64 ? `\u6765\u6E90\uFF1A${this.coverSource}` : "\u8FD8\u6CA1\u6709\u5C01\u9762\uFF1A\u5728\u7B14\u8BB0\u5C5E\u6027\u5199 cover\uFF0C\u6216\u70B9\u51FB\u53F3\u4FA7\u9009\u62E9\u56FE\u7247");
     coverSetting.addButton((btn) => btn.setButtonText(this.meta.coverBase64 ? "\u66F4\u6362" : "\u9009\u62E9\u56FE\u7247").onClick(() => this.pickCover()));
     if (this.meta.coverBase64) {
       const preview = contentEl.createDiv({ cls: "wechatpb-cover-preview" });
       preview.createEl("img", { attr: { src: this.meta.coverBase64, alt: "\u5C01\u9762\u9884\u89C8" } });
     }
-    new import_obsidian.Setting(contentEl).setName("\u5F00\u542F\u7559\u8A00").addToggle((t) => t.setValue(this.meta.openComment).onChange((v) => {
-      this.meta.openComment = v;
-      this.render();
-    }));
-    if (this.meta.openComment) {
-      new import_obsidian.Setting(contentEl).setName("\u4EC5\u7C89\u4E1D\u53EF\u7559\u8A00").addToggle((t) => t.setValue(this.meta.onlyFansCanComment).onChange((v) => {
-        this.meta.onlyFansCanComment = v;
+    if (this.hasWechat) {
+      new import_obsidian3.Setting(contentEl).setName("\u5F00\u542F\u7559\u8A00\uFF08\u516C\u4F17\u53F7\uFF09").addToggle((t) => t.setValue(this.meta.openComment).onChange((v) => {
+        this.meta.openComment = v;
+        this.render();
       }));
+      if (this.meta.openComment) {
+        new import_obsidian3.Setting(contentEl).setName("\u4EC5\u7C89\u4E1D\u53EF\u7559\u8A00").addToggle((t) => t.setValue(this.meta.onlyFansCanComment).onChange((v) => {
+          this.meta.onlyFansCanComment = v;
+        }));
+      }
     }
-    const footer = new import_obsidian.Setting(contentEl);
+    const footer = new import_obsidian3.Setting(contentEl);
     footer.addButton((btn) => btn.setButtonText("\u53D6\u6D88").onClick(() => this.close()));
     footer.addButton((btn) => btn.setButtonText("\u63A8\u9001\u5230\u8349\u7A3F\u7BB1").setCta().onClick(() => this.submit()));
   }
@@ -17670,52 +20081,52 @@ var DraftConfirmModal = class extends import_obsidian.Modal {
     input.type = "file";
     input.accept = "image/jpeg,image/png,image/webp";
     input.onchange = async () => {
-      var _a;
-      const file = (_a = input.files) == null ? void 0 : _a[0];
+      var _a2;
+      const file = (_a2 = input.files) == null ? void 0 : _a2[0];
       if (!file) return;
       try {
         this.meta.coverBase64 = await toCoverDataUrl(await file.arrayBuffer(), file.type || "image/jpeg");
         this.coverSource = `\u624B\u52A8\u9009\u62E9\uFF08${file.name}\uFF09`;
         this.render();
       } catch (e) {
-        new import_obsidian.Notice(`\u5C01\u9762\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
+        new import_obsidian3.Notice(`\u5C01\u9762\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
       }
     };
     input.click();
   }
   submit() {
-    var _a;
+    var _a2;
     const m = this.meta;
     m.title = m.title.trim();
     m.author = m.author.trim();
     m.digest = m.digest.trim();
     if (!m.title) {
-      new import_obsidian.Notice("\u8BF7\u586B\u5199\u6807\u9898");
+      new import_obsidian3.Notice("\u8BF7\u586B\u5199\u6807\u9898");
       return;
     }
     if (m.title.length > DRAFT_LIMITS.title) {
-      new import_obsidian.Notice(`\u6807\u9898\u6700\u591A ${DRAFT_LIMITS.title} \u5B57`);
+      new import_obsidian3.Notice(`\u6807\u9898\u6700\u591A ${DRAFT_LIMITS.title} \u5B57`);
       return;
     }
-    if (m.author.length > DRAFT_LIMITS.author) {
-      new import_obsidian.Notice(`\u4F5C\u8005\u6700\u591A ${DRAFT_LIMITS.author} \u5B57`);
+    if (this.hasWechat && m.author.length > DRAFT_LIMITS.author) {
+      new import_obsidian3.Notice(`\u4F5C\u8005\u6700\u591A ${DRAFT_LIMITS.author} \u5B57`);
       return;
     }
-    if (m.digest.length > DRAFT_LIMITS.digest) {
-      new import_obsidian.Notice(`\u6458\u8981\u6700\u591A ${DRAFT_LIMITS.digest} \u5B57`);
+    if (this.hasWechat && m.digest.length > DRAFT_LIMITS.digest) {
+      new import_obsidian3.Notice(`\u6458\u8981\u6700\u591A ${DRAFT_LIMITS.digest} \u5B57`);
       return;
     }
     if (m.contentSourceUrl && !/^https?:\/\//i.test(m.contentSourceUrl)) {
-      new import_obsidian.Notice("\u539F\u6587\u94FE\u63A5\u9700\u8981\u4EE5 http:// \u6216 https:// \u5F00\u5934");
+      new import_obsidian3.Notice("\u539F\u6587\u94FE\u63A5\u9700\u8981\u4EE5 http:// \u6216 https:// \u5F00\u5934");
       return;
     }
-    if (!m.coverBase64) {
-      new import_obsidian.Notice("\u5FAE\u4FE1\u8349\u7A3F\u5FC5\u987B\u6709\u5C01\u9762\uFF0C\u8BF7\u5148\u9009\u62E9\u5C01\u9762");
+    if (this.hasWechat && !m.coverBase64) {
+      new import_obsidian3.Notice("\u5FAE\u4FE1\u8349\u7A3F\u5FC5\u987B\u6709\u5C01\u9762\uFF0C\u8BF7\u5148\u9009\u62E9\u5C01\u9762");
       return;
     }
     if (!m.openComment) m.onlyFansCanComment = false;
     this.submitted = true;
-    (_a = this.resolver) == null ? void 0 : _a.call(this, { ...m });
+    (_a2 = this.resolver) == null ? void 0 : _a2.call(this, { ...m });
     this.close();
   }
 };
@@ -17748,10 +20159,10 @@ var Root = import_postcss.default.Root;
 var Node2 = import_postcss.default.Node;
 
 // src/utils/css-to-inline.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 function applyInlineCSS(html, css) {
   const tempDiv = document.createElement("div");
-  tempDiv.append((0, import_obsidian2.sanitizeHTMLToDom)(html));
+  tempDiv.append((0, import_obsidian4.sanitizeHTMLToDom)(html));
   const root2 = tempDiv.firstElementChild;
   if (!root2) {
     return html;
@@ -17870,7 +20281,7 @@ function escape(html, encode) {
 }
 var unescapeTest = /&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig;
 function unescape2(html) {
-  return html.replace(unescapeTest, (_, n) => {
+  return html.replace(unescapeTest, (_2, n) => {
     n = n.toLowerCase();
     if (n === "colon")
       return ":";
@@ -17939,13 +20350,13 @@ function splitCells(tableRow, count) {
   return cells;
 }
 function rtrim(str, c, invert) {
-  const l = str.length;
-  if (l === 0) {
+  const l3 = str.length;
+  if (l3 === 0) {
     return "";
   }
   let suffLen = 0;
-  while (suffLen < l) {
-    const currChar = str.charAt(l - suffLen - 1);
+  while (suffLen < l3) {
+    const currChar = str.charAt(l3 - suffLen - 1);
     if (currChar === c && !invert) {
       suffLen++;
     } else if (currChar !== c && invert) {
@@ -17954,7 +20365,7 @@ function rtrim(str, c, invert) {
       break;
     }
   }
-  return str.slice(0, l - suffLen);
+  return str.slice(0, l3 - suffLen);
 }
 function findClosingBracket(str, b) {
   if (str.indexOf(b[1]) === -1) {
@@ -18297,9 +20708,9 @@ var _Tokenizer = class {
         rows: cap[3] && cap[3].trim() ? cap[3].replace(/\n[ \t]*$/, "").split("\n") : []
       };
       if (item.header.length === item.align.length) {
-        let l = item.align.length;
-        let i, j, k, row;
-        for (i = 0; i < l; i++) {
+        let l3 = item.align.length;
+        let i, j2, k2, row;
+        for (i = 0; i < l3; i++) {
           const align = item.align[i];
           if (align) {
             if (/^ *-+: *$/.test(align)) {
@@ -18313,21 +20724,21 @@ var _Tokenizer = class {
             }
           }
         }
-        l = item.rows.length;
-        for (i = 0; i < l; i++) {
+        l3 = item.rows.length;
+        for (i = 0; i < l3; i++) {
           item.rows[i] = splitCells(item.rows[i], item.header.length).map((c) => {
             return { text: c, tokens: [] };
           });
         }
-        l = item.header.length;
-        for (j = 0; j < l; j++) {
-          item.header[j].tokens = this.lexer.inline(item.header[j].text);
+        l3 = item.header.length;
+        for (j2 = 0; j2 < l3; j2++) {
+          item.header[j2].tokens = this.lexer.inline(item.header[j2].text);
         }
-        l = item.rows.length;
-        for (j = 0; j < l; j++) {
-          row = item.rows[j];
-          for (k = 0; k < row.length; k++) {
-            row[k].tokens = this.lexer.inline(row[k].text);
+        l3 = item.rows.length;
+        for (j2 = 0; j2 < l3; j2++) {
+          row = item.rows[j2];
+          for (k2 = 0; k2 < row.length; k2++) {
+            row[k2].tokens = this.lexer.inline(row[k2].text);
           }
         }
         return item;
@@ -18833,7 +21244,7 @@ var _Lexer = class __Lexer {
     if (this.options.pedantic) {
       src = src.replace(/\t/g, "    ").replace(/^ +$/gm, "");
     } else {
-      src = src.replace(/^( *)(\t+)/gm, (_, leading, tabs) => {
+      src = src.replace(/^( *)(\t+)/gm, (_2, leading, tabs) => {
         return leading + "    ".repeat(tabs.length);
       });
     }
@@ -19137,8 +21548,8 @@ var _Renderer = class {
     this.options = options2 || _defaults;
   }
   code(code, infostring, escaped) {
-    var _a;
-    const lang = (_a = (infostring || "").match(/^\S*/)) == null ? void 0 : _a[0];
+    var _a2;
+    const lang = (_a2 = (infostring || "").match(/^\S*/)) == null ? void 0 : _a2[0];
     code = code.replace(/\n$/, "") + "\n";
     if (!lang) {
       return "<pre><code>" + (escaped ? code : escape(code, true)) + "</code></pre>\n";
@@ -19332,16 +21743,16 @@ var _Parser = class __Parser {
           const tableToken = token;
           let header = "";
           let cell = "";
-          for (let j = 0; j < tableToken.header.length; j++) {
-            cell += this.renderer.tablecell(this.parseInline(tableToken.header[j].tokens), { header: true, align: tableToken.align[j] });
+          for (let j2 = 0; j2 < tableToken.header.length; j2++) {
+            cell += this.renderer.tablecell(this.parseInline(tableToken.header[j2].tokens), { header: true, align: tableToken.align[j2] });
           }
           header += this.renderer.tablerow(cell);
           let body = "";
-          for (let j = 0; j < tableToken.rows.length; j++) {
-            const row = tableToken.rows[j];
+          for (let j2 = 0; j2 < tableToken.rows.length; j2++) {
+            const row = tableToken.rows[j2];
             cell = "";
-            for (let k = 0; k < row.length; k++) {
-              cell += this.renderer.tablecell(this.parseInline(row[k].tokens), { header: false, align: tableToken.align[k] });
+            for (let k2 = 0; k2 < row.length; k2++) {
+              cell += this.renderer.tablecell(this.parseInline(row[k2].tokens), { header: false, align: tableToken.align[k2] });
             }
             body += this.renderer.tablerow(cell);
           }
@@ -19360,8 +21771,8 @@ var _Parser = class __Parser {
           const start = listToken.start;
           const loose = listToken.loose;
           let body = "";
-          for (let j = 0; j < listToken.items.length; j++) {
-            const item = listToken.items[j];
+          for (let j2 = 0; j2 < listToken.items.length; j2++) {
+            const item = listToken.items[j2];
             const checked = item.checked;
             const task = item.task;
             let itemBody = "";
@@ -19543,7 +21954,7 @@ var Marked = class {
    * Run callback for every token
    */
   walkTokens(tokens, callback) {
-    var _a, _b;
+    var _a2, _b;
     let values = [];
     for (const token of tokens) {
       values = values.concat(callback.call(this, token));
@@ -19567,7 +21978,7 @@ var Marked = class {
         }
         default: {
           const genericToken = token;
-          if ((_b = (_a = this.defaults.extensions) == null ? void 0 : _a.childTokens) == null ? void 0 : _b[genericToken.type]) {
+          if ((_b = (_a2 = this.defaults.extensions) == null ? void 0 : _a2.childTokens) == null ? void 0 : _b[genericToken.type]) {
             this.defaults.extensions.childTokens[genericToken.type].forEach((childTokens) => {
               values = values.concat(this.walkTokens(genericToken[childTokens], callback));
             });
@@ -19820,7 +22231,7 @@ var parser = _Parser.parse;
 var lexer = _Lexer.lex;
 
 // src/utils/formatter.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 var MarkedFormatter = class {
   /**
    * Initialize marked with WeChat-friendly renderer
@@ -19966,11 +22377,11 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
     }
   }
   static decorateHeadings(html, options2) {
-    var _a;
-    const headingLabel = (_a = options2.headingLabel) == null ? void 0 : _a.trim();
+    var _a2;
+    const headingLabel = (_a2 = options2.headingLabel) == null ? void 0 : _a2.trim();
     if (!headingLabel) return html;
     const container = document.createElement("div");
-    container.append((0, import_obsidian3.sanitizeHTMLToDom)(html));
+    container.append((0, import_obsidian5.sanitizeHTMLToDom)(html));
     const headings = Array.from(container.querySelectorAll("h2"));
     for (const [index, heading] of headings.entries()) {
       const label = document.createElement("span");
@@ -19982,14 +22393,14 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
   }
   static sanitize(html) {
     const container = document.createElement("div");
-    container.append((0, import_obsidian3.sanitizeHTMLToDom)(html));
+    container.append((0, import_obsidian5.sanitizeHTMLToDom)(html));
     return container.innerHTML;
   }
 };
 MarkedFormatter.markedInstance = null;
 
 // src/utils/theme-manager.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 
 // themes/Apple极简-黑.md
 var Apple_default = '\n```CSS\n/* \u5168\u5C40\u5C5E\u6027 */\n.note-to-mp {\n  max-width: 620px;\n  margin: 0 auto;\n  padding: 20px 24px;\n  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;\n  font-size: 16px;\n  line-height: 21px !important;\n  color: #6e6e73 !important;\n  background-color: #fbfbfd !important;\n  text-align: left !important;\n  word-wrap: break-word;\n  word-break: break-word;\n}\n\n/* --- \u6807\u9898\u90E8\u5206 --- */\n.note-to-mp h1 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 12px;\n  letter-spacing: -0.03em;\n}\n\n.note-to-mp h2 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 12px;\n  letter-spacing: -0.02em;\n}\n\n.note-to-mp h3 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n  letter-spacing: -0.01em;\n}\n\n.note-to-mp h4 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n.note-to-mp h5 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n.note-to-mp h6 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n/* \u6BB5\u843D */\n.note-to-mp p {\n  margin: 18px 0 !important;\n  line-height: 24px !important;\n  color: #6e6e73 !important;\n  font-weight: 300;\n  text-align: left;\n}\n\n/* \u52A0\u7C97 */\n.note-to-mp strong {\n  font-weight: 400;\n  color: #1d1d1f !important;\n}\n\n/* \u659C\u4F53 */\n.note-to-mp em {\n  font-style: normal;\n  color: #6e6e73 !important;\n  font-weight: 300;\n}\n\n/* \u4E0B\u5212\u7EBF */\n.note-to-mp u {\n  text-decoration: none;\n  border-bottom: 1px solid #86868b;\n  padding-bottom: 2px;\n}\n\n/* \u94FE\u63A5 */\n.note-to-mp a {\n  color: #06c !important;\n  text-decoration: none;\n  font-weight: 400;\n  word-break: break-all;\n}\n\n/* --- \u5217\u8868\u4F18\u5316\u7248 --- */\n.note-to-mp ul, .note-to-mp ol {\n  margin: 18px 0;\n  padding-left: 22px;\n}\n.note-to-mp ul { list-style-type: disc; }\n.note-to-mp ol { list-style-type: decimal; }\n\n.note-to-mp li {\n  margin: 8px 0;\n  line-height: 24px !important;\n  color: #6e6e73 !important;\n  font-weight: 300;\n  padding-left: 0;\n  position: relative;\n}\n\n/* --- \u5F15\u7528\u4F18\u5316\u7248 --- */\n.note-to-mp blockquote {\n  margin: 18px 0;\n  padding: 12px 16px;\n  background-color: #f5f5f7 !important;\n  border-left: 4px solid #424245;\n  border-radius: 4px;\n\n  color: #6e6e73 !important;\n  font-size: 14px;\n  line-height: 1.6 !important;\n  font-weight: 400;\n  text-align: left;\n  font-style: normal;\n  max-width: 100%;\n}\n\n/* --- \u4EE3\u7801\u5757\u90E8\u5206 --- */\n\n/* 1. \u884C\u5185\u4EE3\u7801 (\u6587\u5B57\u4E2D\u95F4\u7684\u77ED\u4EE3\u7801) */\n.note-to-mp code {\n  font-family: Menlo, Monaco, Consolas, "Courier New", monospace, sans-serif;\n  font-size: 14px;\n  padding: 2px 6px;\n  background-color: #f5f5f7 !important;\n  color: #6e6e73 !important;\n  border-radius: 6px;\n  font-weight: 400;\n}\n\n/* 2. \u4EE3\u7801\u5757\u5916\u5C42\u5BB9\u5668 (Mac\u7A97\u53E3\u98CE\u683C) */\n.note-to-mp .code-section {\n  margin: 24px 0;\n  padding: 45px 20px 20px;\n  background-color: #282c34 !important;\n  border-radius: 8px;\n  overflow-x: auto;\n\n  background-image:\n    radial-gradient(circle, #ff5f56 6px, transparent 7px),\n    radial-gradient(circle, #ffbd2e 6px, transparent 7px),\n    radial-gradient(circle, #27c93f 6px, transparent 7px),\n    linear-gradient(#21252b, #21252b);\n  background-size: 14px 14px, 14px 14px, 14px 14px, 100% 36px;\n  background-position: 15px 12px, 35px 12px, 55px 12px, 0 0;\n  background-repeat: no-repeat;\n\n  box-shadow: 0 10px 30px rgba(0,0,0,0.15);\n  border: none;\n}\n\n.note-to-mp .code-section ul { display: none; }\n\n/* 3. pre \u6807\u7B7E\u6837\u5F0F\u91CD\u7F6E (\u81EA\u52A8\u6362\u884C) */\n.note-to-mp .code-section pre {\n  margin: 0;\n  padding: 0;\n  background: transparent !important;\n  border: none;\n  line-height: 1.6 !important;\n  white-space: pre-wrap !important;\n  word-wrap: break-word !important;\n  word-break: break-all !important;\n}\n\n/* 4. \u4EE3\u7801\u5757\u5185\u90E8\u6587\u5B57 (\u5F3A\u5236\u9AD8\u4EAE\u989C\u8272) */\n.note-to-mp .code-section code,\n.note-to-mp .code-section span {\n  background-color: transparent !important;\n  color: #e0e6ed !important;\n  padding: 0;\n  border-radius: 0;\n  display: inline;\n  font-family: Menlo, Monaco, Consolas, "Courier New", monospace, sans-serif;\n  font-size: 14px;\n}\n\n/* \u56FE\u7247 */\n.note-to-mp img {\n  max-width: 100%;\n  max-height: 600px !important;\n  height: auto;\n  display: block;\n  margin: 20px auto 41px;\n  border-radius: 15px;\n  box-shadow: 0 15px 30px -6px rgba(33, 150, 243, 0.25), 0 9px 18px -9px rgba(0, 0, 0, 0.3), 0 -6px 18px -4px rgba(0, 0, 0, 0.025);\n}\n.note-to-mp img:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -8px rgba(33, 150, 243, 0.3), 0 12px 24px -12px rgba(0, 0, 0, 0.35); }\n\n/* \u8868\u683C */\n.note-to-mp table { width: 100%; margin: 18px 0; border-collapse: collapse; font-size: 15px; }\n.note-to-mp th { background-color: #f5f5f7 !important; padding: 16px 20px; text-align: left; border: none; font-weight: 500; color: #1d1d1f !important; }\n.note-to-mp td { padding: 16px 20px; border: none; border-top: 1px solid #d2d2d7; color: #6e6e73 !important; font-weight: 300; }\n\n/* WeChatPB \u89C6\u89C9\u6821\u51C6\uFF1A\u63D0\u9AD8\u957F\u6587\u5BF9\u6BD4\u5EA6\uFF0C\u907F\u514D\u7EC6\u7070\u6587\u5B57\u53D1\u865A */\n.note-to-mp { color: #3f3f46 !important; }\n.note-to-mp p,\n.note-to-mp li,\n.note-to-mp td { color: #3f3f46 !important; font-weight: 400; }\n.note-to-mp blockquote { color: #52525b !important; }\n```\n';
@@ -20248,21 +22659,21 @@ ${BUILTIN_THEME_REFINEMENT}`,
       return this.themes;
     }
     try {
-      const cleanPath = (0, import_obsidian4.normalizePath)(this.themesFolder.trim());
+      const cleanPath = (0, import_obsidian6.normalizePath)(this.themesFolder.trim());
       const folder = this.app.vault.getAbstractFileByPath(cleanPath);
       if (!folder) {
-        new import_obsidian4.Notice(`\u627E\u4E0D\u5230\u6587\u4EF6\u5939: ${cleanPath}
+        new import_obsidian6.Notice(`\u627E\u4E0D\u5230\u6587\u4EF6\u5939: ${cleanPath}
 
 \u63D0\u793A\uFF1A\u8BF7\u4F7F\u7528\u76F8\u5BF9\u4E8E vault \u6839\u76EE\u5F55\u7684\u8DEF\u5F84
 \u4F8B\u5982\uFF1Awechat-styles \u6216 styles/wechat`, 8e3);
         return this.themes;
       }
-      if (!(folder instanceof import_obsidian4.TFolder)) {
-        new import_obsidian4.Notice(`"${cleanPath}" \u4E0D\u662F\u4E00\u4E2A\u6587\u4EF6\u5939`, 5e3);
+      if (!(folder instanceof import_obsidian6.TFolder)) {
+        new import_obsidian6.Notice(`"${cleanPath}" \u4E0D\u662F\u4E00\u4E2A\u6587\u4EF6\u5939`, 5e3);
         return this.themes;
       }
       for (const file of folder.children) {
-        if (file instanceof import_obsidian4.TFile) {
+        if (file instanceof import_obsidian6.TFile) {
           try {
             let css = "";
             let themeName = file.basename;
@@ -20293,13 +22704,13 @@ ${BUILTIN_THEME_REFINEMENT}`,
       }
       const customThemeCount = this.themes.filter((theme) => !theme.builtin).length;
       if (customThemeCount > 0) {
-        new import_obsidian4.Notice(`\u5DF2\u52A0\u8F7D ${customThemeCount} \u4E2A\u81EA\u5B9A\u4E49\u4E3B\u9898`, 3e3);
+        new import_obsidian6.Notice(`\u5DF2\u52A0\u8F7D ${customThemeCount} \u4E2A\u81EA\u5B9A\u4E49\u4E3B\u9898`, 3e3);
       } else {
-        new import_obsidian4.Notice(`\u6587\u4EF6\u5939 "${cleanPath}" \u4E2D\u6CA1\u6709\u627E\u5230 CSS \u6587\u4EF6\u6216\u5305\u542B CSS \u4EE3\u7801\u5757\u7684 MD \u6587\u4EF6`, 5e3);
+        new import_obsidian6.Notice(`\u6587\u4EF6\u5939 "${cleanPath}" \u4E2D\u6CA1\u6709\u627E\u5230 CSS \u6587\u4EF6\u6216\u5305\u542B CSS \u4EE3\u7801\u5757\u7684 MD \u6587\u4EF6`, 5e3);
       }
     } catch (error) {
       console.error("Failed to load themes:", error);
-      new import_obsidian4.Notice(`\u52A0\u8F7D\u4E3B\u9898\u5931\u8D25: ${error.message}`, 5e3);
+      new import_obsidian6.Notice(`\u52A0\u8F7D\u4E3B\u9898\u5931\u8D25: ${error.message}`, 5e3);
     }
     return this.themes;
   }
@@ -20312,8 +22723,8 @@ ${BUILTIN_THEME_REFINEMENT}`,
    */
   getTheme(name) {
     return this.themes.find((t) => {
-      var _a;
-      return t.name === name || t.filename === name || ((_a = t.aliases) == null ? void 0 : _a.includes(name));
+      var _a2;
+      return t.name === name || t.filename === name || ((_a2 = t.aliases) == null ? void 0 : _a2.includes(name));
     });
   }
   /**
@@ -20329,20 +22740,20 @@ ${BUILTIN_THEME_REFINEMENT}`,
    * 获取默认主题
    */
   getDefaultTheme() {
-    var _a;
-    return (_a = this.getTheme(DEFAULT_BUILTIN_THEME)) != null ? _a : this.themes[0];
+    var _a2;
+    return (_a2 = this.getTheme(DEFAULT_BUILTIN_THEME)) != null ? _a2 : this.themes[0];
   }
 };
 
 // src/services/weixin-api.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 var import_https_proxy_agent = __toESM(require_dist2());
 var import_socks_proxy_agent = __toESM(require_dist3());
 var http = __toESM(require("node:http"));
 var https = __toESM(require("node:https"));
 async function requestWithProxy(url, options2, proxyConfig) {
   if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
-    const response = await (0, import_obsidian5.requestUrl)(options2);
+    const response = await (0, import_obsidian7.requestUrl)(options2);
     return {
       status: response.status,
       json: response.json,
@@ -20443,8 +22854,8 @@ var WEIXIN_ERROR_HINTS = {
   "-1": "\u5FAE\u4FE1\u7CFB\u7EDF\u7E41\u5FD9\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5"
 };
 function toWeixinError(json, fallback) {
-  var _a, _b;
-  const errcode = (_a = json == null ? void 0 : json.errcode) != null ? _a : "unknown";
+  var _a2, _b;
+  const errcode = (_a2 = json == null ? void 0 : json.errcode) != null ? _a2 : "unknown";
   const errmsg = (json == null ? void 0 : json.errmsg) || fallback;
   let hint = WEIXIN_ERROR_HINTS[String(errcode)];
   if (String(errcode) === "40164") {
@@ -20502,7 +22913,7 @@ async function uploadImage(imageData, filename, accessToken, proxyConfig) {
   let json;
   if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
     const arrayBuffer = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength);
-    const response = await (0, import_obsidian5.requestUrl)({ url, method: "POST", contentType, body: arrayBuffer, throw: false });
+    const response = await (0, import_obsidian7.requestUrl)({ url, method: "POST", contentType, body: arrayBuffer, throw: false });
     json = response.json;
   } else {
     const response = await requestWithProxy(url, {
@@ -20539,14 +22950,14 @@ async function addDraft(articles, accessToken, proxyConfig) {
   }
 }
 async function testProxy(proxyConfig) {
-  var _a;
+  var _a2;
   const startTime = Date.now();
   try {
     const ipCheckResponse = await requestWithProxy("https://api.ipify.org?format=json", {
       url: "https://api.ipify.org?format=json",
       method: "GET"
     }, proxyConfig);
-    const actualIP = ((_a = ipCheckResponse.json) == null ? void 0 : _a.ip) || "unknown";
+    const actualIP = ((_a2 = ipCheckResponse.json) == null ? void 0 : _a2.ip) || "unknown";
     await requestWithProxy("https://api.weixin.qq.com", {
       url: "https://api.weixin.qq.com",
       method: "GET"
@@ -20565,9 +22976,278 @@ async function testProxy(proxyConfig) {
   }
 }
 
+// src/x/xpush.ts
+var import_obsidian8 = require("obsidian");
+
+// vendor/kaitox/relay-protocol/bundle.ts
+var DEFAULT_DRAFT_KIND = "x-article";
+var SCHEMA_VERSION = 1;
+
+// vendor/kaitox/relay-protocol/base64.ts
+function bytesToBase64(bytes) {
+  if (typeof globalThis.Buffer !== "undefined") {
+    return globalThis.Buffer.from(bytes).toString("base64");
+  }
+  let binary = "";
+  const chunk = 32768;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return globalThis.btoa(binary);
+}
+
+// vendor/kaitox/relay-protocol/relayClient.ts
+var RelayHttpError = class extends Error {
+  constructor(method, url, status, body) {
+    super(`relay ${method} ${url} ${status}${body ? `: ${body}` : ""}`);
+    this.method = method;
+    this.url = url;
+    this.status = status;
+    this.body = body;
+    this.name = "RelayHttpError";
+  }
+};
+var DEFAULT_RELAY_PORT = 8765;
+var DEFAULT_RELAY_BASE = `http://127.0.0.1:${DEFAULT_RELAY_PORT}`;
+var HttpRelayClient = class {
+  constructor(baseUrl = DEFAULT_RELAY_BASE, opts = {}) {
+    var _a2, _b, _c, _d;
+    this.base = baseUrl.replace(/\/+$/, "");
+    this.kind = (_a2 = opts.kind) != null ? _a2 : DEFAULT_DRAFT_KIND;
+    const f = (_b = opts.fetchImpl) != null ? _b : globalThis.fetch;
+    if (!f) throw new Error("\u6CA1\u6709\u53EF\u7528\u7684 fetch\uFF0C\u8BF7\u901A\u8FC7 opts.fetchImpl \u6CE8\u5165\u3002");
+    this.fetchImpl = f;
+    this.token = opts.token;
+    this.makeId = (_c = opts.makeId) != null ? _c : (() => globalThis.crypto.randomUUID());
+    this.now = (_d = opts.now) != null ? _d : (() => (/* @__PURE__ */ new Date()).toISOString());
+  }
+  headers(extra = {}) {
+    const h2 = { ...extra };
+    if (this.token) h2["x-kaitox-token"] = this.token;
+    return h2;
+  }
+  /** /:kind/drafts 前缀（kind 可被单次调用覆盖，如带自定义 kind 的 postDraft）。 */
+  draftsBase(kind = this.kind) {
+    return `${this.base}/${encodeURIComponent(kind)}/drafts`;
+  }
+  async health() {
+    const url = `${this.base}/health`;
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return res.json();
+  }
+  async postDraft(input) {
+    var _a2;
+    const id = this.makeId();
+    const kind = (_a2 = input.kind) != null ? _a2 : this.kind;
+    const bundle = {
+      schemaVersion: SCHEMA_VERSION,
+      id,
+      kind,
+      title: input.title,
+      markdown: input.markdown,
+      mode: input.mode,
+      assets: input.assets.map((a) => ({
+        key: a.key,
+        src: a.src,
+        fileName: a.fileName,
+        mime: a.mime,
+        bytesLen: a.bytes.byteLength
+      })),
+      cover: input.cover ? {
+        key: input.cover.key,
+        src: input.cover.src,
+        fileName: input.cover.fileName,
+        mime: input.cover.mime,
+        bytesLen: input.cover.bytes.byteLength
+      } : void 0,
+      styleReport: input.styleReport,
+      createdAt: this.now(),
+      source: input.source,
+      sourceMeta: input.sourceMeta
+    };
+    const wireAssets = input.assets.map((a) => ({
+      fileName: a.fileName,
+      mime: a.mime,
+      base64: bytesToBase64(a.bytes)
+    }));
+    if (input.cover) {
+      wireAssets.push({
+        fileName: input.cover.fileName,
+        mime: input.cover.mime,
+        base64: bytesToBase64(input.cover.bytes)
+      });
+    }
+    const body = {
+      bundle,
+      assets: wireAssets
+    };
+    const url = this.draftsBase(kind);
+    const res = await this.fetchImpl(url, {
+      method: "POST",
+      headers: this.headers({ "content-type": "application/json" }),
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new RelayHttpError("POST", url, res.status, await safeText(res));
+    return res.json();
+  }
+  async listDrafts() {
+    const url = this.draftsBase();
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return res.json();
+  }
+  async getDraft(id) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return res.json();
+  }
+  async getAsset(id, fileName) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}/assets/${encodeURIComponent(fileName)}`;
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return new Uint8Array(await res.arrayBuffer());
+  }
+  async setCover(id, cover) {
+    const body = {
+      fileName: cover.fileName,
+      mime: cover.mime,
+      base64: bytesToBase64(cover.bytes),
+      // undefined 时 JSON.stringify 省略该键，旧 relay 收到的 body 与从前一致。
+      original: cover.original ? {
+        fileName: cover.original.fileName,
+        mime: cover.original.mime,
+        base64: bytesToBase64(cover.original.bytes)
+      } : void 0
+    };
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}/cover`;
+    const res = await this.fetchImpl(url, {
+      method: "PUT",
+      headers: this.headers({ "content-type": "application/json" }),
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new RelayHttpError("PUT", url, res.status, await safeText(res));
+  }
+  async ack(id, patch) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
+    const res = await this.fetchImpl(url, {
+      method: "PATCH",
+      headers: this.headers({ "content-type": "application/json" }),
+      body: JSON.stringify(patch)
+    });
+    if (!res.ok) throw new RelayHttpError("PATCH", url, res.status, await safeText(res));
+  }
+  async deleteDraft(id) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
+    const res = await this.fetchImpl(url, {
+      method: "DELETE",
+      headers: this.headers()
+    });
+    if (!res.ok) throw new RelayHttpError("DELETE", url, res.status);
+  }
+};
+async function safeText(res) {
+  try {
+    return await res.text();
+  } catch (e) {
+    return "";
+  }
+}
+
+// src/x/xpush.ts
+var X_ARTICLE_COMPOSE_URL = "https://x.com/compose/articles";
+function xArticleComposeUrl(draftId) {
+  if (!draftId) return X_ARTICLE_COMPOSE_URL;
+  const url = new URL(X_ARTICLE_COMPOSE_URL);
+  url.searchParams.set("kaitoxAutoUpload", "1");
+  url.searchParams.set("kaitoxDraftId", draftId);
+  return url.toString();
+}
+function openXComposer(draftId) {
+  window.open(xArticleComposeUrl(draftId), "_blank");
+}
+function makeRelayClient(s) {
+  const relayFetch = async (url, init = {}) => {
+    var _a2;
+    const res = await (0, import_obsidian8.requestUrl)({
+      url: String(url),
+      method: (_a2 = init.method) != null ? _a2 : "GET",
+      headers: init.headers,
+      body: init.body,
+      throw: false
+    });
+    return {
+      ok: res.status >= 200 && res.status < 300,
+      status: res.status,
+      async text() {
+        return res.text;
+      },
+      async json() {
+        return res.json;
+      },
+      async arrayBuffer() {
+        return res.arrayBuffer;
+      }
+    };
+  };
+  return new HttpRelayClient(s.relayBase || DEFAULT_RELAY_BASE, {
+    fetchImpl: relayFetch,
+    token: s.relayToken || void 0
+  });
+}
+async function isRelayUp(s) {
+  var _a2;
+  try {
+    const base = (s.relayBase || DEFAULT_RELAY_BASE).replace(/\/+$/, "");
+    const res = await (0, import_obsidian8.requestUrl)({ url: `${base}/health`, method: "GET", throw: false });
+    return res.status === 200 && ((_a2 = res.json) == null ? void 0 : _a2.ok) === true;
+  } catch (e) {
+    return false;
+  }
+}
+async function prepareXDraft(app, file) {
+  const resolved = await resolveActiveNote(app, file);
+  const report = checkMarkdownStyle(resolved.body, { assetMap: resolved.assetMap });
+  return { resolved, report };
+}
+function coverFromDataUrl(dataUrl, taken) {
+  const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!m) return void 0;
+  const bin = atob(m[2]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ext = m[1].includes("png") ? "png" : "jpg";
+  return makeCoverAsset(bytes, m[1], `cover.${ext}`, taken);
+}
+async function pushXDraft(app, s, file, prepared, opts) {
+  const client = makeRelayClient(s);
+  try {
+    await client.health();
+  } catch (e) {
+    throw new Error("Kaitox \u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF1A\u8BF7\u5728\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon\uFF08\u672A\u5B89\u88C5\u5148 npm i -g @kaitox/cli\uFF09");
+  }
+  const taken = new Set(prepared.resolved.assets.map((a) => a.fileName));
+  const cover = opts.coverDataUrl ? coverFromDataUrl(opts.coverDataUrl, taken) : prepared.resolved.cover;
+  const { id } = await client.postDraft({
+    kind: "x-article",
+    title: opts.title,
+    markdown: prepared.resolved.body,
+    mode: "rich",
+    source: "obsidian",
+    sourceMeta: { notePath: file.path, vault: app.vault.getName() },
+    styleReport: prepared.report,
+    assets: prepared.resolved.assets,
+    cover
+  });
+  if (s.openXAfterPush) openXComposer(id);
+  return id;
+}
+
 // src/views/publisher-view.ts
+var X_TARGET_ID = "__x_article__";
 var VIEW_TYPE_PUBLISHER = "wechat-multi-publisher-view";
-var PublisherView = class extends import_obsidian6.ItemView {
+var PublisherView = class extends import_obsidian9.ItemView {
   // 发布汇总信息
   constructor(leaf, plugin2) {
     super(leaf);
@@ -20580,6 +23260,8 @@ var PublisherView = class extends import_obsidian6.ItemView {
     this.autoCoverDismissed = /* @__PURE__ */ new Set();
     this.currentFile = null;
     this.autoCoverSeq = 0;
+    /** Kaitox 中转程序是否在线（null = 还没检测） */
+    this.relayOnline = null;
     this.publishProgress = /* @__PURE__ */ new Map();
     this.isPublishing = false;
     this.selectedTheme = "\u7EFF\u767D\u6E05\u7B80";
@@ -20598,14 +23280,14 @@ var PublisherView = class extends import_obsidian6.ItemView {
     return "message-circle";
   }
   async onOpen() {
-    var _a;
+    var _a2;
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass("wechat-multi-publisher-view");
     this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
     this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
     await this.themeManager.loadThemes();
-    const initialTheme = (_a = this.themeManager.getTheme(this.plugin.settings.defaultTheme)) != null ? _a : this.themeManager.getDefaultTheme();
+    const initialTheme = (_a2 = this.themeManager.getTheme(this.plugin.settings.defaultTheme)) != null ? _a2 : this.themeManager.getDefaultTheme();
     this.selectedTheme = initialTheme.name;
     if (this.plugin.settings.defaultTheme !== initialTheme.name) {
       this.plugin.settings.defaultTheme = initialTheme.name;
@@ -20618,18 +23300,30 @@ var PublisherView = class extends import_obsidian6.ItemView {
       if (this.currentFile && file.path === this.currentFile.path) void this.refreshAutoCover(true);
     }));
     this.render();
+    void this.checkRelay();
+    this.registerInterval(window.setInterval(() => void this.checkRelay(), 15e3));
     const initial = this.app.workspace.getActiveFile();
     if (initial && initial.extension === "md") void this.setCurrentFile(initial);
   }
+  async checkRelay() {
+    const online = await isRelayUp(this.plugin.settings);
+    if (online !== this.relayOnline) {
+      this.relayOnline = online;
+      if (!this.isPublishing) this.render();
+    }
+  }
+  get xSelected() {
+    return this.plugin.settings.xSelected;
+  }
   async setCurrentFile(file) {
-    var _a;
-    if (((_a = this.currentFile) == null ? void 0 : _a.path) === file.path) return;
+    var _a2;
+    if (((_a2 = this.currentFile) == null ? void 0 : _a2.path) === file.path) return;
     this.currentFile = file;
     this.coverImage = null;
     await this.refreshAutoCover(false);
   }
   async refreshAutoCover(silent) {
-    var _a, _b;
+    var _a2, _b;
     const file = this.currentFile;
     const seq = ++this.autoCoverSeq;
     if (!file) return;
@@ -20642,7 +23336,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
       const markdown = await this.app.vault.cachedRead(file);
       const detected = await detectCover(this.app, file, markdown);
       if (seq !== this.autoCoverSeq) return;
-      const prev = (_a = this.autoCover) == null ? void 0 : _a.base64;
+      const prev = (_a2 = this.autoCover) == null ? void 0 : _a2.base64;
       this.autoCover = detected ? { filePath: file.path, ...detected } : null;
       this.autoCoverLoading = false;
       if (!silent || prev !== ((_b = this.autoCover) == null ? void 0 : _b.base64)) this.render();
@@ -20672,11 +23366,10 @@ var PublisherView = class extends import_obsidian6.ItemView {
     const section = container.createDiv({ cls: "account-selection-section" });
     section.createEl("h4", { text: "\u9009\u62E9\u8D26\u53F7" });
     if (this.plugin.settings.accounts.length === 0) {
-      this.publishProgress.clear();
-      this.publishSummary = null;
       this.selectedAccountIds.clear();
-      const selectedCount2 = section.createDiv({ cls: "selected-count" });
-      selectedCount2.textContent = `\u5DF2\u9009\u62E9\uFF1A0 \u4E2A\u8D26\u53F7`;
+      section.createDiv({ cls: "account-remark", text: "\u8FD8\u6CA1\u6709\u516C\u4F17\u53F7\u8D26\u53F7\uFF0C\u53EF\u5728\u63D2\u4EF6\u8BBE\u7F6E\u91CC\u6DFB\u52A0" });
+      this.renderXItem(section);
+      this.renderSelectedCount(section);
       return;
     }
     const actionsDiv = section.createDiv({ cls: "quick-actions" });
@@ -20694,8 +23387,34 @@ var PublisherView = class extends import_obsidian6.ItemView {
     for (const account of this.plugin.settings.accounts) {
       this.renderAccountItem(accountList, account);
     }
-    const selectedCount = section.createDiv({ cls: "selected-count" });
-    selectedCount.textContent = `\u5DF2\u9009\u62E9\uFF1A${this.selectedAccountIds.size} \u4E2A\u8D26\u53F7`;
+    this.renderXItem(accountList);
+    this.renderSelectedCount(section);
+  }
+  renderSelectedCount(section) {
+    const parts = [`${this.selectedAccountIds.size} \u4E2A\u516C\u4F17\u53F7`];
+    if (this.xSelected) parts.push("X");
+    section.createDiv({ cls: "selected-count", text: `\u5DF2\u9009\u62E9\uFF1A${parts.join(" + ")}` });
+  }
+  /** 「X 文章草稿」选项（通过 Kaitox 中转推送） */
+  renderXItem(container) {
+    const item = container.createDiv({ cls: "account-item wechatpb-x-item" });
+    const checkbox = item.createEl("input", { type: "checkbox" });
+    checkbox.checked = this.xSelected;
+    checkbox.onchange = async () => {
+      this.plugin.settings.xSelected = checkbox.checked;
+      await this.plugin.saveSettings();
+      this.render();
+    };
+    const label = item.createDiv({ cls: "account-label" });
+    const dot = label.createSpan({ cls: "wechatpb-relay-dot" });
+    const online = this.relayOnline;
+    dot.addClass(online === null ? "is-unknown" : online ? "is-on" : "is-off");
+    dot.setAttr("aria-label", online ? "Kaitox \u4E2D\u8F6C\u5DF2\u8FDE\u63A5" : "Kaitox \u4E2D\u8F6C\u672A\u8FDE\u63A5");
+    label.createSpan({ cls: "account-name", text: "X \u6587\u7AE0\u8349\u7A3F" });
+    label.createDiv({
+      cls: "account-remark",
+      text: online === null ? "\u6B63\u5728\u68C0\u6D4B Kaitox \u4E2D\u8F6C\u2026" : online ? "Kaitox \u4E2D\u8F6C\u5DF2\u8FDE\u63A5" : "Kaitox \u4E2D\u8F6C\u672A\u8FD0\u884C\uFF1A\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon"
+    });
   }
   renderAccountItem(container, account) {
     const item = container.createDiv({ cls: "account-item" });
@@ -20727,7 +23446,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
     }
   }
   renderThemeSelection(container) {
-    var _a, _b;
+    var _a2, _b;
     const section = container.createDiv({ cls: "theme-selection-section" });
     section.createEl("h4", { text: "\u6392\u7248\u6837\u5F0F" });
     const controlRow = section.createDiv({ cls: "theme-control-row" });
@@ -20746,7 +23465,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
       this.selectedTheme = select.value;
       this.plugin.settings.defaultTheme = this.selectedTheme;
       await this.plugin.saveSettings();
-      new import_obsidian6.Notice(`\u5DF2\u9009\u62E9\u6837\u5F0F\uFF1A${this.selectedTheme}`);
+      new import_obsidian9.Notice(`\u5DF2\u9009\u62E9\u6837\u5F0F\uFF1A${this.selectedTheme}`);
       this.render();
     };
     const refreshBtn = controlRow.createEl("button", {
@@ -20757,12 +23476,12 @@ var PublisherView = class extends import_obsidian6.ItemView {
       this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
       this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
       await this.themeManager.loadThemes();
-      new import_obsidian6.Notice("\u4E3B\u9898\u5217\u8868\u5DF2\u5237\u65B0");
+      new import_obsidian9.Notice("\u4E3B\u9898\u5217\u8868\u5DF2\u5237\u65B0");
       this.render();
     };
     const selected = this.themeManager.getTheme(this.selectedTheme);
     const themeHint = section.createDiv({ cls: "theme-hint" });
-    themeHint.createSpan({ cls: "theme-color-dot", attr: { style: `--theme-accent: ${(_a = selected == null ? void 0 : selected.accent) != null ? _a : "#64748b"}` } });
+    themeHint.createSpan({ cls: "theme-color-dot", attr: { style: `--theme-accent: ${(_a2 = selected == null ? void 0 : selected.accent) != null ? _a2 : "#64748b"}` } });
     themeHint.createSpan({
       text: (_b = selected == null ? void 0 : selected.description) != null ? _b : "Memoria \u5185\u7F6E\u6392\u7248\u5DF2\u81EA\u52A8\u52A0\u8F7D\uFF0C\u65E0\u9700\u8BBE\u7F6E\u672C\u5730\u6587\u4EF6\u5939"
     });
@@ -20772,7 +23491,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
     });
   }
   renderCoverUpload(container) {
-    var _a, _b;
+    var _a2, _b;
     const section = container.createDiv({ cls: "cover-upload-section" });
     section.createEl("h4", { text: "\u5C01\u9762\u56FE\u7247" });
     const file = this.currentFile;
@@ -20781,7 +23500,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
       section.createDiv({ cls: "cover-source-hint", text: "\u6B63\u5728\u8BC6\u522B\u6587\u7AE0\u91CC\u7684\u7B2C\u4E00\u5F20\u56FE\u7247\u2026" });
     }
     if (this.coverImage || auto) {
-      const src = (_b = (_a = this.coverImage) == null ? void 0 : _a.base64) != null ? _b : auto.base64;
+      const src = (_b = (_a2 = this.coverImage) == null ? void 0 : _a2.base64) != null ? _b : auto.base64;
       section.createDiv({
         cls: "cover-source-hint",
         text: this.coverImage ? "\u5DF2\u624B\u52A8\u4E0A\u4F20\u5C01\u9762" : `\u5DF2\u81EA\u52A8\u4F7F\u7528${auto.source}\u4F5C\u4E3A\u5C01\u9762`
@@ -20805,8 +23524,8 @@ var PublisherView = class extends import_obsidian6.ItemView {
       const fileInput = actions.createEl("input", { type: "file", cls: "hidden-input" });
       fileInput.accept = "image/jpeg,image/png";
       fileInput.onchange = async (e) => {
-        var _a2;
-        const picked = (_a2 = e.target.files) == null ? void 0 : _a2[0];
+        var _a3;
+        const picked = (_a3 = e.target.files) == null ? void 0 : _a3[0];
         if (picked) await this.handleFileUpload(picked);
       };
       replaceBtn.onclick = () => fileInput.click();
@@ -20833,8 +23552,8 @@ var PublisherView = class extends import_obsidian6.ItemView {
       const fileInput = uploadArea.createEl("input", { type: "file", cls: "hidden-input" });
       fileInput.accept = "image/jpeg,image/png";
       fileInput.onchange = async (e) => {
-        var _a;
-        const file = (_a = e.target.files) == null ? void 0 : _a[0];
+        var _a2;
+        const file = (_a2 = e.target.files) == null ? void 0 : _a2[0];
         if (file) {
           await this.handleFileUpload(file);
         }
@@ -20848,10 +23567,10 @@ var PublisherView = class extends import_obsidian6.ItemView {
         uploadArea.removeClass("dragover");
       };
       uploadArea.ondrop = async (e) => {
-        var _a, _b;
+        var _a2, _b;
         e.preventDefault();
         uploadArea.removeClass("dragover");
-        const file = (_b = (_a = e.dataTransfer) == null ? void 0 : _a.files) == null ? void 0 : _b[0];
+        const file = (_b = (_a2 = e.dataTransfer) == null ? void 0 : _a2.files) == null ? void 0 : _b[0];
         if (file) {
           await this.handleFileUpload(file);
         }
@@ -20860,21 +23579,21 @@ var PublisherView = class extends import_obsidian6.ItemView {
   }
   async handleFileUpload(file) {
     if (!file.type.match(/^image\/(jpeg|png)$/)) {
-      new import_obsidian6.Notice("\u4EC5\u652F\u6301 JPG/PNG \u683C\u5F0F");
+      new import_obsidian9.Notice("\u4EC5\u652F\u6301 JPG/PNG \u683C\u5F0F");
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      new import_obsidian6.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2MB");
+      new import_obsidian9.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2MB");
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
-      var _a;
+      var _a2;
       this.coverImage = {
-        base64: (_a = e.target) == null ? void 0 : _a.result
+        base64: (_a2 = e.target) == null ? void 0 : _a2.result
       };
       this.render();
-      new import_obsidian6.Notice("\u5C01\u9762\u56FE\u7247\u4E0A\u4F20\u6210\u529F");
+      new import_obsidian9.Notice("\u5C01\u9762\u56FE\u7247\u4E0A\u4F20\u6210\u529F");
     };
     reader.readAsDataURL(file);
   }
@@ -20882,10 +23601,12 @@ var PublisherView = class extends import_obsidian6.ItemView {
     const section = container.createDiv({ cls: "action-buttons" });
     const previewBtn = section.createEl("button", { text: "\u9884\u89C8", cls: "preview-btn" });
     previewBtn.onclick = () => this.handlePreview();
+    const xPreviewBtn = section.createEl("button", { text: "X \u9884\u89C8" });
+    xPreviewBtn.onclick = () => this.handleXPreview();
     const exportBtn = section.createEl("button", { text: "\u5BFC\u51FA\u957F\u56FE" });
     exportBtn.onclick = () => this.handleExportLongImage();
     const publishBtn = section.createEl("button", { text: "\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1", cls: "publish-btn" });
-    publishBtn.disabled = this.selectedAccountIds.size === 0 || this.isPublishing;
+    publishBtn.disabled = this.selectedAccountIds.size === 0 && !this.xSelected || this.isPublishing;
     publishBtn.onclick = () => this.handlePublish();
   }
   renderPublishProgress(container) {
@@ -20893,7 +23614,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
     section.createEl("h4", { text: "\u53D1\u5E03\u8FDB\u5EA6" });
     const progressList = section.createDiv({ cls: "progress-list" });
     for (const [accountId, progress] of this.publishProgress) {
-      const account = this.plugin.settings.accounts.find((a) => a.id === accountId);
+      const account = accountId === X_TARGET_ID ? { name: "X \u6587\u7AE0\u8349\u7A3F" } : this.plugin.settings.accounts.find((a) => a.id === accountId);
       if (!account) continue;
       const item = progressList.createDiv({ cls: "progress-item" });
       let statusText = "";
@@ -20940,8 +23661,8 @@ var PublisherView = class extends import_obsidian6.ItemView {
     }
   }
   async handlePreview() {
-    var _a, _b, _c, _d;
-    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
+    var _a2, _b, _c, _d;
+    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian9.MarkdownView);
     if (!activeView) {
       const leaves = this.app.workspace.getLeavesOfType("markdown");
       if (leaves.length > 0) {
@@ -20949,17 +23670,17 @@ var PublisherView = class extends import_obsidian6.ItemView {
       }
     }
     if (!activeView) {
-      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian9.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
     let content = activeView.getViewData();
     if (!content.trim()) {
-      new import_obsidian6.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+      new import_obsidian9.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
       return;
     }
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
     content = await this.processImageLinks(content, activeView);
-    const theme = (_a = this.themeManager.getTheme(this.selectedTheme)) != null ? _a : this.themeManager.getDefaultTheme();
+    const theme = (_a2 = this.themeManager.getTheme(this.selectedTheme)) != null ? _a2 : this.themeManager.getDefaultTheme();
     const customCSS = theme.css;
     const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
     const title = ((_b = activeView.file) == null ? void 0 : _b.basename) || "\u65E0\u6807\u9898";
@@ -20968,18 +23689,18 @@ var PublisherView = class extends import_obsidian6.ItemView {
     previewModal.open();
   }
   async handleExportLongImage() {
-    var _a, _b, _c, _d, _e, _f;
-    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
+    var _a2, _b, _c, _d, _e2, _f;
+    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian9.MarkdownView);
     if (!activeView) {
-      activeView = (_b = (_a = this.app.workspace.getLeavesOfType("markdown")[0]) == null ? void 0 : _a.view) != null ? _b : null;
+      activeView = (_b = (_a2 = this.app.workspace.getLeavesOfType("markdown")[0]) == null ? void 0 : _a2.view) != null ? _b : null;
     }
     if (!activeView) {
-      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian9.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
     let content = activeView.getViewData();
     if (!content.trim()) {
-      new import_obsidian6.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+      new import_obsidian9.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
       return;
     }
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
@@ -20990,25 +23711,25 @@ var PublisherView = class extends import_obsidian6.ItemView {
       this.app,
       html,
       ((_d = activeView.file) == null ? void 0 : _d.basename) || "\u65E0\u6807\u9898",
-      ((_f = (_e = activeView.file) == null ? void 0 : _e.parent) == null ? void 0 : _f.path) || ""
+      ((_f = (_e2 = activeView.file) == null ? void 0 : _e2.parent) == null ? void 0 : _f.path) || ""
     );
     try {
       const path = await modal.exportLongImage();
-      new import_obsidian6.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
+      new import_obsidian9.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
     } catch (error) {
-      new import_obsidian6.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
+      new import_obsidian9.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
     }
   }
   /**
    * Process image links for preview - use resource paths instead of base64
    */
   async processImageLinksForPreview(content, activeView) {
-    var _a, _b;
+    var _a2, _b;
     const imageRegex = /!\[\[([^\]]+)\]\]/g;
     const matches = Array.from(content.matchAll(imageRegex));
     for (const match of matches) {
       const filename = match[1];
-      const file = this.app.metadataCache.getFirstLinkpathDest(filename, ((_a = activeView.file) == null ? void 0 : _a.path) || "");
+      const file = this.app.metadataCache.getFirstLinkpathDest(filename, ((_a2 = activeView.file) == null ? void 0 : _a2.path) || "");
       if (file && file.extension.match(/^(png|jpe?g|gif|svg|webp)$/i)) {
         const resourcePath = this.app.vault.getResourcePath(file);
         content = content.replace(match[0], `![${filename}](${resourcePath})`);
@@ -21033,12 +23754,12 @@ var PublisherView = class extends import_obsidian6.ItemView {
    * Process Obsidian image links and convert them to base64 data URLs
    */
   async processImageLinks(content, activeView) {
-    var _a, _b;
+    var _a2, _b;
     const imageRegex = /!\[\[([^\]]+)\]\]/g;
     const matches = Array.from(content.matchAll(imageRegex));
     for (const match of matches) {
       const filename = match[1];
-      const file = this.app.metadataCache.getFirstLinkpathDest(filename, ((_a = activeView.file) == null ? void 0 : _a.path) || "");
+      const file = this.app.metadataCache.getFirstLinkpathDest(filename, ((_a2 = activeView.file) == null ? void 0 : _a2.path) || "");
       if (file && file.extension.match(/^(png|jpe?g|gif|svg|webp)$/i)) {
         try {
           let arrayBuffer = await this.app.vault.readBinary(file);
@@ -21102,8 +23823,8 @@ var PublisherView = class extends import_obsidian6.ItemView {
     return content;
   }
   async handlePublish() {
-    var _a, _b, _c, _d;
-    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
+    var _a2, _b, _c, _d;
+    let activeView = this.app.workspace.getActiveViewOfType(import_obsidian9.MarkdownView);
     if (!activeView) {
       const leaves = this.app.workspace.getLeavesOfType("markdown");
       if (leaves.length > 0) {
@@ -21111,31 +23832,37 @@ var PublisherView = class extends import_obsidian6.ItemView {
       }
     }
     if (!activeView) {
-      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian9.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
     let content = activeView.getViewData();
     if (!content.trim()) {
-      new import_obsidian6.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
+      new import_obsidian9.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A");
       return;
     }
     const file = activeView.file;
     if (!file) {
-      new import_obsidian6.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
+      new import_obsidian9.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
       return;
     }
-    if (this.selectedAccountIds.size === 0) {
-      new import_obsidian6.Notice("\u8BF7\u5148\u52FE\u9009\u81F3\u5C11\u4E00\u4E2A\u516C\u4F17\u53F7");
+    const wantX = this.xSelected;
+    if (this.selectedAccountIds.size === 0 && !wantX) {
+      new import_obsidian9.Notice("\u8BF7\u5148\u52FE\u9009\u81F3\u5C11\u4E00\u4E2A\u516C\u4F17\u53F7\u6216 X");
       return;
     }
     if (this.isPublishing) return;
-    const loading = new import_obsidian6.Notice("\u6B63\u5728\u51C6\u5907\u8349\u7A3F\u4FE1\u606F\u2026", 0);
+    const loading = new import_obsidian9.Notice("\u6B63\u5728\u51C6\u5907\u8349\u7A3F\u4FE1\u606F\u2026", 0);
     let draft;
+    let xPrepared = null;
     try {
+      if (wantX) {
+        xPrepared = await prepareXDraft(this.app, file);
+        this.relayOnline = await isRelayUp(this.plugin.settings);
+      }
       const { meta, coverSource } = await buildDraftDefaults(this.app, {
         file,
         markdown: this.removeFrontmatter(content),
-        panelCoverBase64: (_a = this.coverImage) == null ? void 0 : _a.base64,
+        panelCoverBase64: (_a2 = this.coverImage) == null ? void 0 : _a2.base64,
         autoCoverBase64: ((_b = this.autoCover) == null ? void 0 : _b.filePath) === file.path ? this.autoCover.base64 : void 0,
         autoCoverSource: ((_c = this.autoCover) == null ? void 0 : _c.filePath) === file.path ? this.autoCover.source : void 0,
         skipAutoDetect: this.autoCoverDismissed.has(file.path),
@@ -21145,10 +23872,16 @@ var PublisherView = class extends import_obsidian6.ItemView {
       });
       loading.hide();
       const accountNames = this.plugin.settings.accounts.filter((a) => this.selectedAccountIds.has(a.id)).map((a) => a.name);
-      draft = await new DraftConfirmModal(this.app, meta, coverSource, accountNames).openAndWait();
+      draft = await new DraftConfirmModal(
+        this.app,
+        meta,
+        coverSource,
+        accountNames,
+        xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : void 0
+      ).openAndWait();
     } catch (error) {
       loading.hide();
-      new import_obsidian6.Notice(`\u51C6\u5907\u8349\u7A3F\u5931\u8D25\uFF1A${error instanceof Error ? error.message : error}`);
+      new import_obsidian9.Notice(`\u51C6\u5907\u8349\u7A3F\u5931\u8D25\uFF1A${error instanceof Error ? error.message : error}`);
       return;
     }
     if (!draft) return;
@@ -21164,7 +23897,9 @@ var PublisherView = class extends import_obsidian6.ItemView {
         status: "pending"
       });
     }
+    if (xPrepared) this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "pending" });
     this.render();
+    const xPromise = xPrepared ? this.publishToX(file, xPrepared, draft) : Promise.resolve(null);
     const theme = (_d = this.themeManager.getTheme(this.selectedTheme)) != null ? _d : this.themeManager.getDefaultTheme();
     const customCSS = theme.css;
     const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
@@ -21184,14 +23919,19 @@ var PublisherView = class extends import_obsidian6.ItemView {
         }
       }
     }
+    const xResult = await xPromise;
+    if (xResult) {
+      if (xResult.success) successCount++;
+      else failCount++;
+    }
     this.isPublishing = false;
     this.publishSummary = { successCount, failCount };
     this.render();
-    new import_obsidian6.Notice(`\u53D1\u5E03\u5B8C\u6210\uFF1A${successCount} \u4E2A\u6210\u529F\uFF0C${failCount} \u4E2A\u5931\u8D25`);
+    new import_obsidian9.Notice(`\u53D1\u5E03\u5B8C\u6210\uFF1A${successCount} \u4E2A\u6210\u529F\uFF0C${failCount} \u4E2A\u5931\u8D25`);
     this.plugin.settings.publishHistory.unshift({
       time: (/* @__PURE__ */ new Date()).toISOString(),
       articleTitle: title,
-      accountIds,
+      accountIds: xPrepared ? [...accountIds, X_TARGET_ID] : accountIds,
       successCount,
       failCount
     });
@@ -21215,8 +23955,8 @@ var PublisherView = class extends import_obsidian6.ItemView {
       try {
         const binaryString = atob(base64Data);
         const bytes = new Uint8Array(binaryString.length);
-        for (let j = 0; j < binaryString.length; j++) {
-          bytes[j] = binaryString.charCodeAt(j);
+        for (let j2 = 0; j2 < binaryString.length; j2++) {
+          bytes[j2] = binaryString.charCodeAt(j2);
         }
         const imageBuffer = bytes.buffer;
         const uploadResult = await uploadImage(
@@ -21234,7 +23974,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
         }
       } catch (error) {
         console.error(`[UploadImages] Failed to upload image ${i + 1}:`, error);
-        new import_obsidian6.Notice(`\u7B2C ${i + 1} \u5F20\u6B63\u6587\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${error instanceof Error ? error.message : error}`, 8e3);
+        new import_obsidian9.Notice(`\u7B2C ${i + 1} \u5F20\u6B63\u6587\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${error instanceof Error ? error.message : error}`, 8e3);
       }
     }
     const remoteRegex = /<img[^>]+src="(https?:\/\/[^"]+)"[^>]*>/g;
@@ -21250,19 +23990,58 @@ var PublisherView = class extends import_obsidian6.ItemView {
         const [header, b64] = dataUrl.split(",");
         const bin = atob(b64);
         const bytes = new Uint8Array(bin.length);
-        for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+        for (let j2 = 0; j2 < bin.length; j2++) bytes[j2] = bin.charCodeAt(j2);
         const ext = header.includes("image/png") ? "png" : "jpg";
         const result = await uploadImage(bytes.buffer, `remote_${i + 1}.${ext}`, accessToken, proxyConfig);
         if (result == null ? void 0 : result.url) uploaded.set(rawSrc, result.url);
       } catch (error) {
         console.error(`[UploadImages] Failed to upload remote image ${url}:`, error);
-        new import_obsidian6.Notice(`\u7F51\u7EDC\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${url.slice(0, 60)}`, 8e3);
+        new import_obsidian9.Notice(`\u7F51\u7EDC\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${url.slice(0, 60)}`, 8e3);
       }
     }
     for (const [from, to] of uploaded) {
       processedContent = processedContent.split(`src="${from}"`).join(`src="${to}"`);
     }
     return processedContent;
+  }
+  async publishToX(file, prepared, draft) {
+    const start = Date.now();
+    this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "publishing" });
+    this.render();
+    try {
+      await pushXDraft(this.app, this.plugin.settings, file, prepared, {
+        title: draft.title,
+        coverDataUrl: draft.coverBase64 || void 0
+      });
+      const duration = Date.now() - start;
+      this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "success", duration });
+      this.render();
+      return { success: true };
+    } catch (error) {
+      const duration = Date.now() - start;
+      const msg = error instanceof Error ? error.message : String(error);
+      this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "failed", duration, error: msg });
+      this.render();
+      return { success: false };
+    }
+  }
+  async handleXPreview() {
+    var _a2, _b, _c, _d;
+    const file = (_a2 = this.currentFile) != null ? _a2 : this.app.workspace.getActiveFile();
+    if (!file || file.extension !== "md") {
+      new import_obsidian9.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u7BC7 Markdown \u7B14\u8BB0");
+      return;
+    }
+    const loading = new import_obsidian9.Notice("\u6B63\u5728\u751F\u6210 X \u9884\u89C8\u2026", 0);
+    try {
+      const prepared = await prepareXDraft(this.app, file);
+      const cover = (_d = (_b = this.coverImage) == null ? void 0 : _b.base64) != null ? _d : ((_c = this.autoCover) == null ? void 0 : _c.filePath) === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : void 0;
+      loading.hide();
+      new XPreviewModal(this.app, prepared.resolved, prepared.report, prepared.resolved.title, cover).open();
+    } catch (error) {
+      loading.hide();
+      new import_obsidian9.Notice(`X \u9884\u89C8\u5931\u8D25\uFF1A${error instanceof Error ? error.message : error}`);
+    }
   }
   async publishToAccount(accountId, draft, content) {
     const account = this.plugin.settings.accounts.find((a) => a.id === accountId);
@@ -21357,7 +24136,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
     return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
   }
 };
-var PreviewModal = class extends import_obsidian6.Modal {
+var PreviewModal = class extends import_obsidian9.Modal {
   constructor(app, html, title, exportDir) {
     super(app);
     this.html = html;
@@ -21369,13 +24148,13 @@ var PreviewModal = class extends import_obsidian6.Modal {
     contentEl.empty();
     contentEl.createEl("h2", { text: "\u5FAE\u4FE1\u9884\u89C8" });
     const previewContainer = contentEl.createDiv({ cls: "wechat-preview-container" });
-    previewContainer.replaceChildren((0, import_obsidian6.sanitizeHTMLToDom)(this.html));
+    previewContainer.replaceChildren((0, import_obsidian9.sanitizeHTMLToDom)(this.html));
     const buttonContainer = contentEl.createDiv({ cls: "modal-button-container" });
     const copyBtn = buttonContainer.createEl("button", { text: "\u590D\u5236", cls: "mod-cta" });
     copyBtn.onclick = async () => {
       try {
         const tempDiv = document.body.createDiv({ cls: "wechat-multi-publisher-copy-buffer" });
-        tempDiv.replaceChildren((0, import_obsidian6.sanitizeHTMLToDom)(this.html));
+        tempDiv.replaceChildren((0, import_obsidian9.sanitizeHTMLToDom)(this.html));
         const range = document.createRange();
         range.selectNodeContents(tempDiv);
         const selection = window.getSelection();
@@ -21410,9 +24189,9 @@ var PreviewModal = class extends import_obsidian6.Modal {
       exportBtn.disabled = true;
       try {
         const path = await this.exportLongImage();
-        new import_obsidian6.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
+        new import_obsidian9.Notice(`\u957F\u56FE\u5DF2\u4FDD\u5B58\uFF1A${path}`);
       } catch (error) {
-        new import_obsidian6.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
+        new import_obsidian9.Notice(`\u5BFC\u51FA\u5931\u8D25\uFF1A${error instanceof Error ? error.message : String(error)}`);
       } finally {
         exportBtn.disabled = false;
       }
@@ -21426,7 +24205,7 @@ var PreviewModal = class extends import_obsidian6.Modal {
   }
   async exportLongImage() {
     const root2 = document.body.createDiv({ cls: "wechat-multi-publisher-image-export" });
-    root2.replaceChildren((0, import_obsidian6.sanitizeHTMLToDom)(this.html));
+    root2.replaceChildren((0, import_obsidian9.sanitizeHTMLToDom)(this.html));
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 50));
       await this.waitForImages(root2);
@@ -21461,8 +24240,8 @@ var PreviewModal = class extends import_obsidian6.Modal {
   }
   async waitForImages(root2) {
     await Promise.all(Array.from(root2.querySelectorAll("img")).map((image) => {
-      var _a, _b;
-      if (image.complete) return (_b = (_a = image.decode) == null ? void 0 : _a.call(image).catch(() => void 0)) != null ? _b : Promise.resolve();
+      var _a2, _b;
+      if (image.complete) return (_b = (_a2 = image.decode) == null ? void 0 : _a2.call(image).catch(() => void 0)) != null ? _b : Promise.resolve();
       return new Promise((resolve) => {
         image.addEventListener("load", () => resolve(), { once: true });
         image.addEventListener("error", () => resolve(), { once: true });
@@ -21473,15 +24252,15 @@ var PreviewModal = class extends import_obsidian6.Modal {
     const base = this.title.replace(/[\\/:*?"<>|]/g, "-").trim() || "\u5FAE\u4FE1\u6587\u7AE0";
     for (let index = 0; ; index += 1) {
       const filename = `${base}${index ? `-${index}` : ""}.${extension}`;
-      const path = (0, import_obsidian6.normalizePath)(this.exportDir ? `${this.exportDir}/${filename}` : filename);
+      const path = (0, import_obsidian9.normalizePath)(this.exportDir ? `${this.exportDir}/${filename}` : filename);
       if (!await this.app.vault.adapter.exists(path)) return path;
     }
   }
 };
 
 // src/modals/account-modal.ts
-var import_obsidian7 = require("obsidian");
-var AccountModal = class extends import_obsidian7.Modal {
+var import_obsidian10 = require("obsidian");
+var AccountModal = class extends import_obsidian10.Modal {
   constructor(app, plugin2, account, onSubmit) {
     super(app);
     // Form fields
@@ -21517,48 +24296,48 @@ var AccountModal = class extends import_obsidian7.Modal {
     const { contentEl } = this;
     contentEl.empty();
     this.setTitle(this.isEdit ? "\u7F16\u8F91\u8D26\u53F7" : "\u6DFB\u52A0\u65B0\u8D26\u53F7");
-    new import_obsidian7.Setting(contentEl).setName("\u8D26\u53F7\u540D\u79F0").setDesc("\u4FBF\u4E8E\u8BC6\u522B\u7684\u540D\u79F0").addText((text) => text.setPlaceholder("\u6211\u7684\u516C\u4F17\u53F7").setValue(this.nameInput).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("\u8D26\u53F7\u540D\u79F0").setDesc("\u4FBF\u4E8E\u8BC6\u522B\u7684\u540D\u79F0").addText((text) => text.setPlaceholder("\u6211\u7684\u516C\u4F17\u53F7").setValue(this.nameInput).onChange((value) => {
       this.nameInput = value;
     }));
-    new import_obsidian7.Setting(contentEl).setName("\u5907\u6CE8").setDesc("\u53EF\u9009\u7684\u8BF4\u660E\u6216\u6CE8\u91CA").addTextArea((text) => text.setPlaceholder("\u8D26\u53F7\u7528\u9014\u8BF4\u660E...").setValue(this.remarkInput).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("\u5907\u6CE8").setDesc("\u53EF\u9009\u7684\u8BF4\u660E\u6216\u6CE8\u91CA").addTextArea((text) => text.setPlaceholder("\u8D26\u53F7\u7528\u9014\u8BF4\u660E...").setValue(this.remarkInput).onChange((value) => {
       this.remarkInput = value;
     }));
-    new import_obsidian7.Setting(contentEl).setName("AppID").setDesc("\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppID").addText((text) => text.setPlaceholder("\u8BF7\u8F93\u5165\u516C\u4F17\u53F7 AppID").setValue(this.appidInput).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("AppID").setDesc("\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppID").addText((text) => text.setPlaceholder("\u8BF7\u8F93\u5165\u516C\u4F17\u53F7 AppID").setValue(this.appidInput).onChange((value) => {
       this.appidInput = value;
     }));
-    new import_obsidian7.Setting(contentEl).setName("AppSecret").setDesc(this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709 AppSecret" : "\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppSecret").addText((text) => {
+    new import_obsidian10.Setting(contentEl).setName("AppSecret").setDesc(this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709 AppSecret" : "\u5FAE\u4FE1\u516C\u4F17\u53F7\u5F00\u53D1\u8005 AppSecret").addText((text) => {
       text.setPlaceholder("\u8BF7\u8F93\u5165 AppSecret").setValue(this.appsecretInput).onChange((value) => {
         this.appsecretInput = value;
       });
       text.inputEl.type = "password";
     });
-    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u914D\u7F6E\uFF08\u53EF\u9009\uFF09").setHeading();
-    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u7C7B\u578B").setDesc("\u9009\u62E9\u4EE3\u7406\u534F\u8BAE\u7C7B\u578B").addDropdown((dropdown) => dropdown.addOption("http", "HTTP\uFF08\u63A8\u8350\uFF0C\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("https", "HTTPS\uFF08\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("socks5", "SOCKS5\uFF08\u4E0D\u652F\u6301\u8BA4\u8BC1\uFF09").setValue(this.proxyType).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("\u4EE3\u7406\u914D\u7F6E\uFF08\u53EF\u9009\uFF09").setHeading();
+    new import_obsidian10.Setting(contentEl).setName("\u4EE3\u7406\u7C7B\u578B").setDesc("\u9009\u62E9\u4EE3\u7406\u534F\u8BAE\u7C7B\u578B").addDropdown((dropdown) => dropdown.addOption("http", "HTTP\uFF08\u63A8\u8350\uFF0C\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("https", "HTTPS\uFF08\u652F\u6301\u8BA4\u8BC1\uFF09").addOption("socks5", "SOCKS5\uFF08\u4E0D\u652F\u6301\u8BA4\u8BC1\uFF09").setValue(this.proxyType).onChange((value) => {
       this.proxyType = value;
     }));
-    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740\uFF08\u5982\uFF1Ac1023.ips5.vip\uFF09\u7559\u7A7A\u5219\u4F7F\u7528\u672C\u5730\u7F51\u7EDC").addText((text) => text.setPlaceholder("c1023.ips5.vip").setValue(this.proxyHost).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u5730\u5740\uFF08\u5982\uFF1Ac1023.ips5.vip\uFF09\u7559\u7A7A\u5219\u4F7F\u7528\u672C\u5730\u7F51\u7EDC").addText((text) => text.setPlaceholder("c1023.ips5.vip").setValue(this.proxyHost).onChange((value) => {
       this.proxyHost = value;
     }));
-    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u7AEF\u53E3").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u7AEF\u53E3\uFF08\u5982\uFF1A9125\uFF09").addText((text) => text.setPlaceholder("9125").setValue(this.proxyPort.toString()).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("\u4EE3\u7406\u7AEF\u53E3").setDesc("\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u7AEF\u53E3\uFF08\u5982\uFF1A9125\uFF09").addText((text) => text.setPlaceholder("9125").setValue(this.proxyPort.toString()).onChange((value) => {
       const port = parseInt(value);
       if (!isNaN(port)) {
         this.proxyPort = port;
       }
     }));
     const isAuthSupported = this.proxyType === "http" || this.proxyType === "https";
-    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u7528\u6237\u540D").setDesc(isAuthSupported ? "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u7528\u6237\u540D" : "\u274C SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => text.setPlaceholder("\u7528\u6237\u540D").setValue(this.proxyUsername).setDisabled(!isAuthSupported).onChange((value) => {
+    new import_obsidian10.Setting(contentEl).setName("\u4EE3\u7406\u7528\u6237\u540D").setDesc(isAuthSupported ? "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u7528\u6237\u540D" : "\u274C SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => text.setPlaceholder("\u7528\u6237\u540D").setValue(this.proxyUsername).setDisabled(!isAuthSupported).onChange((value) => {
       this.proxyUsername = value;
     }));
-    new import_obsidian7.Setting(contentEl).setName("\u4EE3\u7406\u5BC6\u7801").setDesc(isAuthSupported ? this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709\u4EE3\u7406\u5BC6\u7801" : "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u5BC6\u7801" : "SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => {
+    new import_obsidian10.Setting(contentEl).setName("\u4EE3\u7406\u5BC6\u7801").setDesc(isAuthSupported ? this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709\u4EE3\u7406\u5BC6\u7801" : "\u53EF\u9009\uFF1A\u4EE3\u7406\u670D\u52A1\u5668\u8BA4\u8BC1\u5BC6\u7801" : "SOCKS5 \u4EE3\u7406\u4E0D\u652F\u6301\u8BA4\u8BC1").addText((text) => {
       text.setPlaceholder("\u5BC6\u7801").setValue(this.proxyPassword).setDisabled(!isAuthSupported).onChange((value) => {
         this.proxyPassword = value;
       });
       text.inputEl.type = "password";
     });
-    new import_obsidian7.Setting(contentEl).setName("\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5").setDesc("\u9A8C\u8BC1\u4EE3\u7406\u914D\u7F6E\u662F\u5426\u6B63\u5E38\u5DE5\u4F5C").addButton((button) => button.setButtonText("\u6D4B\u8BD5\u8FDE\u63A5").onClick(async () => {
+    new import_obsidian10.Setting(contentEl).setName("\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5").setDesc("\u9A8C\u8BC1\u4EE3\u7406\u914D\u7F6E\u662F\u5426\u6B63\u5E38\u5DE5\u4F5C").addButton((button) => button.setButtonText("\u6D4B\u8BD5\u8FDE\u63A5").onClick(async () => {
       await this.testProxyConnection();
     }));
-    new import_obsidian7.Setting(contentEl).setName("\u6D4B\u8BD5 API \u914D\u7F6E").setDesc("\u9A8C\u8BC1 AppID \u548C AppSecret \u662F\u5426\u6709\u6548").addButton((button) => button.setButtonText("\u6D4B\u8BD5 API").onClick(async () => {
+    new import_obsidian10.Setting(contentEl).setName("\u6D4B\u8BD5 API \u914D\u7F6E").setDesc("\u9A8C\u8BC1 AppID \u548C AppSecret \u662F\u5426\u6709\u6548").addButton((button) => button.setButtonText("\u6D4B\u8BD5 API").onClick(async () => {
       await this.testAccessToken();
     }));
     const buttonContainer = contentEl.createDiv({ cls: "modal-button-container" });
@@ -21575,7 +24354,7 @@ var AccountModal = class extends import_obsidian7.Modal {
   }
   async testProxyConnection() {
     if (!this.proxyHost || !this.proxyPort) {
-      new import_obsidian7.Notice("\u4EE3\u7406\u672A\u914D\u7F6E\uFF0C\u5C06\u4F7F\u7528\u672C\u5730\u7F51\u7EDC\u8FDE\u63A5");
+      new import_obsidian10.Notice("\u4EE3\u7406\u672A\u914D\u7F6E\uFF0C\u5C06\u4F7F\u7528\u672C\u5730\u7F51\u7EDC\u8FDE\u63A5");
       return;
     }
     const proxyConfig = {
@@ -21585,22 +24364,22 @@ var AccountModal = class extends import_obsidian7.Modal {
       username: this.proxyUsername || void 0,
       password: this.proxyPassword || void 0
     };
-    new import_obsidian7.Notice("\u6B63\u5728\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5...");
+    new import_obsidian10.Notice("\u6B63\u5728\u6D4B\u8BD5\u4EE3\u7406\u8FDE\u63A5...");
     const response = await testProxy(proxyConfig);
     if (response.success) {
-      new import_obsidian7.Notice(`\u2705 \u4EE3\u7406\u8FDE\u63A5\u6210\u529F\uFF01\u5EF6\u8FDF\uFF1A${response.latency}ms`);
+      new import_obsidian10.Notice(`\u2705 \u4EE3\u7406\u8FDE\u63A5\u6210\u529F\uFF01\u5EF6\u8FDF\uFF1A${response.latency}ms`);
     } else {
-      new import_obsidian7.Notice(`\u274C \u4EE3\u7406\u8FDE\u63A5\u5931\u8D25\uFF1A${response.error}`);
+      new import_obsidian10.Notice(`\u274C \u4EE3\u7406\u8FDE\u63A5\u5931\u8D25\uFF1A${response.error}`);
     }
   }
   async testAccessToken() {
     if (!this.appidInput.trim()) {
-      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppID");
+      new import_obsidian10.Notice("\u8BF7\u8F93\u5165 AppID");
       return;
     }
     const appSecret = this.appsecretInput.trim() || (this.account ? this.plugin.getAppSecret(this.account) : "");
     if (!appSecret) {
-      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppSecret");
+      new import_obsidian10.Notice("\u8BF7\u8F93\u5165 AppSecret");
       return;
     }
     let proxyConfig = void 0;
@@ -21613,7 +24392,7 @@ var AccountModal = class extends import_obsidian7.Modal {
         password: this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : void 0)
       };
     }
-    new import_obsidian7.Notice("\u6B63\u5728\u6D4B\u8BD5 Access Token...");
+    new import_obsidian10.Notice("\u6B63\u5728\u6D4B\u8BD5 Access Token...");
     try {
       const token = await getAccessToken(
         this.appidInput.trim(),
@@ -21621,24 +24400,24 @@ var AccountModal = class extends import_obsidian7.Modal {
         proxyConfig
       );
       if (!token) throw new Error("\u5FAE\u4FE1\u63A5\u53E3\u672A\u8FD4\u56DE Access Token");
-      new import_obsidian7.Notice("\u2705 Access Token \u83B7\u53D6\u6210\u529F");
+      new import_obsidian10.Notice("\u2705 Access Token \u83B7\u53D6\u6210\u529F");
     } catch (error) {
-      new import_obsidian7.Notice(`\u274C \u83B7\u53D6 Access Token \u5931\u8D25\uFF1A${error.message}`);
+      new import_obsidian10.Notice(`\u274C \u83B7\u53D6 Access Token \u5931\u8D25\uFF1A${error.message}`);
     }
   }
   async handleSave() {
-    var _a, _b, _c, _d, _e, _f;
+    var _a2, _b, _c, _d, _e2, _f;
     if (!this.nameInput.trim()) {
-      new import_obsidian7.Notice("\u8BF7\u8F93\u5165\u8D26\u53F7\u540D\u79F0");
+      new import_obsidian10.Notice("\u8BF7\u8F93\u5165\u8D26\u53F7\u540D\u79F0");
       return;
     }
     if (!this.appidInput.trim()) {
-      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppID");
+      new import_obsidian10.Notice("\u8BF7\u8F93\u5165 AppID");
       return;
     }
     const appSecret = this.appsecretInput.trim() || (this.account ? this.plugin.getAppSecret(this.account) : "");
     if (!appSecret) {
-      new import_obsidian7.Notice("\u8BF7\u8F93\u5165 AppSecret");
+      new import_obsidian10.Notice("\u8BF7\u8F93\u5165 AppSecret");
       return;
     }
     let proxyConfig = void 0;
@@ -21648,7 +24427,7 @@ var AccountModal = class extends import_obsidian7.Modal {
         host: this.proxyHost,
         port: this.proxyPort,
         username: this.proxyUsername || void 0,
-        passwordSecretId: (_b = (_a = this.account) == null ? void 0 : _a.proxyConfig) == null ? void 0 : _b.passwordSecretId
+        passwordSecretId: (_b = (_a2 = this.account) == null ? void 0 : _a2.proxyConfig) == null ? void 0 : _b.passwordSecretId
       };
     }
     const account = {
@@ -21657,12 +24436,12 @@ var AccountModal = class extends import_obsidian7.Modal {
       remark: this.remarkInput.trim() || void 0,
       appid: this.appidInput.trim(),
       appSecretId: ((_d = this.account) == null ? void 0 : _d.appSecretId) || "",
-      accessTokenId: (_e = this.account) == null ? void 0 : _e.accessTokenId,
+      accessTokenId: (_e2 = this.account) == null ? void 0 : _e2.accessTokenId,
       proxyConfig,
       status: "offline",
       lastCheckTime: (_f = this.account) == null ? void 0 : _f.lastCheckTime
     };
-    new import_obsidian7.Notice("\u9A8C\u8BC1 Access Token...");
+    new import_obsidian10.Notice("\u9A8C\u8BC1 Access Token...");
     try {
       const token = await getAccessToken(
         account.appid,
@@ -21682,9 +24461,9 @@ var AccountModal = class extends import_obsidian7.Modal {
       account.status = "online";
       this.onSubmit(account);
       this.close();
-      new import_obsidian7.Notice("\u8D26\u53F7\u4FDD\u5B58\u6210\u529F");
+      new import_obsidian10.Notice("\u8D26\u53F7\u4FDD\u5B58\u6210\u529F");
     } catch (error) {
-      new import_obsidian7.Notice(`\u274C \u9A8C\u8BC1\u5931\u8D25\uFF1A${error.message}`);
+      new import_obsidian10.Notice(`\u274C \u9A8C\u8BC1\u5931\u8D25\uFF1A${error.message}`);
     }
   }
   onClose() {
@@ -21793,7 +24572,7 @@ var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A WeChatPB \u8BBE\u8BA1\u4E00\u5957\u5FA
 \u8BF7\u4FDD\u6301\u8FD9\u4E9B\u517C\u5BB9\u89C4\u5219\uFF0C\u518D\u6839\u636E\u6211\u63A5\u4E0B\u6765\u63D0\u4F9B\u7684\u53C2\u8003\u56FE\u7247\u3001\u54C1\u724C\u989C\u8272\u6216\u6587\u7AE0\u7C7B\u578B\u5B8C\u6210\u89C6\u89C9\u8BBE\u8BA1\u3002`;
 
 // src/main.ts
-var FolderSuggestModal = class extends import_obsidian8.FuzzySuggestModal {
+var FolderSuggestModal = class extends import_obsidian11.FuzzySuggestModal {
   constructor(app, folderPaths, onChoose) {
     super(app);
     this.folderPaths = folderPaths;
@@ -21810,7 +24589,7 @@ var FolderSuggestModal = class extends import_obsidian8.FuzzySuggestModal {
     this.onChoose(item);
   }
 };
-var CustomThemeGuideModal = class extends import_obsidian8.Modal {
+var CustomThemeGuideModal = class extends import_obsidian11.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
@@ -21831,7 +24610,7 @@ var CustomThemeGuideModal = class extends import_obsidian8.Modal {
         window.setTimeout(() => copyButton.textContent = "\u590D\u5236\u7ED9 AI", 1800);
       } catch (error) {
         console.error("Failed to copy custom theme guide:", error);
-        new import_obsidian8.Notice("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u5728\u793A\u4F8B\u6846\u4E2D\u5168\u9009\u590D\u5236");
+        new import_obsidian11.Notice("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u5728\u793A\u4F8B\u6846\u4E2D\u5168\u9009\u590D\u5236");
       }
     };
     actions.createEl("button", { text: "\u5173\u95ED", cls: "mod-cancel" }).onclick = () => this.close();
@@ -21840,7 +24619,7 @@ var CustomThemeGuideModal = class extends import_obsidian8.Modal {
     this.contentEl.empty();
   }
 };
-var WeChatPublisherPlugin = class extends import_obsidian8.Plugin {
+var WeChatPublisherPlugin = class extends import_obsidian11.Plugin {
   constructor() {
     super(...arguments);
     this.statusCheckInterval = null;
@@ -21868,12 +24647,12 @@ var WeChatPublisherPlugin = class extends import_obsidian8.Plugin {
     this.stopAutoCheck();
   }
   async loadSettings() {
-    var _a, _b, _c;
+    var _a2, _b, _c;
     const saved = await this.loadData();
     this.settings = {
       ...DEFAULT_SETTINGS,
       ...saved != null ? saved : {},
-      accounts: (_a = saved == null ? void 0 : saved.accounts) != null ? _a : [],
+      accounts: (_a2 = saved == null ? void 0 : saved.accounts) != null ? _a2 : [],
       publishHistory: (_b = saved == null ? void 0 : saved.publishHistory) != null ? _b : [],
       customThemesEnabled: (_c = saved == null ? void 0 : saved.customThemesEnabled) != null ? _c : Boolean(saved == null ? void 0 : saved.themesFolder),
       defaultTheme: !(saved == null ? void 0 : saved.defaultTheme) || saved.defaultTheme === "\u9ED8\u8BA4" ? DEFAULT_BUILTIN_THEME : saved.defaultTheme
@@ -21888,8 +24667,8 @@ var WeChatPublisherPlugin = class extends import_obsidian8.Plugin {
     return `wechat-multi-publisher-${safeAccountId}-${kind}`;
   }
   getAppSecret(account) {
-    var _a;
-    return (_a = this.app.secretStorage.getSecret(account.appSecretId || this.secretId(account.id, "app-secret"))) != null ? _a : "";
+    var _a2;
+    return (_a2 = this.app.secretStorage.getSecret(account.appSecretId || this.secretId(account.id, "app-secret"))) != null ? _a2 : "";
   }
   getAccessToken(account) {
     const value = this.app.secretStorage.getSecret(account.accessTokenId || this.secretId(account.id, "access-token"));
@@ -21936,11 +24715,11 @@ var WeChatPublisherPlugin = class extends import_obsidian8.Plugin {
     };
   }
   deleteAccountSecrets(account) {
-    var _a;
+    var _a2;
     const ids = [
       account.appSecretId,
       account.accessTokenId,
-      (_a = account.proxyConfig) == null ? void 0 : _a.passwordSecretId
+      (_a2 = account.proxyConfig) == null ? void 0 : _a2.passwordSecretId
     ].filter((id) => Boolean(id));
     for (const id of ids) this.app.secretStorage.setSecret(id, "");
   }
@@ -22027,7 +24806,7 @@ var WeChatPublisherPlugin = class extends import_obsidian8.Plugin {
     }
   }
 };
-var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab {
+var WeChatPublisherSettingTab = class extends import_obsidian11.PluginSettingTab {
   constructor(app, plugin2) {
     super(app, plugin2);
     this.plugin = plugin2;
@@ -22035,24 +24814,41 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian8.Setting(containerEl).setName("\u6700\u5927\u5E76\u53D1\u53D1\u5E03\u6570").setDesc("\u540C\u65F6\u53D1\u5E03\u7684\u516C\u4F17\u53F7\u6570\u91CF").addSlider((slider) => slider.setLimits(1, 5, 1).setValue(this.plugin.settings.maxConcurrent).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian11.Setting(containerEl).setName("\u6700\u5927\u5E76\u53D1\u53D1\u5E03\u6570").setDesc("\u540C\u65F6\u53D1\u5E03\u7684\u516C\u4F17\u53F7\u6570\u91CF").addSlider((slider) => slider.setLimits(1, 5, 1).setValue(this.plugin.settings.maxConcurrent).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.maxConcurrent = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian8.Setting(containerEl).setName("\u6392\u9664\u7B14\u8BB0\u5C5E\u6027").setDesc("\u6392\u7248\u548C\u53D1\u5E03\u65F6\u4E0D\u5305\u542B YAML frontmatter").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFrontmatter).onChange(async (value) => {
+    new import_obsidian11.Setting(containerEl).setName("\u6392\u9664\u7B14\u8BB0\u5C5E\u6027").setDesc("\u6392\u7248\u548C\u53D1\u5E03\u65F6\u4E0D\u5305\u542B YAML frontmatter").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFrontmatter).onChange(async (value) => {
       this.plugin.settings.excludeFrontmatter = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian8.Setting(containerEl).setName("\u8349\u7A3F\u9ED8\u8BA4\u4FE1\u606F").setHeading();
-    new import_obsidian8.Setting(containerEl).setName("\u9ED8\u8BA4\u4F5C\u8005").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u4F5C\u8005\u680F\u7684\u9ED8\u8BA4\u503C\uFF1B\u7B14\u8BB0\u5C5E\u6027 wx_author\uFF08\u516C\u4F17\u53F7\u4F5C\u8005\uFF09\u4F18\u5148\u3002\u6700\u591A 8 \u4E2A\u5B57").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1ASerena \u6728\u74DC").setValue(this.plugin.settings.defaultAuthor).onChange(async (value) => {
+    new import_obsidian11.Setting(containerEl).setName("X \u63A8\u9001\uFF08Kaitox\uFF09").setHeading();
+    containerEl.createEl("p", {
+      cls: "setting-item-description",
+      text: "\u63A8\u9001\u5230 X \u9700\u8981\u672C\u5730\u8FD0\u884C Kaitox \u4E2D\u8F6C\u7A0B\u5E8F\uFF08\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon\uFF09\uFF0C\u5E76\u5728 Chrome \u5B89\u88C5 Kaitox \u6269\u5C55\u3001\u767B\u5F55 X\u3002"
+    });
+    new import_obsidian11.Setting(containerEl).setName("\u4E2D\u8F6C\u7A0B\u5E8F\u5730\u5740").setDesc("\u672C\u5730 Kaitox relay \u5730\u5740\uFF0C\u4E00\u822C\u662F http://127.0.0.1:8765").addText((text) => text.setPlaceholder("http://127.0.0.1:8765").setValue(this.plugin.settings.relayBase).onChange(async (value) => {
+      this.plugin.settings.relayBase = value.trim() || "http://127.0.0.1:8765";
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian11.Setting(containerEl).setName("\u4E2D\u8F6C\u4EE4\u724C\uFF08\u53EF\u9009\uFF09").setDesc("\u5982\u679C\u7ED9 relay \u914D\u4E86 token\uFF0C\u8FD9\u91CC\u586B\u4E00\u6837\u7684").addText((text) => text.setValue(this.plugin.settings.relayToken).onChange(async (value) => {
+      this.plugin.settings.relayToken = value.trim();
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian11.Setting(containerEl).setName("\u63A8\u9001\u540E\u6253\u5F00 X \u6587\u7AE0\u7F16\u8F91\u5668").setDesc("\u63A8\u9001\u6210\u529F\u540E\u81EA\u52A8\u5728\u6D4F\u89C8\u5668\u6253\u5F00 x.com \u6587\u7AE0\u7F16\u8F91\u5668\uFF0CKaitox \u6269\u5C55\u4F1A\u5728\u90A3\u91CC\u521B\u5EFA\u8349\u7A3F").addToggle((toggle) => toggle.setValue(this.plugin.settings.openXAfterPush).onChange(async (value) => {
+      this.plugin.settings.openXAfterPush = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian11.Setting(containerEl).setName("\u8349\u7A3F\u9ED8\u8BA4\u4FE1\u606F").setHeading();
+    new import_obsidian11.Setting(containerEl).setName("\u9ED8\u8BA4\u4F5C\u8005").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u4F5C\u8005\u680F\u7684\u9ED8\u8BA4\u503C\uFF1B\u7B14\u8BB0\u5C5E\u6027 wx_author\uFF08\u516C\u4F17\u53F7\u4F5C\u8005\uFF09\u4F18\u5148\u3002\u6700\u591A 8 \u4E2A\u5B57").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1ASerena \u6728\u74DC").setValue(this.plugin.settings.defaultAuthor).onChange(async (value) => {
       this.plugin.settings.defaultAuthor = value.trim();
       await this.plugin.saveSettings();
     }));
-    new import_obsidian8.Setting(containerEl).setName("\u9ED8\u8BA4\u5F00\u542F\u7559\u8A00").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u300C\u5F00\u542F\u7559\u8A00\u300D\u7684\u9ED8\u8BA4\u72B6\u6001\uFF1B\u7B14\u8BB0\u5C5E\u6027 comment \u4F18\u5148").addToggle((toggle) => toggle.setValue(this.plugin.settings.defaultOpenComment).onChange(async (value) => {
+    new import_obsidian11.Setting(containerEl).setName("\u9ED8\u8BA4\u5F00\u542F\u7559\u8A00").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u300C\u5F00\u542F\u7559\u8A00\u300D\u7684\u9ED8\u8BA4\u72B6\u6001\uFF1B\u7B14\u8BB0\u5C5E\u6027 comment \u4F18\u5148").addToggle((toggle) => toggle.setValue(this.plugin.settings.defaultOpenComment).onChange(async (value) => {
       this.plugin.settings.defaultOpenComment = value;
       await this.plugin.saveSettings();
     }));
-    const coverSetting = new import_obsidian8.Setting(containerEl).setName("\u9ED8\u8BA4\u5C01\u9762\u56FE\u7247").setDesc("\u6CA1\u6709\u4E34\u65F6\u5C01\u9762\u65F6\u4F7F\u7528\uFF0C\u6700\u5927 2 MB");
+    const coverSetting = new import_obsidian11.Setting(containerEl).setName("\u9ED8\u8BA4\u5C01\u9762\u56FE\u7247").setDesc("\u6CA1\u6709\u4E34\u65F6\u5C01\u9762\u65F6\u4F7F\u7528\uFF0C\u6700\u5927 2 MB");
     if (this.plugin.settings.defaultCoverImage) {
       coverSetting.addButton((button) => button.setButtonText("\u5220\u9664\u9ED8\u8BA4\u5C01\u9762").setWarning().onClick(async () => {
         this.plugin.settings.defaultCoverImage = "";
@@ -22066,22 +24862,22 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
     } else {
       coverSetting.addButton((button) => button.setButtonText("\u4E0A\u4F20\u9ED8\u8BA4\u5C01\u9762").onClick(() => this.chooseDefaultCover()));
     }
-    new import_obsidian8.Setting(containerEl).setName("\u81EA\u52A8\u68C0\u6D4B\u95F4\u9694\uFF08\u5C0F\u65F6\uFF09").setDesc("\u81EA\u52A8\u68C0\u6D4B Access Token \u72B6\u6001\u7684\u65F6\u95F4\u95F4\u9694").addSlider((slider) => slider.setLimits(1, 24, 1).setValue(this.plugin.settings.autoCheckInterval / 36e5).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian11.Setting(containerEl).setName("\u81EA\u52A8\u68C0\u6D4B\u95F4\u9694\uFF08\u5C0F\u65F6\uFF09").setDesc("\u81EA\u52A8\u68C0\u6D4B Access Token \u72B6\u6001\u7684\u65F6\u95F4\u95F4\u9694").addSlider((slider) => slider.setLimits(1, 24, 1).setValue(this.plugin.settings.autoCheckInterval / 36e5).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.autoCheckInterval = value * 36e5;
       await this.plugin.saveSettings();
       this.plugin.startAutoCheck();
     }));
-    new import_obsidian8.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
-    new import_obsidian8.Setting(containerEl).setName("Memoria \u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 14 \u5957\u4F18\u5316\u6392\u7248\uFF0C\u65B0\u7528\u6237\u65E0\u9700\u9009\u62E9\u6587\u4EF6\u5939\u6216\u4FDD\u5B58\u5E94\u7528\uFF0C\u9ED8\u8BA4\u4F7F\u7528\u201C\u7EFF\u767D\u6E05\u7B80\u201D\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
-    new import_obsidian8.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A Memoria \u5185\u7F6E\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
+    new import_obsidian11.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
+    new import_obsidian11.Setting(containerEl).setName("Memoria \u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 14 \u5957\u4F18\u5316\u6392\u7248\uFF0C\u65B0\u7528\u6237\u65E0\u9700\u9009\u62E9\u6587\u4EF6\u5939\u6216\u4FDD\u5B58\u5E94\u7528\uFF0C\u9ED8\u8BA4\u4F7F\u7528\u201C\u7EFF\u767D\u6E05\u7B80\u201D\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
+    new import_obsidian11.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A Memoria \u5185\u7F6E\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
       this.plugin.settings.customThemesEnabled = enabled;
       await this.plugin.saveSettings();
       await this.refreshPublisherViews();
       this.display();
     }));
     if (this.plugin.settings.customThemesEnabled) {
-      new import_obsidian8.Setting(containerEl).setName("\u81EA\u5B9A\u4E49\u6837\u5F0F\u6587\u4EF6\u5939").setDesc("\u9009\u62E9\u5E93\u5185\u5305\u542B .css \u6587\u4EF6\u6216 css \u4EE3\u7801\u5757 Markdown \u7684\u6587\u4EF6\u5939\u3002\u9009\u62E9\u540E\u7ACB\u5373\u4FDD\u5B58\u5E76\u5E94\u7528\u3002").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1Astyles/wechat").setValue(this.plugin.settings.themesFolder).onChange((value) => {
-        this.plugin.settings.themesFolder = (0, import_obsidian8.normalizePath)(value);
+      new import_obsidian11.Setting(containerEl).setName("\u81EA\u5B9A\u4E49\u6837\u5F0F\u6587\u4EF6\u5939").setDesc("\u9009\u62E9\u5E93\u5185\u5305\u542B .css \u6587\u4EF6\u6216 css \u4EE3\u7801\u5757 Markdown \u7684\u6587\u4EF6\u5939\u3002\u9009\u62E9\u540E\u7ACB\u5373\u4FDD\u5B58\u5E76\u5E94\u7528\u3002").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1Astyles/wechat").setValue(this.plugin.settings.themesFolder).onChange((value) => {
+        this.plugin.settings.themesFolder = (0, import_obsidian11.normalizePath)(value);
       })).addButton((button) => button.setButtonText("\u9009\u62E9\u6587\u4EF6\u5939").onClick(() => {
         const folders = this.getAllFolders(this.app.vault.getRoot());
         const folderPaths = folders.map((folder) => folder.path).sort();
@@ -22090,21 +24886,21 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
           await this.plugin.saveSettings();
           await this.refreshPublisherViews();
           this.display();
-          new import_obsidian8.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u52A0\u8F7D");
+          new import_obsidian11.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u52A0\u8F7D");
         }).open();
       })).addButton((button) => button.setButtonText("\u5E94\u7528\u8DEF\u5F84").setCta().onClick(async () => {
         await this.plugin.saveSettings();
         await this.refreshPublisherViews();
-        new import_obsidian8.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
+        new import_obsidian11.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
       }));
     }
-    new import_obsidian8.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
-    new import_obsidian8.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
+    new import_obsidian11.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
+    new import_obsidian11.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, null, async (account) => {
         this.plugin.settings.accounts.push(account);
         await this.plugin.saveSettings();
         this.display();
-        new import_obsidian8.Notice(`\u8D26\u53F7 "${account.name}" \u6DFB\u52A0\u6210\u529F`);
+        new import_obsidian11.Notice(`\u8D26\u53F7 "${account.name}" \u6DFB\u52A0\u6210\u529F`);
       });
       modal.open();
     }));
@@ -22113,14 +24909,14 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
     }
   }
   async refreshPublisherViews() {
-    var _a;
+    var _a2;
     const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER);
     for (const leaf of leaves) {
       const view = leaf.view;
       view.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
       view.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
       await view.themeManager.loadThemes();
-      const selected = (_a = view.themeManager.getTheme(view.selectedTheme)) != null ? _a : view.themeManager.getDefaultTheme();
+      const selected = (_a2 = view.themeManager.getTheme(view.selectedTheme)) != null ? _a2 : view.themeManager.getDefaultTheme();
       view.selectedTheme = selected.name;
       view.render();
     }
@@ -22130,17 +24926,17 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
     input.type = "file";
     input.accept = "image/jpeg,image/png";
     input.onchange = () => {
-      var _a;
-      const file = (_a = input.files) == null ? void 0 : _a[0];
+      var _a2;
+      const file = (_a2 = input.files) == null ? void 0 : _a2[0];
       if (!file) return;
       if (file.size > 2 * 1024 * 1024) {
-        new import_obsidian8.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2 MB");
+        new import_obsidian11.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2 MB");
         return;
       }
       const reader = new FileReader();
       reader.onload = async () => {
-        var _a2;
-        this.plugin.settings.defaultCoverImage = String((_a2 = reader.result) != null ? _a2 : "");
+        var _a3;
+        this.plugin.settings.defaultCoverImage = String((_a3 = reader.result) != null ? _a3 : "");
         await this.plugin.saveSettings();
         this.display();
       };
@@ -22151,7 +24947,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
   displayAccountSetting(containerEl, account) {
     const accountDiv = containerEl.createDiv({ cls: "wechat-account-item" });
     const statusIcon = account.status === "online" ? "\u2705" : account.status === "expired" ? "\u26A0\uFE0F" : "\u274C";
-    new import_obsidian8.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
+    new import_obsidian11.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, account, async (updatedAccount) => {
         const index = this.plugin.settings.accounts.findIndex((a) => a.id === account.id);
         if (index !== -1) {
@@ -22162,14 +24958,14 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
       });
       modal.open();
     })).addButton((button) => button.setButtonText("\u5237\u65B0").onClick(async () => {
-      new import_obsidian8.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
+      new import_obsidian11.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
       await this.plugin.checkAccountStatus(account);
       await this.plugin.saveSettings();
       this.display();
       if (account.status === "online") {
-        new import_obsidian8.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
+        new import_obsidian11.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
       } else {
-        new import_obsidian8.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
+        new import_obsidian11.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
       }
     })).addButton((button) => button.setButtonText("\u5220\u9664").setWarning().onClick(async () => {
       if (confirm(`\u786E\u5B9A\u8981\u5220\u9664\u8D26\u53F7 "${account.name}" \u5417\uFF1F`)) {
@@ -22177,7 +24973,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian8.PluginSettingTab 
         this.plugin.settings.accounts = this.plugin.settings.accounts.filter((a) => a.id !== account.id);
         await this.plugin.saveSettings();
         this.display();
-        new import_obsidian8.Notice(`\u8D26\u53F7 "${account.name}" \u5DF2\u5220\u9664`);
+        new import_obsidian11.Notice(`\u8D26\u53F7 "${account.name}" \u5DF2\u5220\u9664`);
       }
     }));
   }

@@ -55,6 +55,11 @@ export interface PluginSettings {
 	defaultCoverImage: string;
 	defaultAuthor: string;        // 草稿默认作者
 	defaultOpenComment: boolean;  // 草稿默认开启留言
+	// X 推送（Kaitox）
+	relayBase: string;
+	relayToken: string;
+	openXAfterPush: boolean;
+	xSelected: boolean;           // 侧边栏是否勾选「X 文章草稿」
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -68,7 +73,11 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	excludeFrontmatter: false,
 	defaultCoverImage: '',
 	defaultAuthor: '',
-	defaultOpenComment: false
+	defaultOpenComment: false,
+	relayBase: 'http://127.0.0.1:8765',
+	relayToken: '',
+	openXAfterPush: true,
+	xSelected: false
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */

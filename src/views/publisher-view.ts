@@ -7,6 +7,11 @@ import { MarkedFormatter } from '../utils/formatter';
 import { ThemeManager } from '../utils/theme-manager';
 import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
 import { compressImage } from '../utils/image';
+import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
+import { XPreviewModal } from '../x/x-preview-modal';
+
+/** 发布进度里 X 渠道使用的伪账号 id */
+const X_TARGET_ID = '__x_article__';
 
 export const VIEW_TYPE_PUBLISHER = 'wechat-multi-publisher-view';
 
@@ -21,6 +26,8 @@ export class PublisherView extends ItemView {
 	autoCoverDismissed: Set<string> = new Set();
 	currentFile: TFile | null = null;
 	private autoCoverSeq = 0;
+	/** Kaitox 中转程序是否在线（null = 还没检测） */
+	relayOnline: boolean | null = null;
 	publishProgress: Map<string, PublishProgress> = new Map();
 	isPublishing: boolean = false;
 	selectedTheme: string = '绿白清简';     // 当前选中的主题
@@ -71,8 +78,22 @@ export class PublisherView extends ItemView {
 		}));
 
 		this.render();
+		void this.checkRelay();
+		this.registerInterval(window.setInterval(() => void this.checkRelay(), 15000));
 		const initial = this.app.workspace.getActiveFile();
 		if (initial && initial.extension === 'md') void this.setCurrentFile(initial);
+	}
+
+	async checkRelay() {
+		const online = await isRelayUp(this.plugin.settings);
+		if (online !== this.relayOnline) {
+			this.relayOnline = online;
+			if (!this.isPublishing) this.render();
+		}
+	}
+
+	get xSelected(): boolean {
+		return this.plugin.settings.xSelected;
 	}
 
 	async setCurrentFile(file: TFile) {
@@ -143,14 +164,10 @@ export class PublisherView extends ItemView {
 		section.createEl('h4', { text: '选择账号' });
 
 		if (this.plugin.settings.accounts.length === 0) {
-			// 清空发布相关状态
-			this.publishProgress.clear();
-			this.publishSummary = null;
 			this.selectedAccountIds.clear();
-
-			// Only show selected count when no accounts
-			const selectedCount = section.createDiv({ cls: 'selected-count' });
-			selectedCount.textContent = `已选择：0 个账号`;
+			section.createDiv({ cls: 'account-remark', text: '还没有公众号账号，可在插件设置里添加' });
+			this.renderXItem(section);
+			this.renderSelectedCount(section);
 			return;
 		}
 
@@ -178,9 +195,36 @@ export class PublisherView extends ItemView {
 			this.renderAccountItem(accountList, account);
 		}
 
-		// Selected count
-		const selectedCount = section.createDiv({ cls: 'selected-count' });
-		selectedCount.textContent = `已选择：${this.selectedAccountIds.size} 个账号`;
+		this.renderXItem(accountList);
+		this.renderSelectedCount(section);
+	}
+
+	renderSelectedCount(section: HTMLElement) {
+		const parts = [`${this.selectedAccountIds.size} 个公众号`];
+		if (this.xSelected) parts.push('X');
+		section.createDiv({ cls: 'selected-count', text: `已选择：${parts.join(' + ')}` });
+	}
+
+	/** 「X 文章草稿」选项（通过 Kaitox 中转推送） */
+	renderXItem(container: HTMLElement) {
+		const item = container.createDiv({ cls: 'account-item wechatpb-x-item' });
+		const checkbox = item.createEl('input', { type: 'checkbox' });
+		checkbox.checked = this.xSelected;
+		checkbox.onchange = async () => {
+			this.plugin.settings.xSelected = checkbox.checked;
+			await this.plugin.saveSettings();
+			this.render();
+		};
+		const label = item.createDiv({ cls: 'account-label' });
+		const dot = label.createSpan({ cls: 'wechatpb-relay-dot' });
+		const online = this.relayOnline;
+		dot.addClass(online === null ? 'is-unknown' : online ? 'is-on' : 'is-off');
+		dot.setAttr('aria-label', online ? 'Kaitox 中转已连接' : 'Kaitox 中转未连接');
+		label.createSpan({ cls: 'account-name', text: 'X 文章草稿' });
+		label.createDiv({
+			cls: 'account-remark',
+			text: online === null ? '正在检测 Kaitox 中转…' : online ? 'Kaitox 中转已连接' : 'Kaitox 中转未运行：终端执行 kaitox relay --daemon'
+		});
 	}
 
 	renderAccountItem(container: HTMLElement, account: WeChatAccount) {
@@ -414,12 +458,15 @@ export class PublisherView extends ItemView {
 		const previewBtn = section.createEl('button', { text: '预览', cls: 'preview-btn' });
 		previewBtn.onclick = () => this.handlePreview();
 
+		const xPreviewBtn = section.createEl('button', { text: 'X 预览' });
+		xPreviewBtn.onclick = () => this.handleXPreview();
+
 		const exportBtn = section.createEl('button', { text: '导出长图' });
 		exportBtn.onclick = () => this.handleExportLongImage();
 
 		// Publish button
 		const publishBtn = section.createEl('button', { text: '发布到草稿箱', cls: 'publish-btn' });
-		publishBtn.disabled = this.selectedAccountIds.size === 0 || this.isPublishing;
+		publishBtn.disabled = (this.selectedAccountIds.size === 0 && !this.xSelected) || this.isPublishing;
 		publishBtn.onclick = () => this.handlePublish();
 	}
 
@@ -430,7 +477,9 @@ export class PublisherView extends ItemView {
 		const progressList = section.createDiv({ cls: 'progress-list' });
 
 		for (const [accountId, progress] of this.publishProgress) {
-			const account = this.plugin.settings.accounts.find(a => a.id === accountId);
+			const account = accountId === X_TARGET_ID
+				? { name: 'X 文章草稿' }
+				: this.plugin.settings.accounts.find(a => a.id === accountId);
 			if (!account) continue;
 
 			const item = progressList.createDiv({ cls: 'progress-item' });
@@ -723,8 +772,9 @@ export class PublisherView extends ItemView {
 			new Notice('请先打开一个笔记');
 			return;
 		}
-		if (this.selectedAccountIds.size === 0) {
-			new Notice('请先勾选至少一个公众号');
+		const wantX = this.xSelected;
+		if (this.selectedAccountIds.size === 0 && !wantX) {
+			new Notice('请先勾选至少一个公众号或 X');
 			return;
 		}
 		if (this.isPublishing) return;
@@ -732,7 +782,12 @@ export class PublisherView extends ItemView {
 		// 发布前确认：标题 / 作者 / 摘要 / 封面 / 留言
 		const loading = new Notice('正在准备草稿信息…', 0);
 		let draft: DraftMeta | null;
+		let xPrepared: XPrepared | null = null;
 		try {
+			if (wantX) {
+				xPrepared = await prepareXDraft(this.app, file);
+				this.relayOnline = await isRelayUp(this.plugin.settings);
+			}
 			const { meta, coverSource } = await buildDraftDefaults(this.app, {
 				file,
 				markdown: this.removeFrontmatter(content),
@@ -748,7 +803,10 @@ export class PublisherView extends ItemView {
 			const accountNames = this.plugin.settings.accounts
 				.filter(a => this.selectedAccountIds.has(a.id))
 				.map(a => a.name);
-			draft = await new DraftConfirmModal(this.app, meta, coverSource, accountNames).openAndWait();
+			draft = await new DraftConfirmModal(
+				this.app, meta, coverSource, accountNames,
+				xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : undefined
+			).openAndWait();
 		} catch (error) {
 			loading.hide();
 			new Notice(`准备草稿失败：${error instanceof Error ? error.message : error}`);
@@ -773,8 +831,12 @@ export class PublisherView extends ItemView {
 				status: 'pending'
 			});
 		}
+		if (xPrepared) this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'pending' });
 
 		this.render();
+
+		// X 与公众号并行推送
+		const xPromise = xPrepared ? this.publishToX(file, xPrepared, draft) : Promise.resolve(null);
 
 		// Get custom CSS from selected theme
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
@@ -804,6 +866,11 @@ export class PublisherView extends ItemView {
 			}
 		}
 
+		const xResult = await xPromise;
+		if (xResult) {
+			if (xResult.success) successCount++; else failCount++;
+		}
+
 		this.isPublishing = false;
 
 		// 保存汇总信息
@@ -820,7 +887,7 @@ export class PublisherView extends ItemView {
 		this.plugin.settings.publishHistory.unshift({
 			time: new Date().toISOString(),
 			articleTitle: title,
-			accountIds: accountIds,
+			accountIds: xPrepared ? [...accountIds, X_TARGET_ID] : accountIds,
 			successCount,
 			failCount
 		});
@@ -909,6 +976,47 @@ export class PublisherView extends ItemView {
 		}
 
 		return processedContent;
+	}
+
+	async publishToX(file: TFile, prepared: XPrepared, draft: DraftMeta) {
+		const start = Date.now();
+		this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'publishing' });
+		this.render();
+		try {
+			await pushXDraft(this.app, this.plugin.settings, file, prepared, {
+				title: draft.title,
+				coverDataUrl: draft.coverBase64 || undefined
+			});
+			const duration = Date.now() - start;
+			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'success', duration });
+			this.render();
+			return { success: true };
+		} catch (error) {
+			const duration = Date.now() - start;
+			const msg = error instanceof Error ? error.message : String(error);
+			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'failed', duration, error: msg });
+			this.render();
+			return { success: false };
+		}
+	}
+
+	async handleXPreview() {
+		const file = this.currentFile ?? this.app.workspace.getActiveFile();
+		if (!file || file.extension !== 'md') {
+			new Notice('请先打开一篇 Markdown 笔记');
+			return;
+		}
+		const loading = new Notice('正在生成 X 预览…', 0);
+		try {
+			const prepared = await prepareXDraft(this.app, file);
+			const cover = this.coverImage?.base64
+				?? (this.autoCover?.filePath === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : undefined);
+			loading.hide();
+			new XPreviewModal(this.app, prepared.resolved, prepared.report, prepared.resolved.title, cover).open();
+		} catch (error) {
+			loading.hide();
+			new Notice(`X 预览失败：${error instanceof Error ? error.message : error}`);
+		}
 	}
 
 	async publishToAccount(accountId: string, draft: DraftMeta, content: string) {
