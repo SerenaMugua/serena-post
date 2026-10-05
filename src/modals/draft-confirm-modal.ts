@@ -129,10 +129,36 @@ function fmBool(fm: Record<string, any> | undefined, keys: string[]): boolean | 
 	return undefined;
 }
 
+/**
+ * 自动识别笔记封面：笔记属性 cover > 正文第一张图片
+ */
+export async function detectCover(app: App, file: TFile, markdown: string, notifyMissing = false): Promise<{ base64: string; source: string } | null> {
+	const fm = app.metadataCache.getFileCache(file)?.frontmatter as Record<string, any> | undefined;
+	const fmCover = fmString(fm, ['cover', '封面', 'banner', 'image']);
+	if (fmCover) {
+		const base64 = await resolveImageRef(app, fmCover, file.path);
+		if (base64) return { base64, source: '笔记属性 cover' };
+		if (notifyMissing) new Notice(`笔记属性里的封面「${fmCover}」没找到，已改用其他封面`);
+	}
+	const body = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
+	const first = findFirstImageRef(body);
+	if (first) {
+		const base64 = await resolveImageRef(app, first, file.path);
+		if (base64) return { base64, source: '正文第一张图片' };
+	}
+	return null;
+}
+
 export interface DraftDefaultsInput {
 	file: TFile;
 	markdown: string;
+	/** 侧边栏手动上传的封面（最优先） */
 	panelCoverBase64?: string;
+	/** 侧边栏已自动识别好的封面，避免重复下载 */
+	autoCoverBase64?: string;
+	autoCoverSource?: string;
+	/** 用户在侧边栏移除了自动封面，则不再自动识别 */
+	skipAutoDetect?: boolean;
 	defaultCoverBase64?: string;
 	defaultAuthor: string;
 	defaultOpenComment: boolean;
@@ -140,7 +166,7 @@ export interface DraftDefaultsInput {
 
 /**
  * 计算弹窗默认值：笔记属性 > 侧边栏/设置 > 自动推断
- * 封面优先级：属性 cover > 侧边栏临时封面 > 正文第一张图 > 设置里的默认封面
+ * 封面优先级：侧边栏手动上传 > 属性 cover > 正文第一张图 > 设置里的默认封面
  */
 export async function buildDraftDefaults(app: App, input: DraftDefaultsInput): Promise<{ meta: DraftMeta; coverSource: string }> {
 	const fm = app.metadataCache.getFileCache(input.file)?.frontmatter as Record<string, any> | undefined;
@@ -153,21 +179,17 @@ export async function buildDraftDefaults(app: App, input: DraftDefaultsInput): P
 
 	let coverBase64 = '';
 	let coverSource = '';
-	const fmCover = fmString(fm, ['cover', '封面', 'banner', 'image']);
-	if (fmCover) {
-		coverBase64 = (await resolveImageRef(app, fmCover, input.file.path)) ?? '';
-		coverSource = coverBase64 ? '笔记属性 cover' : '';
-		if (!coverBase64) new Notice(`笔记属性里的封面「${fmCover}」没找到，已改用其他封面`);
-	}
-	if (!coverBase64 && input.panelCoverBase64) {
+	if (input.panelCoverBase64) {
 		coverBase64 = input.panelCoverBase64;
 		coverSource = '侧边栏上传的封面';
-	}
-	if (!coverBase64) {
-		const first = findFirstImageRef(input.markdown);
-		if (first) {
-			coverBase64 = (await resolveImageRef(app, first, input.file.path)) ?? '';
-			if (coverBase64) coverSource = '正文第一张图片';
+	} else if (input.autoCoverBase64) {
+		coverBase64 = input.autoCoverBase64;
+		coverSource = input.autoCoverSource || '自动识别';
+	} else if (!input.skipAutoDetect) {
+		const detected = await detectCover(app, input.file, input.markdown, true);
+		if (detected) {
+			coverBase64 = detected.base64;
+			coverSource = detected.source;
 		}
 	}
 	if (!coverBase64 && input.defaultCoverBase64) {

@@ -694,3 +694,18 @@
 	border-radius: 6px;
 	border: 1px solid var(--background-modifier-border);
 }
+
+/* 侧边栏自动识别封面 */
+.wechat-multi-publisher-view .cover-source-hint {
+	color: var(--text-muted);
+	font-size: var(--font-ui-small);
+	margin-bottom: 8px;
+}
+.wechat-multi-publisher-view .cover-source-hint a {
+	margin-left: 4px;
+}
+.wechat-multi-publisher-view .cover-actions {
+	margin-top: 8px;
+	display: flex;
+	justify-content: flex-end;
+}

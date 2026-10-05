@@ -17523,8 +17523,25 @@ function fmBool(fm, keys) {
   }
   return void 0;
 }
+async function detectCover(app, file, markdown, notifyMissing = false) {
+  var _a;
+  const fm = (_a = app.metadataCache.getFileCache(file)) == null ? void 0 : _a.frontmatter;
+  const fmCover = fmString(fm, ["cover", "\u5C01\u9762", "banner", "image"]);
+  if (fmCover) {
+    const base64 = await resolveImageRef(app, fmCover, file.path);
+    if (base64) return { base64, source: "\u7B14\u8BB0\u5C5E\u6027 cover" };
+    if (notifyMissing) new import_obsidian.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
+  }
+  const body = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+  const first = findFirstImageRef(body);
+  if (first) {
+    const base64 = await resolveImageRef(app, first, file.path);
+    if (base64) return { base64, source: "\u6B63\u6587\u7B2C\u4E00\u5F20\u56FE\u7247" };
+  }
+  return null;
+}
 async function buildDraftDefaults(app, input) {
-  var _a, _b, _c, _d;
+  var _a, _b;
   const fm = (_a = app.metadataCache.getFileCache(input.file)) == null ? void 0 : _a.frontmatter;
   const title = fmString(fm, ["title", "\u6807\u9898"]) || input.file.basename;
   const author = fmString(fm, ["author", "\u4F5C\u8005"]) || input.defaultAuthor;
@@ -17533,21 +17550,17 @@ async function buildDraftDefaults(app, input) {
   const openComment = (_b = fmBool(fm, ["comment", "open_comment", "\u7559\u8A00"])) != null ? _b : input.defaultOpenComment;
   let coverBase64 = "";
   let coverSource = "";
-  const fmCover = fmString(fm, ["cover", "\u5C01\u9762", "banner", "image"]);
-  if (fmCover) {
-    coverBase64 = (_c = await resolveImageRef(app, fmCover, input.file.path)) != null ? _c : "";
-    coverSource = coverBase64 ? "\u7B14\u8BB0\u5C5E\u6027 cover" : "";
-    if (!coverBase64) new import_obsidian.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
-  }
-  if (!coverBase64 && input.panelCoverBase64) {
+  if (input.panelCoverBase64) {
     coverBase64 = input.panelCoverBase64;
     coverSource = "\u4FA7\u8FB9\u680F\u4E0A\u4F20\u7684\u5C01\u9762";
-  }
-  if (!coverBase64) {
-    const first = findFirstImageRef(input.markdown);
-    if (first) {
-      coverBase64 = (_d = await resolveImageRef(app, first, input.file.path)) != null ? _d : "";
-      if (coverBase64) coverSource = "\u6B63\u6587\u7B2C\u4E00\u5F20\u56FE\u7247";
+  } else if (input.autoCoverBase64) {
+    coverBase64 = input.autoCoverBase64;
+    coverSource = input.autoCoverSource || "\u81EA\u52A8\u8BC6\u522B";
+  } else if (!input.skipAutoDetect) {
+    const detected = await detectCover(app, input.file, input.markdown, true);
+    if (detected) {
+      coverBase64 = detected.base64;
+      coverSource = detected.source;
     }
   }
   if (!coverBase64 && input.defaultCoverBase64) {
@@ -20601,6 +20614,13 @@ var PublisherView = class extends import_obsidian6.ItemView {
     super(leaf);
     this.selectedAccountIds = /* @__PURE__ */ new Set();
     this.coverImage = null;
+    /** 当前笔记自动识别出的封面（笔记属性 cover 或正文第一张图） */
+    this.autoCover = null;
+    this.autoCoverLoading = false;
+    /** 用户手动移除了自动封面的笔记 */
+    this.autoCoverDismissed = /* @__PURE__ */ new Set();
+    this.currentFile = null;
+    this.autoCoverSeq = 0;
     this.publishProgress = /* @__PURE__ */ new Map();
     this.isPublishing = false;
     this.selectedTheme = "\u7EFF\u767D\u6E05\u7B80";
@@ -20632,7 +20652,47 @@ var PublisherView = class extends import_obsidian6.ItemView {
       this.plugin.settings.defaultTheme = initialTheme.name;
       await this.plugin.saveSettings();
     }
+    this.registerEvent(this.app.workspace.on("file-open", (file) => {
+      if (file && file.extension === "md") void this.setCurrentFile(file);
+    }));
+    this.registerEvent(this.app.metadataCache.on("changed", (file) => {
+      if (this.currentFile && file.path === this.currentFile.path) void this.refreshAutoCover(true);
+    }));
     this.render();
+    const initial = this.app.workspace.getActiveFile();
+    if (initial && initial.extension === "md") void this.setCurrentFile(initial);
+  }
+  async setCurrentFile(file) {
+    var _a;
+    if (((_a = this.currentFile) == null ? void 0 : _a.path) === file.path) return;
+    this.currentFile = file;
+    this.coverImage = null;
+    await this.refreshAutoCover(false);
+  }
+  async refreshAutoCover(silent) {
+    var _a, _b;
+    const file = this.currentFile;
+    const seq = ++this.autoCoverSeq;
+    if (!file) return;
+    if (!silent) {
+      this.autoCover = null;
+      this.autoCoverLoading = true;
+      this.render();
+    }
+    try {
+      const markdown = await this.app.vault.cachedRead(file);
+      const detected = await detectCover(this.app, file, markdown);
+      if (seq !== this.autoCoverSeq) return;
+      const prev = (_a = this.autoCover) == null ? void 0 : _a.base64;
+      this.autoCover = detected ? { filePath: file.path, ...detected } : null;
+      this.autoCoverLoading = false;
+      if (!silent || prev !== ((_b = this.autoCover) == null ? void 0 : _b.base64)) this.render();
+    } catch (error) {
+      console.error("[WeChatPB] \u81EA\u52A8\u8BC6\u522B\u5C01\u9762\u5931\u8D25", error);
+      if (seq !== this.autoCoverSeq) return;
+      this.autoCoverLoading = false;
+      this.render();
+    }
   }
   async onClose() {
   }
@@ -20753,22 +20813,60 @@ var PublisherView = class extends import_obsidian6.ItemView {
     });
   }
   renderCoverUpload(container) {
+    var _a, _b;
     const section = container.createDiv({ cls: "cover-upload-section" });
-    section.createEl("h4", { text: "\u5C01\u9762\u56FE\u7247\uFF08\u53D1\u5E03\u65F6\u53EF\u5728\u786E\u8BA4\u5F39\u7A97\u66F4\u6362\uFF09" });
-    if (this.coverImage) {
+    section.createEl("h4", { text: "\u5C01\u9762\u56FE\u7247" });
+    const file = this.currentFile;
+    const auto = this.autoCover && file && this.autoCover.filePath === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover : null;
+    if (!this.coverImage && !auto && this.autoCoverLoading) {
+      section.createDiv({ cls: "cover-source-hint", text: "\u6B63\u5728\u8BC6\u522B\u6587\u7AE0\u91CC\u7684\u7B2C\u4E00\u5F20\u56FE\u7247\u2026" });
+    }
+    if (this.coverImage || auto) {
+      const src = (_b = (_a = this.coverImage) == null ? void 0 : _a.base64) != null ? _b : auto.base64;
+      section.createDiv({
+        cls: "cover-source-hint",
+        text: this.coverImage ? "\u5DF2\u624B\u52A8\u4E0A\u4F20\u5C01\u9762" : `\u5DF2\u81EA\u52A8\u4F7F\u7528${auto.source}\u4F5C\u4E3A\u5C01\u9762`
+      });
       const preview = section.createDiv({ cls: "cover-preview" });
       const img = preview.createEl("img");
-      if (this.coverImage.base64) {
-        img.src = this.coverImage.base64;
-      } else if (this.coverImage.path) {
-        img.alt = "\u5C01\u9762\u56FE\u7247";
-      }
+      img.src = src;
+      img.alt = "\u5C01\u9762\u56FE\u7247";
       const removeBtn = preview.createEl("button", { text: "\xD7", cls: "remove-cover" });
+      removeBtn.setAttr("aria-label", "\u79FB\u9664\u5C01\u9762");
       removeBtn.onclick = () => {
-        this.coverImage = null;
+        if (this.coverImage) {
+          this.coverImage = null;
+        } else if (file) {
+          this.autoCoverDismissed.add(file.path);
+        }
         this.render();
       };
-    } else {
+      const actions = section.createDiv({ cls: "cover-actions" });
+      const replaceBtn = actions.createEl("button", { text: "\u66F4\u6362\u5C01\u9762" });
+      const fileInput = actions.createEl("input", { type: "file", cls: "hidden-input" });
+      fileInput.accept = "image/jpeg,image/png";
+      fileInput.onchange = async (e) => {
+        var _a2;
+        const picked = (_a2 = e.target.files) == null ? void 0 : _a2[0];
+        if (picked) await this.handleFileUpload(picked);
+      };
+      replaceBtn.onclick = () => fileInput.click();
+    } else if (file && this.autoCoverDismissed.has(file.path) && !this.autoCoverLoading) {
+      const restore = section.createDiv({ cls: "cover-source-hint" });
+      restore.setText("\u5DF2\u79FB\u9664\u81EA\u52A8\u5C01\u9762\u3002");
+      const link = restore.createEl("a", { text: "\u6062\u590D\u81EA\u52A8\u8BC6\u522B", href: "#" });
+      link.onclick = (e) => {
+        e.preventDefault();
+        this.autoCoverDismissed.delete(file.path);
+        this.render();
+      };
+      this.renderCoverDropArea(section);
+    } else if (!this.autoCoverLoading) {
+      this.renderCoverDropArea(section);
+    }
+  }
+  renderCoverDropArea(section) {
+    {
       const uploadArea = section.createDiv({ cls: "cover-upload-area" });
       const placeholder = uploadArea.createDiv({ cls: "upload-placeholder" });
       placeholder.createEl("p", { text: "\u70B9\u51FB\u6216\u62D6\u62FD\u4E0A\u4F20" });
@@ -21045,7 +21143,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
     return content;
   }
   async handlePublish() {
-    var _a, _b;
+    var _a, _b, _c, _d;
     let activeView = this.app.workspace.getActiveViewOfType(import_obsidian6.MarkdownView);
     if (!activeView) {
       const leaves = this.app.workspace.getLeavesOfType("markdown");
@@ -21079,6 +21177,9 @@ var PublisherView = class extends import_obsidian6.ItemView {
         file,
         markdown: this.removeFrontmatter(content),
         panelCoverBase64: (_a = this.coverImage) == null ? void 0 : _a.base64,
+        autoCoverBase64: ((_b = this.autoCover) == null ? void 0 : _b.filePath) === file.path ? this.autoCover.base64 : void 0,
+        autoCoverSource: ((_c = this.autoCover) == null ? void 0 : _c.filePath) === file.path ? this.autoCover.source : void 0,
+        skipAutoDetect: this.autoCoverDismissed.has(file.path),
         defaultCoverBase64: this.plugin.settings.defaultCoverImage,
         defaultAuthor: this.plugin.settings.defaultAuthor,
         defaultOpenComment: this.plugin.settings.defaultOpenComment
@@ -21105,7 +21206,7 @@ var PublisherView = class extends import_obsidian6.ItemView {
       });
     }
     this.render();
-    const theme = (_b = this.themeManager.getTheme(this.selectedTheme)) != null ? _b : this.themeManager.getDefaultTheme();
+    const theme = (_d = this.themeManager.getTheme(this.selectedTheme)) != null ? _d : this.themeManager.getDefaultTheme();
     const customCSS = theme.css;
     const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
     const accountIds = Array.from(this.selectedAccountIds);
@@ -21176,6 +21277,31 @@ var PublisherView = class extends import_obsidian6.ItemView {
         console.error(`[UploadImages] Failed to upload image ${i + 1}:`, error);
         new import_obsidian6.Notice(`\u7B2C ${i + 1} \u5F20\u6B63\u6587\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${error instanceof Error ? error.message : error}`, 8e3);
       }
+    }
+    const remoteRegex = /<img[^>]+src="(https?:\/\/[^"]+)"[^>]*>/g;
+    const remoteMatches = Array.from(processedContent.matchAll(remoteRegex));
+    const uploaded = /* @__PURE__ */ new Map();
+    for (let i = 0; i < remoteMatches.length; i++) {
+      const rawSrc = remoteMatches[i][1];
+      if (/^https?:\/\/mmbiz\.(qpic|qlogo)\.cn\//i.test(rawSrc) || uploaded.has(rawSrc)) continue;
+      const url = rawSrc.replace(/&amp;/g, "&");
+      try {
+        const dataUrl = await resolveImageRef(this.app, url, "");
+        if (!dataUrl) throw new Error("\u56FE\u7247\u4E0B\u8F7D\u5931\u8D25");
+        const [header, b64] = dataUrl.split(",");
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+        const ext = header.includes("image/png") ? "png" : "jpg";
+        const result = await uploadImage(bytes.buffer, `remote_${i + 1}.${ext}`, accessToken, proxyConfig);
+        if (result == null ? void 0 : result.url) uploaded.set(rawSrc, result.url);
+      } catch (error) {
+        console.error(`[UploadImages] Failed to upload remote image ${url}:`, error);
+        new import_obsidian6.Notice(`\u7F51\u7EDC\u56FE\u7247\u4E0A\u4F20\u5931\u8D25\uFF0C\u8349\u7A3F\u4E2D\u53EF\u80FD\u7F3A\u5C11\u8FD9\u5F20\u56FE\uFF1A${url.slice(0, 60)}`, 8e3);
+      }
+    }
+    for (const [from, to] of uploaded) {
+      processedContent = processedContent.split(`src="${from}"`).join(`src="${to}"`);
     }
     return processedContent;
   }

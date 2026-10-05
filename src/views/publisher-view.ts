@@ -1,8 +1,8 @@
-import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, normalizePath, sanitizeHTMLToDom } from 'obsidian';
+import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, TFile, normalizePath, sanitizeHTMLToDom } from 'obsidian';
 import html2canvas from 'html2canvas';
 import WeChatPublisherPlugin from '../main';
 import { WeChatAccount, PublishProgress, DraftMeta } from '../types';
-import { DraftConfirmModal, buildDraftDefaults } from '../modals/draft-confirm-modal';
+import { DraftConfirmModal, buildDraftDefaults, detectCover, resolveImageRef } from '../modals/draft-confirm-modal';
 import { MarkedFormatter } from '../utils/formatter';
 import { ThemeManager } from '../utils/theme-manager';
 import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
@@ -14,6 +14,13 @@ export class PublisherView extends ItemView {
 	plugin: WeChatPublisherPlugin;
 	selectedAccountIds: Set<string> = new Set();
 	coverImage: { path?: string; base64?: string } | null = null;
+	/** 当前笔记自动识别出的封面（笔记属性 cover 或正文第一张图） */
+	autoCover: { filePath: string; base64: string; source: string } | null = null;
+	autoCoverLoading = false;
+	/** 用户手动移除了自动封面的笔记 */
+	autoCoverDismissed: Set<string> = new Set();
+	currentFile: TFile | null = null;
+	private autoCoverSeq = 0;
 	publishProgress: Map<string, PublishProgress> = new Map();
 	isPublishing: boolean = false;
 	selectedTheme: string = '绿白清简';     // 当前选中的主题
@@ -55,7 +62,50 @@ export class PublisherView extends ItemView {
 			await this.plugin.saveSettings();
 		}
 
+		// 跟随当前笔记自动识别封面
+		this.registerEvent(this.app.workspace.on('file-open', file => {
+			if (file && file.extension === 'md') void this.setCurrentFile(file);
+		}));
+		this.registerEvent(this.app.metadataCache.on('changed', file => {
+			if (this.currentFile && file.path === this.currentFile.path) void this.refreshAutoCover(true);
+		}));
+
 		this.render();
+		const initial = this.app.workspace.getActiveFile();
+		if (initial && initial.extension === 'md') void this.setCurrentFile(initial);
+	}
+
+	async setCurrentFile(file: TFile) {
+		if (this.currentFile?.path === file.path) return;
+		this.currentFile = file;
+		// 手动上传的封面只属于上一篇笔记
+		this.coverImage = null;
+		await this.refreshAutoCover(false);
+	}
+
+	async refreshAutoCover(silent: boolean) {
+		const file = this.currentFile;
+		const seq = ++this.autoCoverSeq;
+		if (!file) return;
+		if (!silent) {
+			this.autoCover = null;
+			this.autoCoverLoading = true;
+			this.render();
+		}
+		try {
+			const markdown = await this.app.vault.cachedRead(file);
+			const detected = await detectCover(this.app, file, markdown);
+			if (seq !== this.autoCoverSeq) return;
+			const prev = this.autoCover?.base64;
+			this.autoCover = detected ? { filePath: file.path, ...detected } : null;
+			this.autoCoverLoading = false;
+			if (!silent || prev !== this.autoCover?.base64) this.render();
+		} catch (error) {
+			console.error('[WeChatPB] 自动识别封面失败', error);
+			if (seq !== this.autoCoverSeq) return;
+			this.autoCoverLoading = false;
+			this.render();
+		}
 	}
 
 	async onClose() {
@@ -233,26 +283,65 @@ export class PublisherView extends ItemView {
 
 	renderCoverUpload(container: HTMLElement) {
 		const section = container.createDiv({ cls: 'cover-upload-section' });
-		section.createEl('h4', { text: '封面图片（发布时可在确认弹窗更换）' });
+		section.createEl('h4', { text: '封面图片' });
 
-		if (this.coverImage) {
-			// Show preview
+		const file = this.currentFile;
+		const auto = this.autoCover && file && this.autoCover.filePath === file.path && !this.autoCoverDismissed.has(file.path)
+			? this.autoCover : null;
+
+		if (!this.coverImage && !auto && this.autoCoverLoading) {
+			section.createDiv({ cls: 'cover-source-hint', text: '正在识别文章里的第一张图片…' });
+		}
+
+		if (this.coverImage || auto) {
+			const src = this.coverImage?.base64 ?? auto!.base64;
+			section.createDiv({
+				cls: 'cover-source-hint',
+				text: this.coverImage ? '已手动上传封面' : `已自动使用${auto!.source}作为封面`
+			});
 			const preview = section.createDiv({ cls: 'cover-preview' });
 			const img = preview.createEl('img');
-
-			if (this.coverImage.base64) {
-				img.src = this.coverImage.base64;
-			} else if (this.coverImage.path) {
-				// TODO: Load image from path
-				img.alt = '封面图片';
-			}
+			img.src = src;
+			img.alt = '封面图片';
 
 			const removeBtn = preview.createEl('button', { text: '×', cls: 'remove-cover' });
+			removeBtn.setAttr('aria-label', '移除封面');
 			removeBtn.onclick = () => {
-				this.coverImage = null;
+				if (this.coverImage) {
+					this.coverImage = null;
+				} else if (file) {
+					this.autoCoverDismissed.add(file.path);
+				}
 				this.render();
 			};
-		} else {
+
+			const actions = section.createDiv({ cls: 'cover-actions' });
+			const replaceBtn = actions.createEl('button', { text: '更换封面' });
+			const fileInput = actions.createEl('input', { type: 'file', cls: 'hidden-input' });
+			fileInput.accept = 'image/jpeg,image/png';
+			fileInput.onchange = async (e) => {
+				const picked = (e.target as HTMLInputElement).files?.[0];
+				if (picked) await this.handleFileUpload(picked);
+			};
+			replaceBtn.onclick = () => fileInput.click();
+		} else if (file && this.autoCoverDismissed.has(file.path) && !this.autoCoverLoading) {
+			const restore = section.createDiv({ cls: 'cover-source-hint' });
+			restore.setText('已移除自动封面。');
+			const link = restore.createEl('a', { text: '恢复自动识别', href: '#' });
+			link.onclick = (e) => {
+				e.preventDefault();
+				this.autoCoverDismissed.delete(file.path);
+				this.render();
+			};
+			this.renderCoverDropArea(section);
+		} else if (!this.autoCoverLoading) {
+			this.renderCoverDropArea(section);
+		}
+	}
+
+	renderCoverDropArea(section: HTMLElement) {
+		{
+			// 没识别到图片时，显示上传区域
 			// Show upload area
 			const uploadArea = section.createDiv({ cls: 'cover-upload-area' });
 			const placeholder = uploadArea.createDiv({ cls: 'upload-placeholder' });
@@ -648,6 +737,9 @@ export class PublisherView extends ItemView {
 				file,
 				markdown: this.removeFrontmatter(content),
 				panelCoverBase64: this.coverImage?.base64,
+				autoCoverBase64: this.autoCover?.filePath === file.path ? this.autoCover.base64 : undefined,
+				autoCoverSource: this.autoCover?.filePath === file.path ? this.autoCover.source : undefined,
+				skipAutoDetect: this.autoCoverDismissed.has(file.path),
 				defaultCoverBase64: this.plugin.settings.defaultCoverImage,
 				defaultAuthor: this.plugin.settings.defaultAuthor,
 				defaultOpenComment: this.plugin.settings.defaultOpenComment
@@ -787,6 +879,33 @@ export class PublisherView extends ItemView {
 				// 微信会过滤 base64 图片，上传失败的图片在草稿里会缺失，提示用户
 				new Notice(`第 ${i + 1} 张正文图片上传失败，草稿中可能缺少这张图：${error instanceof Error ? error.message : error}`, 8000);
 			}
+		}
+
+		// 网络图片（例如网页剪藏里的图片）：微信草稿不显示外链图片，下载后上传到公众号
+		const remoteRegex = /<img[^>]+src="(https?:\/\/[^"]+)"[^>]*>/g;
+		const remoteMatches = Array.from(processedContent.matchAll(remoteRegex));
+		const uploaded = new Map<string, string>();
+		for (let i = 0; i < remoteMatches.length; i++) {
+			const rawSrc = remoteMatches[i][1];
+			if (/^https?:\/\/mmbiz\.(qpic|qlogo)\.cn\//i.test(rawSrc) || uploaded.has(rawSrc)) continue;
+			const url = rawSrc.replace(/&amp;/g, '&');
+			try {
+				const dataUrl = await resolveImageRef(this.app, url, '');
+				if (!dataUrl) throw new Error('图片下载失败');
+				const [header, b64] = dataUrl.split(',');
+				const bin = atob(b64);
+				const bytes = new Uint8Array(bin.length);
+				for (let j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+				const ext = header.includes('image/png') ? 'png' : 'jpg';
+				const result = await uploadImage(bytes.buffer, `remote_${i + 1}.${ext}`, accessToken, proxyConfig);
+				if (result?.url) uploaded.set(rawSrc, result.url);
+			} catch (error) {
+				console.error(`[UploadImages] Failed to upload remote image ${url}:`, error);
+				new Notice(`网络图片上传失败，草稿中可能缺少这张图：${url.slice(0, 60)}`, 8000);
+			}
+		}
+		for (const [from, to] of uploaded) {
+			processedContent = processedContent.split(`src="${from}"`).join(`src="${to}"`);
 		}
 
 		return processedContent;
