@@ -323,7 +323,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('默认作者')
-			.setDesc('发布确认弹窗中作者栏的默认值；笔记属性 author 优先。最多 8 个字')
+			.setDesc('发布确认弹窗中作者栏的默认值；笔记属性 wx_author（公众号作者）优先。最多 8 个字')
 			.addText(text => text
 				.setPlaceholder('例如：Serena 木瓜')
 				.setValue(this.plugin.settings.defaultAuthor)
