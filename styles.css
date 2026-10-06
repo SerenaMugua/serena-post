@@ -1446,3 +1446,157 @@
 	font-size: var(--font-ui-smaller);
 	color: var(--text-faint);
 }
+
+/* ===== 新手引导：Serena 蓝白主题 ===== */
+.sp-onboarding {
+	--sp-blue: #0058a3;
+	--sp-blue2: #53a4ea;
+	--sp-blue-bg: rgba(83, 164, 234, 0.1);
+	--sp-blue-line: rgba(83, 164, 234, 0.45);
+}
+.sp-onboarding .modal-title {
+	color: var(--sp-blue);
+	font-weight: 800;
+	padding-bottom: 10px;
+	border-bottom: 4px solid var(--sp-blue2);
+	display: inline-block;
+}
+.theme-dark .sp-onboarding .modal-title {
+	color: var(--sp-blue2);
+}
+.sp-ob-hero {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 16px;
+	margin: 6px 0 16px;
+	border-radius: 12px;
+	background: var(--sp-blue-bg);
+	border: 1px solid var(--sp-blue-line);
+}
+.sp-ob-hero-avatar {
+	width: 56px;
+	height: 56px;
+	flex: none;
+	object-fit: contain;
+	background: #ffffff;
+	border-radius: 12px;
+	padding: 4px;
+}
+.sp-ob-hero-title {
+	font-size: 16px;
+	font-weight: 800;
+	color: var(--sp-blue);
+	margin-bottom: 4px;
+}
+.theme-dark .sp-ob-hero-title {
+	color: var(--sp-blue2);
+}
+.sp-onboarding .sp-ob-intro {
+	margin: 0;
+	color: var(--text-normal);
+}
+.sp-ob-em {
+	color: var(--sp-blue);
+	font-weight: 700;
+}
+.theme-dark .sp-ob-em {
+	color: var(--sp-blue2);
+}
+.sp-onboarding .sp-ob-step {
+	border: 1px solid var(--background-modifier-border);
+	border-left: 4px solid var(--sp-blue2);
+	border-radius: 8px;
+	padding: 12px 14px 14px;
+}
+.sp-onboarding .sp-ob-step.is-done {
+	border-color: var(--sp-blue-line);
+	border-left-color: var(--sp-blue);
+	background: var(--sp-blue-bg);
+}
+.sp-onboarding .sp-ob-step.is-warn {
+	border-color: rgba(234, 88, 12, 0.45);
+	border-left-color: #ea580c;
+}
+.sp-onboarding .sp-ob-step.is-optional {
+	border-left-color: var(--background-modifier-border-hover);
+}
+.sp-onboarding .sp-ob-step-title {
+	font-size: 15px;
+	font-weight: 800;
+	color: var(--text-normal);
+}
+.sp-onboarding .sp-ob-badge {
+	background: var(--sp-blue);
+	color: #ffffff;
+	font-weight: 700;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.sp-onboarding .sp-ob-step.is-done .sp-ob-badge {
+	background: var(--sp-blue2);
+}
+.sp-onboarding .sp-ob-step.is-optional .sp-ob-badge {
+	background: transparent;
+	color: var(--sp-blue2);
+	border: 2px solid var(--sp-blue2);
+}
+.sp-onboarding .sp-ob-tag {
+	color: var(--sp-blue2);
+	border-color: var(--sp-blue-line);
+}
+.sp-onboarding .sp-ob-desc {
+	color: var(--text-muted);
+	line-height: 1.75;
+}
+.sp-onboarding button.mod-cta {
+	background: var(--sp-blue) !important;
+	color: #ffffff !important;
+}
+.sp-onboarding button.mod-cta:hover {
+	background: #004a8a !important;
+}
+.sp-onboarding .sp-ob-actions button:not(.mod-cta),
+.sp-onboarding .sp-ob-brand button:not(.mod-cta) {
+	border: 1px solid var(--sp-blue-line) !important;
+	color: var(--sp-blue);
+	background: var(--background-primary) !important;
+	box-shadow: none !important;
+}
+.theme-dark .sp-onboarding .sp-ob-actions button:not(.mod-cta),
+.theme-dark .sp-onboarding .sp-ob-brand button:not(.mod-cta) {
+	color: var(--sp-blue2);
+}
+.sp-ob-ip {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.sp-ob-ip-value {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 15px;
+	color: var(--sp-blue);
+	background: var(--sp-blue-bg);
+	border: 1px solid var(--sp-blue-line);
+	border-radius: 6px;
+	padding: 2px 10px;
+}
+.theme-dark .sp-ob-ip-value {
+	color: var(--sp-blue2);
+}
+.sp-onboarding .sp-ob-result.is-ok {
+	background: var(--sp-blue-bg);
+	color: var(--sp-blue);
+	border: 1px solid var(--sp-blue-line);
+}
+.theme-dark .sp-onboarding .sp-ob-result.is-ok {
+	color: var(--sp-blue2);
+}
+.sp-onboarding .sp-ob-foot {
+	padding-top: 12px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+.sp-onboarding .sp-ob-foot button {
+	background: var(--sp-blue) !important;
+	color: #ffffff !important;
+	padding: 6px 22px !important;
+}

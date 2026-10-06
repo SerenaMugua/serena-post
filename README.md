@@ -30,8 +30,8 @@
 
 ## 推送到公众号：准备
 
-1. 设置 → SerenaPost → 添加账号，填公众号 AppID 和 AppSecret（公众号后台「设置与开发 → 开发接口管理」）。
-2. 把插件提示的出口 IP 加进同一页的 **IP 白名单**。
+1. 设置 → SerenaPost → 添加账号，填公众号 AppID 和 AppSecret（「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」，网址 developers.weixin.qq.com）。
+2. 把插件提示的出口 IP 加进同一页开发信息里的 **IP 白名单**。
 3. 账号需要有「草稿箱 / 素材管理」接口权限（未认证的个人号可能没有）。
 
 AppSecret 保存在 Obsidian 的 SecretStorage，不会写进 `data.json`。

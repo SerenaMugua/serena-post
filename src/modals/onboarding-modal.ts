@@ -10,7 +10,7 @@ import { isRelayUp } from '../x/xpush';
 import { AVATAR_DATA_URI } from '../brand';
 import { squareAvatar } from '../utils/image';
 
-const MP_URL = 'https://mp.weixin.qq.com/';
+const MP_URL = 'https://developers.weixin.qq.com/console/product/mp';
 const KAITOX_URL = 'https://github.com/kuangjiajia/kaitox-toolkit';
 
 type StepState = 'done' | 'todo' | 'warn' | 'optional';
@@ -73,17 +73,19 @@ export class OnboardingModal extends Modal {
 		const st = this.plugin.settings;
 		const el = this.contentEl;
 		el.empty();
-		el.createDiv({
-			cls: 'sp-ob-intro',
-			text: '跟着下面几步设置一次，之后写完笔记就能一键推到公众号草稿箱和 X 文章草稿。只用其中一个平台也可以，跳过另一个就好。'
-		});
+		const hero = el.createDiv({ cls: 'sp-ob-hero' });
+		hero.createEl('img', { cls: 'sp-ob-hero-avatar', attr: { src: AVATAR_DATA_URI, alt: '' } });
+		const heroText = hero.createDiv();
+		heroText.createDiv({ cls: 'sp-ob-hero-title', text: '3 分钟设置好，之后一键发布' });
+		rich(heroText.createDiv({ cls: 'sp-ob-intro' }),
+			'设置一次，写完笔记就能推到**公众号草稿箱**和 **X 文章草稿**。只用一个平台也可以，跳过另一个就好。');
 
 		// 1. 添加公众号
 		const hasAccount = st.accounts.length > 0;
 		const s1 = this.step(1, '添加公众号', hasAccount ? 'done' : 'todo',
 			hasAccount
 				? `已添加：${st.accounts.map(a => a.name).join('、')}`
-				: '需要公众号的 AppID 和 AppSecret：登录公众号后台 →「设置与开发 → 开发接口管理」就能看到。AppSecret 只保存在本机。');
+				: '需要公众号的 **AppID** 和 **AppSecret**：登录**微信开发者平台**，点顶部「**我的业务与服务 → 公众号**」，在「**基础信息**」里就能看到。AppSecret 只保存在你的电脑上。');
 		const b1 = s1.createDiv({ cls: 'sp-ob-actions' });
 		this.button(b1, hasAccount ? '再添加一个' : '添加公众号', !hasAccount, () => {
 			new AccountModal(this.app, this.plugin, null, async account => {
@@ -96,16 +98,16 @@ export class OnboardingModal extends Modal {
 				this.render();
 			}).open();
 		});
-		this.button(b1, '打开公众号后台', false, () => { window.open(MP_URL); });
+		this.button(b1, '打开微信开发者平台', false, () => { window.open(MP_URL); });
 
 		// 2. IP 白名单
 		const check = this.accountCheck;
 		const s2state: StepState = !hasAccount ? 'todo' : check?.ok ? 'done' : check ? 'warn' : 'todo';
 		const s2 = this.step(2, '把本机 IP 加进公众号白名单', s2state,
-			'微信只接受白名单里的电脑推送。到公众号后台「设置与开发 → 开发接口管理 → IP 白名单」，把下面这个 IP 加进去，等几分钟再点「检测连接」。');
+			'微信只接受**白名单里的电脑**推送。在微信开发者平台同一个「**基础信息**」页的开发信息里找到「**IP 白名单**」，把下面这个 IP 加进去，等几分钟再点「**检测连接**」。');
 		const ipRow = s2.createDiv({ cls: 'sp-ob-ip' });
 		ipRow.createSpan({ text: '本机出口 IP：' });
-		ipRow.createEl('code', { text: this.ip || '检测中…' });
+		ipRow.createEl('strong', { cls: 'sp-ob-ip-value', text: this.ip || '检测中…' });
 		const b2 = s2.createDiv({ cls: 'sp-ob-actions' });
 		this.button(b2, '复制 IP', !check?.ok, async () => {
 			if (!this.ip) { new Notice('还没检测到 IP，稍等一下'); return; }
@@ -125,7 +127,7 @@ export class OnboardingModal extends Modal {
 		// 3. X（可选）
 		const relay = this.relayOnline;
 		const s3 = this.step(3, '推到 X 文章（可选）', relay ? 'done' : 'optional',
-			'在 Chrome 里装好 Kaitox 扩展并登录 X 就行，本地中转已经内置在插件里，Obsidian 开着就会自动运行。');
+			'在 Chrome 里装好 **Kaitox 扩展**并登录 X 就行。本地中转已经**内置**在插件里，Obsidian 开着就会自动运行。');
 		s3.createDiv({
 			cls: `sp-ob-result ${relay ? 'is-ok' : 'is-muted'}`,
 			text: relay === null ? '正在检测中转…' : relay ? '中转已就绪' : '中转还没运行：可以到「设置 → SerenaPost → X 推送」打开「内置中转」'
@@ -136,7 +138,7 @@ export class OnboardingModal extends Modal {
 		// 4. 品牌
 		const branded = Boolean(st.brandAvatar) || st.headingAvatar || st.endMark;
 		const s4 = this.step(4, '换上你的 IP（可选）', branded ? 'done' : 'optional',
-			'上传你的头像，章节标题前会显示它；文末还可以加一句结束标记，比如「你的名字 · END」。');
+			'上传你的**头像**，章节标题前会显示它；文末还可以加一句**结束标记**，比如「你的名字 · END」。');
 		const brandRow = s4.createDiv({ cls: 'sp-ob-brand' });
 		const img = brandRow.createEl('img', { cls: 'sp-ob-avatar' });
 		img.src = st.brandAvatar || AVATAR_DATA_URI;
@@ -171,7 +173,7 @@ export class OnboardingModal extends Modal {
 
 		// 5. 试一下
 		const s5 = this.step(5, '打开一篇笔记试试', 'optional',
-			'点「打开预览」，右边会实时显示文章在公众号 / X 上的样子；选中文字还能一键设成章节标题、表格。满意了就点侧栏底部的「发布到草稿箱」。');
+			'点「**打开预览**」，右边会实时显示文章在公众号 / X 上的样子；选中文字还能一键设成**章节标题**、**表格**。满意了就点侧栏底部的「**发布到草稿箱**」。');
 		const b5 = s5.createDiv({ cls: 'sp-ob-actions' });
 		this.button(b5, '打开预览', true, async () => {
 			this.close();
@@ -192,7 +194,7 @@ export class OnboardingModal extends Modal {
 		else badge.setText(String(n));
 		head.createSpan({ cls: 'sp-ob-step-title', text: title });
 		if (state === 'optional') head.createSpan({ cls: 'sp-ob-tag', text: '可选' });
-		box.createDiv({ cls: 'sp-ob-desc', text: desc });
+		rich(box.createDiv({ cls: 'sp-ob-desc' }), desc);
 		return box;
 	}
 
@@ -201,4 +203,12 @@ export class OnboardingModal extends Modal {
 		btn.onclick = () => void onClick(btn);
 		return btn;
 	}
+}
+
+/** 简单富文本：**加粗** 显示成 Serena 蓝色重点 */
+function rich(el: HTMLElement, text: string) {
+	text.split(/(\*\*[^*]+\*\*)/).forEach(part => {
+		if (part.startsWith('**') && part.endsWith('**')) el.createEl('strong', { cls: 'sp-ob-em', text: part.slice(2, -2) });
+		else if (part) el.appendText(part);
+	});
 }

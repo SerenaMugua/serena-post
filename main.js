@@ -24312,10 +24312,10 @@ var WeixinApiError = class extends Error {
 var WEIXIN_ERROR_HINTS = {
   "40001": "Access Token \u65E0\u6548\u6216 AppSecret \u9519\u8BEF",
   "40013": "AppID \u65E0\u6548\uFF0C\u8BF7\u68C0\u67E5\u8D26\u53F7\u8BBE\u7F6E",
-  "40125": "AppSecret \u65E0\u6548\uFF0C\u8BF7\u5728\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406\u300D\u91CD\u7F6E\u540E\u91CD\u65B0\u586B\u5199",
+  "40125": "AppSecret \u65E0\u6548\uFF0C\u8BF7\u5230\u300C\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0 \u2192 \u6211\u7684\u4E1A\u52A1\u4E0E\u670D\u52A1 \u2192 \u516C\u4F17\u53F7 \u2192 \u57FA\u7840\u4FE1\u606F\u300D\u91CD\u7F6E\u540E\u91CD\u65B0\u586B\u5199",
   "40164": "\u5F53\u524D\u51FA\u53E3 IP \u4E0D\u5728\u516C\u4F17\u53F7 IP \u767D\u540D\u5355",
   "42001": "Access Token \u5DF2\u8FC7\u671F",
-  "48001": "\u8BE5\u516C\u4F17\u53F7\u6CA1\u6709\u6B64\u63A5\u53E3\u6743\u9650\uFF08\u672A\u8BA4\u8BC1\u7684\u4E2A\u4EBA\u53F7\u5E38\u89C1\uFF09\uFF0C\u8BF7\u5728\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u63A5\u53E3\u6743\u9650\u300D\u786E\u8BA4\u300C\u8349\u7A3F\u7BB1 / \u7D20\u6750\u7BA1\u7406\u300D\u53EF\u7528",
+  "48001": "\u8BE5\u516C\u4F17\u53F7\u6CA1\u6709\u6B64\u63A5\u53E3\u6743\u9650\uFF08\u672A\u8BA4\u8BC1\u7684\u4E2A\u4EBA\u53F7\u5E38\u89C1\uFF09\uFF0C\u8BF7\u5230\u300C\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0 \u2192 \u516C\u4F17\u53F7 \u2192 \u63A5\u53E3\u7BA1\u7406\u300D\u786E\u8BA4\u300C\u8349\u7A3F\u7BB1 / \u7D20\u6750\u7BA1\u7406\u300D\u53EF\u7528",
   "45009": "\u4ECA\u65E5\u63A5\u53E3\u8C03\u7528\u6B21\u6570\u5DF2\u8FBE\u4E0A\u9650\uFF0C\u8BF7\u660E\u5929\u518D\u8BD5",
   "40007": "\u5C01\u9762\u7D20\u6750\u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u5C01\u9762",
   "40009": "\u56FE\u7247\u5C3A\u5BF8\u6216\u5927\u5C0F\u4E0D\u7B26\u5408\u8981\u6C42",
@@ -24333,7 +24333,7 @@ function toWeixinError(json, fallback) {
   let hint = WEIXIN_ERROR_HINTS[String(errcode)];
   if (String(errcode) === "40164") {
     const ip = (_b = errmsg.match(/invalid ip ([0-9a-fA-F.:]+)/)) == null ? void 0 : _b[1];
-    hint = ip ? `\u51FA\u53E3 IP ${ip} \u4E0D\u5728\u516C\u4F17\u53F7\u767D\u540D\u5355\u3002\u8BF7\u5230\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406 \u2192 IP \u767D\u540D\u5355\u300D\u6DFB\u52A0 ${ip}\uFF0C\u51E0\u5206\u949F\u540E\u518D\u8BD5\uFF08\u5BB6\u5EAD\u5BBD\u5E26 IP \u53D8\u5316\u540E\u9700\u8981\u91CD\u65B0\u6DFB\u52A0\uFF09` : `${hint}\uFF0C\u8BF7\u5230\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406 \u2192 IP \u767D\u540D\u5355\u300D\u6DFB\u52A0\u5F53\u524D\u51FA\u53E3 IP`;
+    hint = ip ? `\u51FA\u53E3 IP ${ip} \u4E0D\u5728\u516C\u4F17\u53F7\u767D\u540D\u5355\u3002\u8BF7\u5230\u300C\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0 \u2192 \u6211\u7684\u4E1A\u52A1\u4E0E\u670D\u52A1 \u2192 \u516C\u4F17\u53F7 \u2192 \u57FA\u7840\u4FE1\u606F\u300D\u7684\u5F00\u53D1\u4FE1\u606F\u91CC\uFF0C\u628A ${ip} \u52A0\u8FDB\u300CIP \u767D\u540D\u5355\u300D\uFF0C\u51E0\u5206\u949F\u540E\u518D\u8BD5\uFF08\u5BB6\u5EAD\u5BBD\u5E26 IP \u53D8\u5316\u540E\u9700\u8981\u91CD\u65B0\u6DFB\u52A0\uFF09` : `${hint}\uFF0C\u8BF7\u5230\u300C\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0 \u2192 \u6211\u7684\u4E1A\u52A1\u4E0E\u670D\u52A1 \u2192 \u516C\u4F17\u53F7 \u2192 \u57FA\u7840\u4FE1\u606F\u300D\u7684\u5F00\u53D1\u4FE1\u606F\u91CC\uFF0C\u628A\u5F53\u524D\u51FA\u53E3 IP \u52A0\u8FDB\u300CIP \u767D\u540D\u5355\u300D`;
   }
   const message = hint ? `${hint}\uFF08errcode: ${errcode}\uFF09` : `${errmsg}\uFF08errcode: ${errcode}\uFF09`;
   return new WeixinApiError(message, errcode);
@@ -26520,7 +26520,7 @@ var AccountModal = class extends import_obsidian12.Modal {
 
 // src/modals/onboarding-modal.ts
 var import_obsidian13 = require("obsidian");
-var MP_URL = "https://mp.weixin.qq.com/";
+var MP_URL = "https://developers.weixin.qq.com/console/product/mp";
 var KAITOX_URL = "https://github.com/kuangjiajia/kaitox-toolkit";
 var OnboardingModal = class extends import_obsidian13.Modal {
   constructor(app, plugin2) {
@@ -26575,16 +26575,20 @@ var OnboardingModal = class extends import_obsidian13.Modal {
     const st2 = this.plugin.settings;
     const el = this.contentEl;
     el.empty();
-    el.createDiv({
-      cls: "sp-ob-intro",
-      text: "\u8DDF\u7740\u4E0B\u9762\u51E0\u6B65\u8BBE\u7F6E\u4E00\u6B21\uFF0C\u4E4B\u540E\u5199\u5B8C\u7B14\u8BB0\u5C31\u80FD\u4E00\u952E\u63A8\u5230\u516C\u4F17\u53F7\u8349\u7A3F\u7BB1\u548C X \u6587\u7AE0\u8349\u7A3F\u3002\u53EA\u7528\u5176\u4E2D\u4E00\u4E2A\u5E73\u53F0\u4E5F\u53EF\u4EE5\uFF0C\u8DF3\u8FC7\u53E6\u4E00\u4E2A\u5C31\u597D\u3002"
-    });
+    const hero = el.createDiv({ cls: "sp-ob-hero" });
+    hero.createEl("img", { cls: "sp-ob-hero-avatar", attr: { src: AVATAR_DATA_URI, alt: "" } });
+    const heroText = hero.createDiv();
+    heroText.createDiv({ cls: "sp-ob-hero-title", text: "3 \u5206\u949F\u8BBE\u7F6E\u597D\uFF0C\u4E4B\u540E\u4E00\u952E\u53D1\u5E03" });
+    rich(
+      heroText.createDiv({ cls: "sp-ob-intro" }),
+      "\u8BBE\u7F6E\u4E00\u6B21\uFF0C\u5199\u5B8C\u7B14\u8BB0\u5C31\u80FD\u63A8\u5230**\u516C\u4F17\u53F7\u8349\u7A3F\u7BB1**\u548C **X \u6587\u7AE0\u8349\u7A3F**\u3002\u53EA\u7528\u4E00\u4E2A\u5E73\u53F0\u4E5F\u53EF\u4EE5\uFF0C\u8DF3\u8FC7\u53E6\u4E00\u4E2A\u5C31\u597D\u3002"
+    );
     const hasAccount = st2.accounts.length > 0;
     const s1 = this.step(
       1,
       "\u6DFB\u52A0\u516C\u4F17\u53F7",
       hasAccount ? "done" : "todo",
-      hasAccount ? `\u5DF2\u6DFB\u52A0\uFF1A${st2.accounts.map((a) => a.name).join("\u3001")}` : "\u9700\u8981\u516C\u4F17\u53F7\u7684 AppID \u548C AppSecret\uFF1A\u767B\u5F55\u516C\u4F17\u53F7\u540E\u53F0 \u2192\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406\u300D\u5C31\u80FD\u770B\u5230\u3002AppSecret \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u3002"
+      hasAccount ? `\u5DF2\u6DFB\u52A0\uFF1A${st2.accounts.map((a) => a.name).join("\u3001")}` : "\u9700\u8981\u516C\u4F17\u53F7\u7684 **AppID** \u548C **AppSecret**\uFF1A\u767B\u5F55**\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0**\uFF0C\u70B9\u9876\u90E8\u300C**\u6211\u7684\u4E1A\u52A1\u4E0E\u670D\u52A1 \u2192 \u516C\u4F17\u53F7**\u300D\uFF0C\u5728\u300C**\u57FA\u7840\u4FE1\u606F**\u300D\u91CC\u5C31\u80FD\u770B\u5230\u3002AppSecret \u53EA\u4FDD\u5B58\u5728\u4F60\u7684\u7535\u8111\u4E0A\u3002"
     );
     const b1 = s1.createDiv({ cls: "sp-ob-actions" });
     this.button(b1, hasAccount ? "\u518D\u6DFB\u52A0\u4E00\u4E2A" : "\u6DFB\u52A0\u516C\u4F17\u53F7", !hasAccount, () => {
@@ -26598,7 +26602,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
         this.render();
       }).open();
     });
-    this.button(b1, "\u6253\u5F00\u516C\u4F17\u53F7\u540E\u53F0", false, () => {
+    this.button(b1, "\u6253\u5F00\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0", false, () => {
       window.open(MP_URL);
     });
     const check = this.accountCheck;
@@ -26607,11 +26611,11 @@ var OnboardingModal = class extends import_obsidian13.Modal {
       2,
       "\u628A\u672C\u673A IP \u52A0\u8FDB\u516C\u4F17\u53F7\u767D\u540D\u5355",
       s2state,
-      "\u5FAE\u4FE1\u53EA\u63A5\u53D7\u767D\u540D\u5355\u91CC\u7684\u7535\u8111\u63A8\u9001\u3002\u5230\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406 \u2192 IP \u767D\u540D\u5355\u300D\uFF0C\u628A\u4E0B\u9762\u8FD9\u4E2A IP \u52A0\u8FDB\u53BB\uFF0C\u7B49\u51E0\u5206\u949F\u518D\u70B9\u300C\u68C0\u6D4B\u8FDE\u63A5\u300D\u3002"
+      "\u5FAE\u4FE1\u53EA\u63A5\u53D7**\u767D\u540D\u5355\u91CC\u7684\u7535\u8111**\u63A8\u9001\u3002\u5728\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0\u540C\u4E00\u4E2A\u300C**\u57FA\u7840\u4FE1\u606F**\u300D\u9875\u7684\u5F00\u53D1\u4FE1\u606F\u91CC\u627E\u5230\u300C**IP \u767D\u540D\u5355**\u300D\uFF0C\u628A\u4E0B\u9762\u8FD9\u4E2A IP \u52A0\u8FDB\u53BB\uFF0C\u7B49\u51E0\u5206\u949F\u518D\u70B9\u300C**\u68C0\u6D4B\u8FDE\u63A5**\u300D\u3002"
     );
     const ipRow = s2.createDiv({ cls: "sp-ob-ip" });
     ipRow.createSpan({ text: "\u672C\u673A\u51FA\u53E3 IP\uFF1A" });
-    ipRow.createEl("code", { text: this.ip || "\u68C0\u6D4B\u4E2D\u2026" });
+    ipRow.createEl("strong", { cls: "sp-ob-ip-value", text: this.ip || "\u68C0\u6D4B\u4E2D\u2026" });
     const b2 = s2.createDiv({ cls: "sp-ob-actions" });
     this.button(b2, "\u590D\u5236 IP", !(check == null ? void 0 : check.ok), async () => {
       if (!this.ip) {
@@ -26635,7 +26639,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
       3,
       "\u63A8\u5230 X \u6587\u7AE0\uFF08\u53EF\u9009\uFF09",
       relay ? "done" : "optional",
-      "\u5728 Chrome \u91CC\u88C5\u597D Kaitox \u6269\u5C55\u5E76\u767B\u5F55 X \u5C31\u884C\uFF0C\u672C\u5730\u4E2D\u8F6C\u5DF2\u7ECF\u5185\u7F6E\u5728\u63D2\u4EF6\u91CC\uFF0CObsidian \u5F00\u7740\u5C31\u4F1A\u81EA\u52A8\u8FD0\u884C\u3002"
+      "\u5728 Chrome \u91CC\u88C5\u597D **Kaitox \u6269\u5C55**\u5E76\u767B\u5F55 X \u5C31\u884C\u3002\u672C\u5730\u4E2D\u8F6C\u5DF2\u7ECF**\u5185\u7F6E**\u5728\u63D2\u4EF6\u91CC\uFF0CObsidian \u5F00\u7740\u5C31\u4F1A\u81EA\u52A8\u8FD0\u884C\u3002"
     );
     s3.createDiv({
       cls: `sp-ob-result ${relay ? "is-ok" : "is-muted"}`,
@@ -26650,7 +26654,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
       4,
       "\u6362\u4E0A\u4F60\u7684 IP\uFF08\u53EF\u9009\uFF09",
       branded ? "done" : "optional",
-      "\u4E0A\u4F20\u4F60\u7684\u5934\u50CF\uFF0C\u7AE0\u8282\u6807\u9898\u524D\u4F1A\u663E\u793A\u5B83\uFF1B\u6587\u672B\u8FD8\u53EF\u4EE5\u52A0\u4E00\u53E5\u7ED3\u675F\u6807\u8BB0\uFF0C\u6BD4\u5982\u300C\u4F60\u7684\u540D\u5B57 \xB7 END\u300D\u3002"
+      "\u4E0A\u4F20\u4F60\u7684**\u5934\u50CF**\uFF0C\u7AE0\u8282\u6807\u9898\u524D\u4F1A\u663E\u793A\u5B83\uFF1B\u6587\u672B\u8FD8\u53EF\u4EE5\u52A0\u4E00\u53E5**\u7ED3\u675F\u6807\u8BB0**\uFF0C\u6BD4\u5982\u300C\u4F60\u7684\u540D\u5B57 \xB7 END\u300D\u3002"
     );
     const brandRow = s4.createDiv({ cls: "sp-ob-brand" });
     const img = brandRow.createEl("img", { cls: "sp-ob-avatar" });
@@ -26688,7 +26692,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
       5,
       "\u6253\u5F00\u4E00\u7BC7\u7B14\u8BB0\u8BD5\u8BD5",
       "optional",
-      "\u70B9\u300C\u6253\u5F00\u9884\u89C8\u300D\uFF0C\u53F3\u8FB9\u4F1A\u5B9E\u65F6\u663E\u793A\u6587\u7AE0\u5728\u516C\u4F17\u53F7 / X \u4E0A\u7684\u6837\u5B50\uFF1B\u9009\u4E2D\u6587\u5B57\u8FD8\u80FD\u4E00\u952E\u8BBE\u6210\u7AE0\u8282\u6807\u9898\u3001\u8868\u683C\u3002\u6EE1\u610F\u4E86\u5C31\u70B9\u4FA7\u680F\u5E95\u90E8\u7684\u300C\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1\u300D\u3002"
+      "\u70B9\u300C**\u6253\u5F00\u9884\u89C8**\u300D\uFF0C\u53F3\u8FB9\u4F1A\u5B9E\u65F6\u663E\u793A\u6587\u7AE0\u5728\u516C\u4F17\u53F7 / X \u4E0A\u7684\u6837\u5B50\uFF1B\u9009\u4E2D\u6587\u5B57\u8FD8\u80FD\u4E00\u952E\u8BBE\u6210**\u7AE0\u8282\u6807\u9898**\u3001**\u8868\u683C**\u3002\u6EE1\u610F\u4E86\u5C31\u70B9\u4FA7\u680F\u5E95\u90E8\u7684\u300C**\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1**\u300D\u3002"
     );
     const b5 = s5.createDiv({ cls: "sp-ob-actions" });
     this.button(b5, "\u6253\u5F00\u9884\u89C8", true, async () => {
@@ -26708,7 +26712,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
     else badge.setText(String(n));
     head.createSpan({ cls: "sp-ob-step-title", text: title });
     if (state === "optional") head.createSpan({ cls: "sp-ob-tag", text: "\u53EF\u9009" });
-    box.createDiv({ cls: "sp-ob-desc", text: desc });
+    rich(box.createDiv({ cls: "sp-ob-desc" }), desc);
     return box;
   }
   button(parent, text, cta, onClick) {
@@ -26717,6 +26721,12 @@ var OnboardingModal = class extends import_obsidian13.Modal {
     return btn;
   }
 };
+function rich(el, text) {
+  text.split(/(\*\*[^*]+\*\*)/).forEach((part) => {
+    if (part.startsWith("**") && part.endsWith("**")) el.createEl("strong", { cls: "sp-ob-em", text: part.slice(2, -2) });
+    else if (part) el.appendText(part);
+  });
+}
 
 // src/custom-theme-guide.ts
 var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A SerenaPost \u8BBE\u8BA1\u4E00\u5957\u5FAE\u4FE1\u516C\u4F17\u53F7\u957F\u6587 CSS \u6392\u7248\u3002

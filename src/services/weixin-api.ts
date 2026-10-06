@@ -139,10 +139,10 @@ export class WeixinApiError extends Error {
 const WEIXIN_ERROR_HINTS: Record<string, string> = {
 	'40001': 'Access Token 无效或 AppSecret 错误',
 	'40013': 'AppID 无效，请检查账号设置',
-	'40125': 'AppSecret 无效，请在公众号后台「设置与开发 → 开发接口管理」重置后重新填写',
+	'40125': 'AppSecret 无效，请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」重置后重新填写',
 	'40164': '当前出口 IP 不在公众号 IP 白名单',
 	'42001': 'Access Token 已过期',
-	'48001': '该公众号没有此接口权限（未认证的个人号常见），请在后台「设置与开发 → 接口权限」确认「草稿箱 / 素材管理」可用',
+	'48001': '该公众号没有此接口权限（未认证的个人号常见），请到「微信开发者平台 → 公众号 → 接口管理」确认「草稿箱 / 素材管理」可用',
 	'45009': '今日接口调用次数已达上限，请明天再试',
 	'40007': '封面素材无效，请重新选择封面',
 	'40009': '图片尺寸或大小不符合要求',
@@ -161,8 +161,8 @@ export function toWeixinError(json: any, fallback: string): WeixinApiError {
 	if (String(errcode) === '40164') {
 		const ip = errmsg.match(/invalid ip ([0-9a-fA-F.:]+)/)?.[1];
 		hint = ip
-			? `出口 IP ${ip} 不在公众号白名单。请到公众号后台「设置与开发 → 开发接口管理 → IP 白名单」添加 ${ip}，几分钟后再试（家庭宽带 IP 变化后需要重新添加）`
-			: `${hint}，请到公众号后台「设置与开发 → 开发接口管理 → IP 白名单」添加当前出口 IP`;
+			? `出口 IP ${ip} 不在公众号白名单。请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」的开发信息里，把 ${ip} 加进「IP 白名单」，几分钟后再试（家庭宽带 IP 变化后需要重新添加）`
+			: `${hint}，请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」的开发信息里，把当前出口 IP 加进「IP 白名单」`;
 	}
 	const message = hint ? `${hint}（errcode: ${errcode}）` : `${errmsg}（errcode: ${errcode}）`;
 	return new WeixinApiError(message, errcode);
