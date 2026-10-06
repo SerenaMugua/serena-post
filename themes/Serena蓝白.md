@@ -1,7 +1,7 @@
 # Serena 蓝白
 
 Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
-章节标题带「01」序号与粗下划线；代码块为 Mac 窗口 + 主题色底；表格全框线、文字左对齐，便于阅读。
+章节标题带「01」序号与粗下划线；引用、代码块、表格用同一套框线：深蓝外框 + 浅色内容；表格文字左对齐。
 
 ```css
 .note-to-mp {
@@ -93,10 +93,10 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
 
 .note-to-mp blockquote {
   margin: 27px 0;
-  padding: 17px 18px 17px 20px;
-  border-left: 3px solid #0058a3;
-  background: #edf3f9 !important;
-  box-shadow: 0 5px 14px #d1e1ee;
+  padding: 16px 18px 16px 18px;
+  border: 1px solid #c7d8e8;
+  border-left: 4px solid #0058a3;
+  background: #f5f9fc !important;
   color: #1b252d !important;
 }
 
@@ -134,17 +134,16 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
 .note-to-mp .code-section {
   margin: 25px 0;
   padding: 0;
-  border: 1px solid #0058a3;
-  border-radius: 8px;
-  background: #0058a3 !important;
-  box-shadow: 0 8px 20px rgba(0, 88, 163, 0.15);
+  border: 2px solid #0058a3;
+  border-radius: 0;
+  background: #f5f9fc !important;
   overflow-x: hidden;
 }
 
 .note-to-mp .code-window-bar {
   display: block;
   padding: 6px 11px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.21);
+  border-bottom: 2px solid #0058a3;
   background: #0058a3 !important;
   line-height: 1.2 !important;
 }
@@ -173,8 +172,8 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
 .note-to-mp .code-section pre {
   margin: 0;
   padding: 16px 18px 18px;
-  border-radius: 0 0 7px 7px;
-  background: #0058a3 !important;
+  border-radius: 0;
+  background: #f5f9fc !important;
   white-space: pre-wrap !important;
   word-break: break-all !important;
 }
@@ -185,7 +184,7 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
   border-radius: 0;
   background: transparent !important;
   box-shadow: none;
-  color: #ffffff !important;
+  color: #0b3a66 !important;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   line-height: 1.6 !important;
