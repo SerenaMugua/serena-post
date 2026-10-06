@@ -17672,6 +17672,9 @@ function sentDir(kind) {
 function configPath() {
   return (0, import_node_path.join)(kaitoxHome(), "config.json");
 }
+function pidPath() {
+  return (0, import_node_path.join)(kaitoxHome(), "relay.pid");
+}
 async function loadConfig() {
   try {
     const raw = await (0, import_promises.readFile)(configPath(), "utf8");
@@ -18179,6 +18182,10 @@ async function handle(req, res, state) {
   }
   sendJson(req, res, 404, { error: `no route: ${method} ${url.pathname}` });
 }
+
+// src/x/embedded-relay.ts
+var import_promises4 = require("node:fs/promises");
+var import_node_child_process = require("node:child_process");
 
 // src/x/xpush.ts
 var import_obsidian2 = require("obsidian");
@@ -20612,6 +20619,34 @@ var EmbeddedRelay = class {
     }
     return this.mode;
   }
+  /**
+   * 接管：停止外部的 Kaitox 命令行中转（等同 `kaitox relay stop`），再启动内置中转。
+   * 优先按 ~/.kaitox/relay.pid 结束进程；没有 pidfile 时按端口查找监听进程（不会结束 Obsidian 自身）。
+   */
+  async takeOver(s) {
+    if (this.mode === "embedded") return this.mode;
+    const port = this.portOf(s.relayBase);
+    let filePid = 0;
+    try {
+      filePid = parseInt((await (0, import_promises4.readFile)(pidPath(), "utf8")).trim(), 10) || 0;
+    } catch (e) {
+    }
+    const portPids = (await pidsOnPort(port)).filter((p) => p !== process.pid);
+    let pids = portPids;
+    if (portPids.length === 0 && filePid > 0 && filePid !== process.pid) pids = [filePid];
+    for (const pid of pids) {
+      try {
+        process.kill(pid);
+      } catch (e) {
+      }
+    }
+    await (0, import_promises4.rm)(pidPath(), { force: true }).catch(() => {
+    });
+    const deadline = Date.now() + 4e3;
+    while (Date.now() < deadline && await isRelayUp(s)) await new Promise((r) => setTimeout(r, 150));
+    this.mode = "off";
+    return this.start(s);
+  }
   async stop() {
     const h2 = this.handle;
     this.handle = null;
@@ -20624,6 +20659,22 @@ var EmbeddedRelay = class {
     return this.start(s);
   }
 };
+function pidsOnPort(port) {
+  return new Promise((resolve) => {
+    const win = process.platform === "win32";
+    const cmd = win ? "netstat" : "lsof";
+    const args = win ? ["-ano", "-p", "tcp"] : ["-ti", `tcp:${port}`, "-sTCP:LISTEN"];
+    (0, import_node_child_process.execFile)(cmd, args, (err, stdout) => {
+      if (err && !stdout) return resolve([]);
+      const lines = String(stdout).split("\n");
+      const pids = win ? lines.filter((l3) => l3.includes(`:${port} `) && /LISTENING/i.test(l3)).map((l3) => {
+        var _a2;
+        return parseInt((_a2 = l3.trim().split(/\s+/).pop()) != null ? _a2 : "", 10);
+      }) : lines.map((l3) => parseInt(l3.trim(), 10));
+      resolve([...new Set(pids.filter((n) => Number.isFinite(n) && n > 0))]);
+    });
+  });
+}
 
 // src/types/index.ts
 var DEFAULT_SETTINGS = {
@@ -25574,6 +25625,14 @@ var WeChatPublisherSettingTab = class extends import_obsidian11.PluginSettingTab
       else await this.plugin.relay.stop();
       this.display();
     }));
+    if (this.plugin.relay.mode === "external") {
+      new import_obsidian11.Setting(containerEl).setName("\u63A5\u7BA1\u65E7\u7684 Kaitox \u4E2D\u8F6C").setDesc("\u7535\u8111\u4E0A\u8FD8\u5728\u8FD0\u884C Kaitox \u547D\u4EE4\u884C\u4E2D\u8F6C\uFF08kaitox relay\uFF09\u3002\u70B9\u300C\u63A5\u7BA1\u300D\u4F1A\u505C\u6B62\u5B83\uFF0C\u6539\u7528 SerenaPost \u5185\u7F6E\u4E2D\u8F6C\uFF0C\u4EE5\u540E\u4E0D\u7528\u518D\u5355\u72EC\u542F\u52A8").addButton((button) => button.setButtonText("\u63A5\u7BA1").setCta().onClick(async () => {
+        button.setDisabled(true).setButtonText("\u63A5\u7BA1\u4E2D\u2026");
+        const mode = await this.plugin.relay.takeOver(this.plugin.settings);
+        new import_obsidian11.Notice(mode === "embedded" ? "SerenaPost\uFF1A\u5DF2\u6539\u7528\u5185\u7F6E\u4E2D\u8F6C" : `SerenaPost\uFF1A\u63A5\u7BA1\u5931\u8D25\uFF08${this.plugin.relay.error || mode}\uFF09`);
+        this.display();
+      }));
+    }
     new import_obsidian11.Setting(containerEl).setName("\u4E2D\u8F6C\u7A0B\u5E8F\u5730\u5740").setDesc("\u4E00\u822C\u4E0D\u7528\u6539\u3002\u6539\u4E86\u4EE5\u540E\u9700\u8981\u5728 Kaitox \u6269\u5C55\u8BBE\u7F6E\u91CC\u6539\u6210\u540C\u4E00\u4E2A\u5730\u5740").addText((text) => text.setPlaceholder("http://127.0.0.1:8765").setValue(this.plugin.settings.relayBase).onChange(async (value) => {
       this.plugin.settings.relayBase = value.trim() || "http://127.0.0.1:8765";
       await this.plugin.saveSettings();

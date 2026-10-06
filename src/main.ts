@@ -371,6 +371,21 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					this.display();
 				}));
 
+		if (this.plugin.relay.mode === 'external') {
+			new Setting(containerEl)
+				.setName('接管旧的 Kaitox 中转')
+				.setDesc('电脑上还在运行 Kaitox 命令行中转（kaitox relay）。点「接管」会停止它，改用 SerenaPost 内置中转，以后不用再单独启动')
+				.addButton(button => button
+					.setButtonText('接管')
+					.setCta()
+					.onClick(async () => {
+						button.setDisabled(true).setButtonText('接管中…');
+						const mode = await this.plugin.relay.takeOver(this.plugin.settings);
+						new Notice(mode === 'embedded' ? 'SerenaPost：已改用内置中转' : `SerenaPost：接管失败（${this.plugin.relay.error || mode}）`);
+						this.display();
+					}));
+		}
+
 		new Setting(containerEl)
 			.setName('中转程序地址')
 			.setDesc('一般不用改。改了以后需要在 Kaitox 扩展设置里改成同一个地址')
