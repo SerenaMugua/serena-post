@@ -20758,7 +20758,7 @@ var DEFAULT_SETTINGS = {
   headingAvatar: false,
   brandAvatar: "",
   endMark: false,
-  endMarkText: "SERENA \xB7 END"
+  endMarkText: "END"
 };
 
 // src/views/publisher-view.ts
@@ -25128,9 +25128,22 @@ var PublisherView = class extends import_obsidian10.ItemView {
         this.render();
       };
     }
-    toggle(`\u6587\u672B\u52A0\u300C${st2.endMarkText || "END"}\u300D\u6807\u8BB0`, () => st2.endMark, (v) => {
+    toggle("\u6587\u672B\u52A0\u7ED3\u675F\u6807\u8BB0", () => st2.endMark, (v) => {
       st2.endMark = v;
+      this.render();
     });
+    if (st2.endMark) {
+      const endRow = box.createDiv({ cls: "sp-brand-row sp-end-row" });
+      endRow.createSpan({ cls: "sp-brand-label", text: "\u6807\u8BB0\u6587\u5B57" });
+      const input2 = endRow.createEl("input", { type: "text", cls: "sp-end-input" });
+      input2.placeholder = "\u4F8B\u5982\uFF1A\u4F60\u7684\u540D\u5B57 \xB7 END";
+      input2.maxLength = 40;
+      input2.value = st2.endMarkText;
+      input2.onchange = async () => {
+        st2.endMarkText = input2.value.trim();
+        await this.plugin.saveSettings();
+      };
+    }
   }
   renderCoverUpload(container) {
     var _a2, _b;
@@ -26613,7 +26626,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian12.PluginSettingTab
       await this.refreshPublisherViews();
       this.display();
     }));
-    new import_obsidian12.Setting(containerEl).setName("\u6587\u672B\u6807\u8BB0\u6587\u5B57").setDesc("\u4FA7\u680F\u52FE\u9009\u300C\u6587\u672B\u52A0 END \u6807\u8BB0\u300D\u540E\uFF0C\u663E\u793A\u5728\u6587\u7AE0\u6700\u540E\u3002").addText((text) => text.setPlaceholder("SERENA \xB7 END").setValue(this.plugin.settings.endMarkText).onChange(async (value) => {
+    new import_obsidian12.Setting(containerEl).setName("\u6587\u672B\u6807\u8BB0\u6587\u5B57").setDesc("\u4FA7\u680F\u52FE\u9009\u300C\u6587\u672B\u52A0\u7ED3\u675F\u6807\u8BB0\u300D\u540E\u663E\u793A\u5728\u6587\u7AE0\u6700\u540E\uFF0C\u4F8B\u5982\u300C\u4F60\u7684\u540D\u5B57 \xB7 END\u300D\u3002\u4FA7\u680F\u91CC\u4E5F\u80FD\u76F4\u63A5\u6539\u3002").addText((text) => text.setPlaceholder("\u4F60\u7684\u540D\u5B57 \xB7 END").setValue(this.plugin.settings.endMarkText).onChange(async (value) => {
       this.plugin.settings.endMarkText = value.slice(0, 40);
       await this.plugin.saveSettings();
     }));

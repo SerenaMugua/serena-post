@@ -570,9 +570,9 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('文末标记文字')
-			.setDesc('侧栏勾选「文末加 END 标记」后，显示在文章最后。')
+			.setDesc('侧栏勾选「文末加结束标记」后显示在文章最后，例如「你的名字 · END」。侧栏里也能直接改。')
 			.addText(text => text
-				.setPlaceholder('SERENA · END')
+				.setPlaceholder('你的名字 · END')
 				.setValue(this.plugin.settings.endMarkText)
 				.onChange(async value => {
 					this.plugin.settings.endMarkText = value.slice(0, 40);

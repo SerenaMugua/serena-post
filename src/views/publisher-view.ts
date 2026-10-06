@@ -526,7 +526,19 @@ export class PublisherView extends ItemView {
 				this.render();
 			};
 		}
-		toggle(`文末加「${st.endMarkText || 'END'}」标记`, () => st.endMark, v => { st.endMark = v; });
+		toggle('文末加结束标记', () => st.endMark, v => { st.endMark = v; this.render(); });
+		if (st.endMark) {
+			const endRow = box.createDiv({ cls: 'sp-brand-row sp-end-row' });
+			endRow.createSpan({ cls: 'sp-brand-label', text: '标记文字' });
+			const input = endRow.createEl('input', { type: 'text', cls: 'sp-end-input' });
+			input.placeholder = '例如：你的名字 · END';
+			input.maxLength = 40;
+			input.value = st.endMarkText;
+			input.onchange = async () => {
+				st.endMarkText = input.value.trim();
+				await this.plugin.saveSettings();
+			};
+		}
 	}
 
 	renderCoverUpload(container: HTMLElement) {

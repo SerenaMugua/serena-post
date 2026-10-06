@@ -93,7 +93,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	headingAvatar: false,
 	brandAvatar: '',
 	endMark: false,
-	endMarkText: 'SERENA · END'
+	endMarkText: 'END'
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */

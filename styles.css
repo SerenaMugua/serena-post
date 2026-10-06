@@ -1028,3 +1028,7 @@
 	border-radius: 6px;
 	border: none;
 }
+.sp-end-row .sp-end-input {
+	flex: 1;
+	min-width: 0;
+}
