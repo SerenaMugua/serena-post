@@ -45,6 +45,10 @@ export class PublisherView extends ItemView {
 	selectedTheme: string = '绿白清简';     // 当前选中的主题
 	themeManager: ThemeManager;
 	publishSummary: { successCount: number; failCount: number } | null = null; // 发布汇总信息
+	/** 当前笔记用的章节样式（笔记属性 sp_heading_style 优先，否则用全局设置） */
+	headingStyle = 'theme';
+	/** 当前笔记属性里记着上次用的排版 */
+	private noteRemembered = false;
 	/** 最近一次推送的内容（用于失败后重试） */
 	private lastRun: { file: TFile; draft: DraftMeta; html: string; xPrepared: XPrepared | null } | null = null;
 	private retrying = new Set<string>();
@@ -80,6 +84,7 @@ export class PublisherView extends ItemView {
 		await this.themeManager.loadThemes();
 		const initialTheme = this.themeManager.getTheme(this.plugin.settings.defaultTheme) ?? this.themeManager.getDefaultTheme();
 		this.selectedTheme = initialTheme.name;
+		this.headingStyle = this.plugin.settings.headingStyle;
 		if (this.plugin.settings.defaultTheme !== initialTheme.name) {
 			this.plugin.settings.defaultTheme = initialTheme.name;
 			await this.plugin.saveSettings();
@@ -124,9 +129,67 @@ export class PublisherView extends ItemView {
 	async setCurrentFile(file: TFile) {
 		if (this.currentFile?.path === file.path) return;
 		this.currentFile = file;
+		this.applyNoteLook(file);
 		// 手动上传的封面只属于上一篇笔记
 		this.coverImage = null;
 		await this.refreshAutoCover(false);
+	}
+
+	/** 打开笔记时沿用它上次推送用的排版和章节样式（笔记属性 sp_theme / sp_heading_style） */
+	applyNoteLook(file: TFile) {
+		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+		const st = this.plugin.settings;
+		const noteTheme = typeof fm?.sp_theme === 'string' ? fm.sp_theme : '';
+		const noteStyle = typeof fm?.sp_heading_style === 'string' ? fm.sp_heading_style : '';
+		const themeOk = noteTheme && this.themeManager.getTheme(noteTheme);
+		this.selectedTheme = themeOk ? noteTheme : (this.themeManager.getTheme(st.defaultTheme)?.name ?? this.selectedTheme);
+		this.headingStyle = noteStyle && HEADING_STYLES.some(h => h.id === noteStyle) ? noteStyle : st.headingStyle;
+		this.noteRemembered = Boolean(themeOk || noteStyle);
+		this.plugin.refreshLivePreview();
+	}
+
+	/** 推送成功后，把这次用的封面、摘要、作者、排版写回笔记属性，下次自动沿用 */
+	private async writeBackMeta(file: TFile, draft: DraftMeta) {
+		const st = this.plugin.settings;
+		const fm0 = (this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>;
+		const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+		let coverLink = '';
+		const src = draft.coverSource ?? '';
+		// 封面不是直接来自笔记属性 cover / 正文第一张图（例如手动选的、裁剪过的），就存一份进库
+		if (draft.coverBase64 && (!/^(笔记属性 cover|正文第一张图片)$/.test(src))) {
+			try {
+				const m = draft.coverBase64.match(/^data:image\/(png|jpe?g);base64,(.+)$/);
+				if (m) {
+					const bin = atob(m[2]);
+					const bytes = new Uint8Array(bin.length);
+					for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+					const ext = m[1] === 'png' ? 'png' : 'jpg';
+					const path = await this.app.fileManager.getAvailablePathForAttachment(`${file.basename}-封面.${ext}`, file.path);
+					const created = await this.app.vault.createBinary(path, bytes.buffer);
+					coverLink = `[[${created.name}]]`;
+				}
+			} catch (e) {
+				console.error('[SerenaPost] 保存封面失败', e);
+			}
+		}
+		const fmTitle = str(fm0.title) || str(fm0['标题']);
+		const wrote: string[] = [];
+		await this.app.fileManager.processFrontMatter(file, fm => {
+			if (draft.title && draft.title !== (fmTitle || file.basename)) { fm.title = draft.title; wrote.push('标题'); }
+			if (draft.author && draft.author !== (str(fm.wx_author) || st.defaultAuthor)) { fm.wx_author = draft.author; wrote.push('作者'); }
+			if (draft.digest && draft.digest !== str(fm.digest)) { fm.digest = draft.digest; wrote.push('摘要'); }
+			if (draft.contentSourceUrl && draft.contentSourceUrl !== str(fm.source_url)) { fm.source_url = draft.contentSourceUrl; }
+			if (typeof fm.comment === 'boolean' ? fm.comment !== draft.openComment : draft.openComment !== st.defaultOpenComment) { fm.comment = draft.openComment; }
+			if (coverLink) { fm.cover = coverLink; wrote.push('封面'); }
+			if (fm.sp_theme !== this.selectedTheme) { fm.sp_theme = this.selectedTheme; }
+			if (fm.sp_heading_style !== this.headingStyle) { fm.sp_heading_style = this.headingStyle; }
+			wrote.push('排版');
+			const d = new Date();
+			const pad = (n: number) => String(n).padStart(2, '0');
+			fm.sp_published = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+		});
+		this.noteRemembered = true;
+		new Notice(`已把这次的${wrote.join('、')}记到笔记属性里，下次推送这篇会自动沿用`);
 	}
 
 	async refreshAutoCover(silent: boolean) {
@@ -235,7 +298,7 @@ export class PublisherView extends ItemView {
 	}
 
 	private lookSummary(): string {
-		const style = HEADING_STYLES.find(h => h.id === this.plugin.settings.headingStyle);
+		const style = HEADING_STYLES.find(h => h.id === this.headingStyle);
 		const styleText = style && style.id !== 'theme' ? ` · ${style.label.split(/\s|　/)[0]}` : '';
 		return `${this.selectedTheme}${styleText}`;
 	}
@@ -540,7 +603,7 @@ export class PublisherView extends ItemView {
 	renderSetupFor(theme: Theme) {
 		const st = this.plugin.settings;
 		return renderSetup(theme, {
-			headingStyle: st.headingStyle,
+			headingStyle: this.headingStyle,
 			headingAvatar: st.headingAvatar,
 			avatarDataUrl: st.brandAvatar || AVATAR_DATA_URI,
 			endMark: st.endMark,
@@ -551,16 +614,20 @@ export class PublisherView extends ItemView {
 	/** 章节样式下拉 + IP 头像 / END 开关 */
 	renderBrandControls(section: HTMLElement) {
 		const st = this.plugin.settings;
+		if (this.noteRemembered) {
+			section.createDiv({ cls: 'sp-remembered', text: '已沿用这篇文章上次推送时的排版和章节样式' });
+		}
 		const box = section.createDiv({ cls: 'sp-brand-controls' });
 		const row = box.createDiv({ cls: 'sp-brand-row' });
 		row.createSpan({ cls: 'sp-brand-label', text: '章节样式' });
 		const select = row.createEl('select', { cls: 'dropdown sp-heading-select' });
 		for (const s of HEADING_STYLES) {
 			const opt = select.createEl('option', { value: s.id, text: s.label });
-			opt.selected = st.headingStyle === s.id;
+			opt.selected = this.headingStyle === s.id;
 		}
 		select.onchange = async () => {
 			st.headingStyle = select.value;
+			this.headingStyle = select.value;
 			await this.plugin.saveSettings();
 		};
 
@@ -1336,6 +1403,13 @@ export class PublisherView extends ItemView {
 
 		// 保存汇总信息
 		this.publishSummary = { successCount, failCount };
+		if (successCount > 0 && this.plugin.settings.writeBackMeta) {
+			try {
+				await this.writeBackMeta(file, draft);
+			} catch (e) {
+				console.error('[SerenaPost] 写回笔记属性失败', e);
+			}
+		}
 
 		// Don't clear progress immediately - let user see the final status
 		// Progress will be cleared on next publish or when user closes the view

@@ -71,6 +71,8 @@ export interface PluginSettings {
 	endMarkText: string;
 	onboardingDone: boolean;      // 新手引导看过了
 	collapsedCards: string[];     // 侧栏折叠的分组
+	previewSyncScroll: boolean;   // 预览跟着编辑器滚动
+	writeBackMeta: boolean;       // 推送后把封面、摘要、排版写回笔记属性
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -97,7 +99,9 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	endMark: false,
 	endMarkText: 'END',
 	onboardingDone: false,
-	collapsedCards: []
+	collapsedCards: [],
+	previewSyncScroll: true,
+	writeBackMeta: true
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */
@@ -109,6 +113,8 @@ export interface DraftMeta {
 	coverBase64: string;
 	openComment: boolean;
 	onlyFansCanComment: boolean;
+	/** 封面来源说明（确认弹窗里显示的那句），用来判断要不要把封面存进库里 */
+	coverSource?: string;
 }
 
 export interface PublishRequest {

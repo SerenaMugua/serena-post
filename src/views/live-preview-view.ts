@@ -8,6 +8,7 @@ import type WeChatPublisherPlugin from '../main';
 import { ICON_ID } from '../brand';
 import { QUICK_FORMATS } from '../utils/quick-format';
 import { renderXPreviewInto } from '../x/x-preview-modal';
+import { marked } from 'marked';
 
 export const VIEW_TYPE_LIVE_PREVIEW = 'serena-post-live-preview';
 export type PreviewMode = 'wechat' | 'x';
@@ -24,6 +25,13 @@ export class LivePreviewView extends ItemView {
 	private nameEl!: HTMLElement;
 	private scrollEl!: HTMLElement;
 	private contentEl2!: HTMLElement;
+	/** 预览里每个段落对应的笔记行号（按顺序） */
+	private blocks: { line: number; el: HTMLElement }[] = [];
+	/** 正在监听滚动的编辑器 */
+	private boundScroller: HTMLElement | null = null;
+	private onEditorScroll = () => this.syncFromEditor();
+	private syncRaf = 0;
+	private lastSyncLine = -1;
 
 	constructor(leaf: WorkspaceLeaf, private plugin: WeChatPublisherPlugin) {
 		super(leaf);
@@ -51,6 +59,15 @@ export class LivePreviewView extends ItemView {
 		info.createSpan({ cls: 'sp-live-dot' });
 		info.createSpan({ cls: 'sp-live-title', text: '实时预览' });
 		this.nameEl = info.createSpan({ cls: 'sp-live-name' });
+		const sync = info.createEl('label', { cls: 'sp-live-sync', attr: { 'aria-label': '编辑器滚动时，预览跟着滚；点预览里的段落，笔记跳到那里' } });
+		const syncCb = sync.createEl('input', { type: 'checkbox' });
+		syncCb.checked = this.plugin.settings.previewSyncScroll;
+		sync.createSpan({ text: '同步滚动' });
+		syncCb.onchange = async () => {
+			this.plugin.settings.previewSyncScroll = syncCb.checked;
+			await this.plugin.saveSettings();
+			if (syncCb.checked) { this.lastSyncLine = -1; this.syncFromEditor(); }
+		};
 
 		// 快捷格式：选中文字点一下
 		const bar = root.createDiv({ cls: 'sp-format-bar' });
@@ -64,12 +81,13 @@ export class LivePreviewView extends ItemView {
 			btn.onclick = () => {
 				const md = this.currentMd();
 				if (!md) { new Notice('先在笔记里选中要设置的文字'); return; }
-				f.run(md.editor);
+				void f.run(md.editor, { app: this.app, file: md.file });
 				this.schedule(200);
 			};
 		}
 
 		this.scrollEl = root.createDiv({ cls: 'sp-live-scroll' });
+		this.scrollEl.addEventListener('click', e => this.jumpToSource(e));
 		const phone = this.scrollEl.createDiv({ cls: 'sp-live-phone' });
 		this.contentEl2 = phone.createDiv({ cls: 'sp-live-content' });
 
@@ -97,6 +115,112 @@ export class LivePreviewView extends ItemView {
 	async onClose() {
 		if (this.timer) window.clearTimeout(this.timer);
 		this.releaseBlobs();
+		this.boundScroller?.removeEventListener('scroll', this.onEditorScroll);
+		this.boundScroller = null;
+	}
+
+	/** 给预览里的每个段落标上它在笔记里的行号 */
+	private annotateLines(md: MarkdownView) {
+		this.blocks = [];
+		const root = this.contentEl2.querySelector('section.note-to-mp') ?? this.contentEl2;
+		let text = md.getViewData();
+		let offset = 0;
+		if (this.plugin.settings.excludeFrontmatter) {
+			const fm = text.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+			if (fm) {
+				offset = fm[0].split('\n').length - 1;
+				text = text.slice(fm[0].length);
+			}
+		}
+		let tokens: { type: string; raw: string }[] = [];
+		try {
+			tokens = marked.lexer(text) as unknown as { type: string; raw: string }[];
+		} catch {
+			return;
+		}
+		const lines: number[] = [];
+		let pos = 0;
+		let line = offset;
+		for (const t of tokens) {
+			if (t.type !== 'space' && t.type !== 'def') {
+				// 段落开头的空行不算
+				const lead = t.raw.match(/^\n*/)?.[0].length ?? 0;
+				lines.push(line + lead);
+			}
+			line += (t.raw.match(/\n/g)?.length ?? 0);
+			pos += t.raw.length;
+		}
+		const els = Array.from(root.children).filter(el => !el.classList.contains('sp-end')) as HTMLElement[];
+		const n = Math.min(els.length, lines.length);
+		for (let i = 0; i < n; i++) {
+			els[i].dataset.spLine = String(lines[i]);
+			els[i].addClass('sp-src-block');
+			this.blocks.push({ line: lines[i], el: els[i] });
+		}
+	}
+
+	/** 点预览里的段落 → 笔记跳到对应位置 */
+	private jumpToSource(e: MouseEvent) {
+		if (this.mode !== 'wechat') return;
+		const target = e.target as HTMLElement;
+		if (target.closest('a')) e.preventDefault();
+		const block = target.closest('[data-sp-line]') as HTMLElement | null;
+		const md = this.currentMd();
+		if (!block || !md) return;
+		const line = Number(block.dataset.spLine);
+		if (!Number.isFinite(line)) return;
+		const editor = md.editor;
+		const len = editor.getLine(line)?.length ?? 0;
+		editor.setSelection({ line, ch: 0 }, { line, ch: len });
+		editor.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true);
+		this.app.workspace.setActiveLeaf(md.leaf, { focus: true });
+		block.addClass('sp-src-flash');
+		window.setTimeout(() => block.removeClass('sp-src-flash'), 900);
+	}
+
+	/** 监听笔记编辑器的滚动 */
+	private bindEditorScroll(md: MarkdownView) {
+		const cm = (md.editor as unknown as { cm?: { scrollDOM?: HTMLElement } }).cm;
+		const scroller = cm?.scrollDOM ?? null;
+		if (scroller === this.boundScroller) return;
+		this.boundScroller?.removeEventListener('scroll', this.onEditorScroll);
+		this.boundScroller = scroller;
+		scroller?.addEventListener('scroll', this.onEditorScroll, { passive: true });
+	}
+
+	/** 编辑器滚到哪，预览就跟到哪 */
+	private syncFromEditor() {
+		if (this.mode !== 'wechat' || !this.plugin.settings.previewSyncScroll || this.blocks.length === 0) return;
+		if (this.syncRaf) return;
+		this.syncRaf = window.requestAnimationFrame(() => {
+			this.syncRaf = 0;
+			const md = this.currentMd();
+			const cm = (md?.editor as unknown as { cm?: any })?.cm;
+			if (!cm?.scrollDOM) return;
+			let top: number;
+			try {
+				const block = cm.lineBlockAtHeight(cm.scrollDOM.scrollTop);
+				top = cm.state.doc.lineAt(block.from).number - 1;
+			} catch {
+				return;
+			}
+			if (top === this.lastSyncLine) return;
+			this.lastSyncLine = top;
+			// 找到 top 所在的预览段落，按段内位置插值
+			let i = 0;
+			while (i + 1 < this.blocks.length && this.blocks[i + 1].line <= top) i++;
+			const cur = this.blocks[i];
+			const next = this.blocks[i + 1];
+			const base = this.scrollEl.getBoundingClientRect().top - this.scrollEl.scrollTop;
+			const curTop = cur.el.getBoundingClientRect().top - base;
+			let y = curTop;
+			if (next && next.line > cur.line && top >= cur.line) {
+				const nextTop = next.el.getBoundingClientRect().top - base;
+				y = curTop + (nextTop - curTop) * Math.min(1, (top - cur.line) / (next.line - cur.line));
+			}
+			if (top < (this.blocks[0]?.line ?? 0)) y = 0;
+			this.scrollEl.scrollTop = Math.max(0, y - 12);
+		});
 	}
 
 	setMode(mode: PreviewMode) {
@@ -174,8 +298,10 @@ export class LivePreviewView extends ItemView {
 				this.releaseBlobs();
 				this.contentEl2.replaceChildren(sanitizeHTMLToDom(html));
 				this.nameEl.setText(`${md.file?.basename ?? ''} · ${publisher.selectedTheme}`);
+				this.annotateLines(md);
 			}
 			this.scrollEl.scrollTop = top;
+			this.bindEditorScroll(md);
 		} catch (e) {
 			console.error('[SerenaPost] 实时预览失败', e);
 			this.message(`预览失败：${e instanceof Error ? e.message : e}`);

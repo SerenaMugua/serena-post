@@ -572,7 +572,7 @@ export class DraftConfirmModal extends Modal {
 		if (this.hasWechat && !m.coverBase64) { new Notice('微信草稿必须有封面，请先选择封面'); return; }
 		if (!m.openComment) m.onlyFansCanComment = false;
 		this.submitted = true;
-		this.resolver?.({ ...m });
+		this.resolver?.({ ...m, coverSource: this.coverSource });
 		this.close();
 	}
 }

@@ -1778,3 +1778,39 @@
 .sp-footer .publish-progress-section {
 	max-height: 260px;
 }
+
+/* 预览 ↔ 原文 */
+.sp-live-sync {
+	margin-left: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: none;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.sp-live-info {
+	padding-right: 12px;
+}
+.sp-live .sp-src-block {
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+.sp-live .sp-src-block:hover {
+	outline: 1px dashed rgba(83, 164, 234, 0.6);
+	outline-offset: 3px;
+}
+.sp-live .sp-src-flash {
+	background-color: rgba(83, 164, 234, 0.18) !important;
+}
+.sp-remembered {
+	margin: 8px 0 0;
+	padding: 6px 10px;
+	border-radius: 6px;
+	font-size: var(--font-ui-smaller);
+	color: #0058a3;
+	background: rgba(83, 164, 234, 0.12);
+}
+.theme-dark .sp-remembered {
+	color: #53a4ea;
+}

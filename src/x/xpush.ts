@@ -76,6 +76,8 @@ export interface XPrepared {
 /** 解析笔记并做 X 样式检查（推送和预览共用）。 */
 export async function prepareXDraft(app: App, file: TFile): Promise<XPrepared> {
 	const resolved = await resolveActiveNote(app, file);
+	// Obsidian 高亮 ==文字== 在 X 文章里没有对应格式，改成加粗（代码块里的不动）
+	resolved.body = resolved.body.replace(/(```[\s\S]*?```)|==(?=\S)([^=\n]*?\S)==/g, (m, code, text) => code ?? `**${text}**`);
 	const report = checkMarkdownStyle(resolved.body, { assetMap: resolved.assetMap });
 	return { resolved, report };
 }

@@ -99,15 +99,15 @@ export default class WeChatPublisherPlugin extends Plugin {
 
 		// 快捷格式：命令（可绑快捷键）+ 编辑器右键菜单
 		for (const f of QUICK_FORMATS) {
-			this.addCommand({ id: `format-${f.id}`, name: `格式：${f.label}`, icon: f.icon, editorCallback: editor => f.run(editor) });
+			this.addCommand({ id: `format-${f.id}`, name: `格式：${f.label}`, icon: f.icon, editorCallback: (editor, ctx) => void f.run(editor, { app: this.app, file: ctx.file }) });
 		}
-		this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor) => {
+		this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor, info) => {
 			menu.addItem(item => {
 				item.setTitle('SerenaPost 快捷格式').setIcon(ICON_ID).setSection('selection');
 				const sub = (item as unknown as { setSubmenu?: () => import('obsidian').Menu }).setSubmenu?.();
 				const target = sub ?? menu;
 				for (const f of QUICK_FORMATS) {
-					target.addItem(i => i.setTitle(f.label).setIcon(f.icon).onClick(() => f.run(editor)));
+					target.addItem(i => i.setTitle(f.label).setIcon(f.icon).onClick(() => void f.run(editor, { app: this.app, file: info.file })));
 				}
 			});
 		}));
@@ -483,6 +483,14 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl).setName('草稿默认信息').setHeading();
+
+		new Setting(containerEl)
+			.setName('推送后记住这篇文章的设置')
+			.setDesc('推送成功后，把标题、作者、摘要、封面和排版写回笔记属性（title、wx_author、digest、cover、sp_theme 等），下次推送同一篇会自动沿用。')
+			.addToggle(t => t.setValue(this.plugin.settings.writeBackMeta).onChange(async v => {
+				this.plugin.settings.writeBackMeta = v;
+				await this.plugin.saveSettings();
+			}));
 
 		new Setting(containerEl)
 			.setName('默认作者')

@@ -295,6 +295,23 @@ export class MarkedFormatter {
 
 		marked.use({ renderer });
 
+		// Obsidian 高亮 ==文字==：用 span，避免公众号编辑器过滤 <mark>
+		marked.use({
+			extensions: [{
+				name: 'spMark',
+				level: 'inline',
+				start(src: string) { const i = src.indexOf('=='); return i < 0 ? undefined : i; },
+				tokenizer(this: any, src: string) {
+					const m = /^==(?=\S)([^=\n]*?\S)==/.exec(src);
+					if (m) return { type: 'spMark', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) };
+					return undefined;
+				},
+				renderer(this: any, token: any) {
+					return `<span class="sp-mark">${this.parser.parseInline(token.tokens)}</span>`;
+				}
+			}]
+		});
+
 		return this.markedInstance;
 	}
 

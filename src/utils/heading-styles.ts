@@ -106,3 +106,9 @@ ${ROOT} .sp-end { display: block !important; margin: 48px 0 8px !important; padd
 ${ROOT} .sp-end-text { display: inline-block !important; color: ${a} !important; font-size: 13px !important; font-style: italic !important; font-weight: 700 !important; letter-spacing: 3px !important; line-height: 1.6 !important; }
 `;
 }
+
+/** 高亮（==文字==）：主题色的浅底 */
+export function markCss(accent: string): string {
+	const bg = tint(accent || '#53a4ea', 0.75);
+	return `\n.note-to-mp .sp-mark { background: ${bg} !important; color: inherit !important; padding: 0 3px !important; border-radius: 3px !important; }\n`;
+}

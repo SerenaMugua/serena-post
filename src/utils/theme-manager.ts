@@ -2,7 +2,7 @@ import { App, TFile, TFolder, Notice, normalizePath } from 'obsidian';
 import { BUILTIN_THEME_DOCUMENTS, BUILTIN_THEME_REFINEMENT, DEFAULT_BUILTIN_THEME } from '../builtin-themes';
 import { buildCustomCss, type CustomThemeDef } from '../theme-editor/custom-theme';
 import type { FormatterOptions } from './formatter';
-import { brandingCss, headingStyleCss, headingStyleDef } from './heading-styles';
+import { brandingCss, headingStyleCss, headingStyleDef, markCss } from './heading-styles';
 
 export interface Theme {
 	name: string;           // 显示名称
@@ -225,7 +225,7 @@ export interface RenderPrefs {
 /** 主题 + 侧栏设置 → 最终的 CSS 和渲染选项（预览、长图、发布都走这里，保证一致） */
 export function renderSetup(theme: Theme, prefs: RenderPrefs): { css: string; options: FormatterOptions } {
 	const options = formatterOptionsFor(theme);
-	let css = theme.css;
+	let css = theme.css + markCss(theme.accent2 || theme.accent || '');
 	if (headingStyleDef(prefs.headingStyle)) {
 		options.headingStyle = prefs.headingStyle;
 		css += headingStyleCss(prefs.headingStyle, theme.accent ?? '', theme.accent2);
