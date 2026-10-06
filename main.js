@@ -20327,8 +20327,8 @@ function renderAtomic(block2, entities, opts) {
     case "DIVIDER":
       return `<hr class="xp-divider">`;
     case "MARKDOWN": {
-      const table = tryRenderTable(entity.data.markdown);
-      if (table) return table;
+      const table2 = tryRenderTable(entity.data.markdown);
+      if (table2) return table2;
       return `<pre class="xp-md">${escapeHtml(stripCodeFence(entity.data.markdown))}</pre>`;
     }
     case "MEDIA": {
@@ -20803,50 +20803,34 @@ function renderStyleReport(container, report, unresolved) {
     row.createDiv({ text: `\u627E\u4E0D\u5230\u3001\u5C06\u88AB\u8DF3\u8FC7\uFF1A${unresolved.join("\u3001")}` });
   }
 }
-var XPreviewModal = class extends import_obsidian3.Modal {
-  constructor(app, resolved, report, title, coverDataUrl) {
-    super(app);
-    this.resolved = resolved;
-    this.report = report;
-    this.title = title;
-    this.coverDataUrl = coverDataUrl;
-    this.urls = [];
+function renderXPreviewInto(container, resolved, report, title, coverDataUrl) {
+  const urls = [];
+  renderStyleReport(container, report, resolved.unresolved);
+  const bySrc = {};
+  for (const a of resolved.assets) {
+    const u = bytesToBlobUrl(a.bytes, a.mime);
+    urls.push(u);
+    bySrc[a.src] = u;
   }
-  onOpen() {
-    this.modalEl.addClass("wechatpb-x-preview-modal");
-    const { contentEl } = this;
-    contentEl.createEl("h3", { text: "X \u6587\u7AE0\u9884\u89C8" });
-    renderStyleReport(contentEl, this.report, this.resolved.unresolved);
-    const bySrc = {};
-    for (const a of this.resolved.assets) {
-      const u = bytesToBlobUrl(a.bytes, a.mime);
-      this.urls.push(u);
-      bySrc[a.src] = u;
+  let coverUrl = coverDataUrl;
+  if (!coverUrl && resolved.cover) {
+    coverUrl = bytesToBlobUrl(resolved.cover.bytes, resolved.cover.mime);
+    urls.push(coverUrl);
+  }
+  const { markdown } = extractMermaidBlocks(resolved.body);
+  const html = renderPreviewHtml(markdown, {
+    title,
+    coverUrl,
+    resolveImage: (src) => {
+      var _a2;
+      return src.startsWith(MERMAID_SRC_PREFIX) ? null : (_a2 = bySrc[src]) != null ? _a2 : null;
     }
-    let coverUrl = this.coverDataUrl;
-    if (!coverUrl && this.resolved.cover) {
-      coverUrl = bytesToBlobUrl(this.resolved.cover.bytes, this.resolved.cover.mime);
-      this.urls.push(coverUrl);
-    }
-    const { markdown } = extractMermaidBlocks(this.resolved.body);
-    const html = renderPreviewHtml(markdown, {
-      title: this.title,
-      coverUrl,
-      resolveImage: (src) => {
-        var _a2;
-        return src.startsWith(MERMAID_SRC_PREFIX) ? null : (_a2 = bySrc[src]) != null ? _a2 : null;
-      }
-    });
-    const frame = contentEl.createDiv({ cls: "wechatpb-x-preview-frame" });
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    for (const node of Array.from(doc.body.childNodes)) frame.appendChild(document.importNode(node, true));
-  }
-  onClose() {
-    for (const u of this.urls) URL.revokeObjectURL(u);
-    this.urls = [];
-    this.contentEl.empty();
-  }
-};
+  });
+  const frame = container.createDiv({ cls: "wechatpb-x-preview-frame" });
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const node of Array.from(doc.body.childNodes)) frame.appendChild(document.importNode(node, true));
+  return urls;
+}
 
 // src/modals/draft-confirm-modal.ts
 var DRAFT_LIMITS = { title: 64, author: 8, digest: 120 };
@@ -23703,13 +23687,13 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
     const container = document.createElement("div");
     container.append((0, import_obsidian6.sanitizeHTMLToDom)(html));
     const headings = Array.from(container.querySelectorAll("h2"));
-    for (const [index, heading] of headings.entries()) {
+    for (const [index, heading2] of headings.entries()) {
       const label = document.createElement("span");
       label.className = "wechatpb-heading-label";
       if (style) {
-        heading.classList.add("sp-h", `sp-h-${style.id}`);
+        heading2.classList.add("sp-h", `sp-h-${style.id}`);
         if (style.numbered) {
-          const own = stripHeadingNumber(heading);
+          const own = stripHeadingNumber(heading2);
           label.textContent = String(own != null ? own : index + 1).padStart(2, "0");
         } else if (style.prefix) {
           label.textContent = style.prefix;
@@ -23724,14 +23708,14 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
           const suffix = document.createElement("span");
           suffix.className = "sp-h-suffix";
           suffix.textContent = style.suffix;
-          heading.append(suffix);
+          heading2.append(suffix);
         }
-        if (label.textContent) heading.prepend(label);
+        if (label.textContent) heading2.prepend(label);
       } else if (headingLabel || options2.headingNumbers) {
-        const own = stripHeadingNumber(heading);
+        const own = stripHeadingNumber(heading2);
         const num = String(own != null ? own : index + 1).padStart(2, "0");
         label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
-        heading.prepend(label);
+        heading2.prepend(label);
       }
       if (avatar) {
         const img = document.createElement("img");
@@ -23740,9 +23724,9 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
         img.alt = "";
         const text = document.createElement("span");
         text.className = "sp-h-text";
-        text.append(...Array.from(heading.childNodes));
-        heading.append(img, text);
-        heading.classList.add("sp-has-avatar");
+        text.append(...Array.from(heading2.childNodes));
+        heading2.append(img, text);
+        heading2.classList.add("sp-has-avatar");
       }
     }
     if (endMark) {
@@ -23799,9 +23783,9 @@ function parseCnNumber(s) {
   return tens * 10 + ones;
 }
 var HEADING_NUM_RE = /^\s*(?:第\s*([零〇一二两三四五六七八九十\d]+)\s*[章节部分篇步讲课回]+[、.．:：\s]*|[（(]\s*([零〇一二两三四五六七八九十\d]+)\s*[)）]\s*|([零〇一二两三四五六七八九十]+)\s*[、.．:：]\s*|(\d{1,2})\s*[、.．:：)）](?!\d)\s*|(0\d)\s+)/;
-function stripHeadingNumber(heading) {
+function stripHeadingNumber(heading2) {
   var _a2, _b, _c, _d;
-  const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+  const walker = document.createTreeWalker(heading2, NodeFilter.SHOW_TEXT);
   let node = walker.nextNode();
   while (node && !node.data.trim()) node = walker.nextNode();
   if (!node) return null;
@@ -23810,7 +23794,7 @@ function stripHeadingNumber(heading) {
   const n = parseCnNumber((_d = (_c = (_b = (_a2 = m[1]) != null ? _a2 : m[2]) != null ? _b : m[3]) != null ? _c : m[4]) != null ? _d : m[5]);
   if (n === null || n <= 0) return null;
   const rest = node.data.slice(m[0].length);
-  if (!rest.trim() && node === heading.lastChild) return null;
+  if (!rest.trim() && node === heading2.lastChild) return null;
   node.data = rest;
   return n;
 }
@@ -25334,7 +25318,7 @@ var PublisherView = class extends import_obsidian10.ItemView {
     return MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
   }
   async handlePreview() {
-    await this.plugin.openLivePreview();
+    await this.plugin.openLivePreview("wechat");
   }
   async handlePreviewModal() {
     var _a2, _b, _c, _d;
@@ -25710,22 +25694,14 @@ var PublisherView = class extends import_obsidian10.ItemView {
     }
   }
   async handleXPreview() {
-    var _a2, _b, _c, _d;
-    const file = (_a2 = this.currentFile) != null ? _a2 : this.app.workspace.getActiveFile();
-    if (!file || file.extension !== "md") {
-      new import_obsidian10.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u7BC7 Markdown \u7B14\u8BB0");
-      return;
-    }
-    const loading = new import_obsidian10.Notice("\u6B63\u5728\u751F\u6210 X \u9884\u89C8\u2026", 0);
-    try {
-      const prepared = await prepareXDraft(this.app, file);
-      const cover = (_d = (_b = this.coverImage) == null ? void 0 : _b.base64) != null ? _d : ((_c = this.autoCover) == null ? void 0 : _c.filePath) === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : void 0;
-      loading.hide();
-      new XPreviewModal(this.app, prepared.resolved, prepared.report, prepared.resolved.title, cover).open();
-    } catch (error) {
-      loading.hide();
-      new import_obsidian10.Notice(`X \u9884\u89C8\u5931\u8D25\uFF1A${error instanceof Error ? error.message : error}`);
-    }
+    await this.plugin.openLivePreview("x");
+  }
+  /** X 文章预览所需数据（按 Kaitox 规则解析当前笔记） */
+  async buildXPreview(file) {
+    var _a2, _b, _c;
+    const prepared = await prepareXDraft(this.app, file);
+    const cover = (_c = (_a2 = this.coverImage) == null ? void 0 : _a2.base64) != null ? _c : ((_b = this.autoCover) == null ? void 0 : _b.filePath) === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : void 0;
+    return { prepared, cover };
   }
   async publishToAccount(accountId, draft, content) {
     const account = this.plugin.settings.accounts.find((a) => a.id === accountId);
@@ -25944,12 +25920,130 @@ var PreviewModal = class extends import_obsidian10.Modal {
 
 // src/views/live-preview-view.ts
 var import_obsidian11 = require("obsidian");
+
+// src/utils/quick-format.ts
+var HEADING_RE = /^#{1,6}\s+/;
+var QUOTE_RE = /^>\s?/;
+var BULLET_RE = /^[-*+]\s+/;
+var ORDERED_RE = /^\d+[.)]\s+/;
+function stripBlock(line) {
+  return line.replace(HEADING_RE, "").replace(QUOTE_RE, "").replace(BULLET_RE, "").replace(ORDERED_RE, "");
+}
+function selectedLines(editor) {
+  const a = editor.getCursor("from");
+  const b = editor.getCursor("to");
+  let to = b.line;
+  if (b.ch === 0 && to > a.line) to--;
+  const lines = [];
+  for (let i = a.line; i <= to; i++) lines.push(editor.getLine(i));
+  return { from: a.line, to, lines };
+}
+function replaceLines(editor, from, to, lines) {
+  editor.replaceRange(lines.join("\n"), { line: from, ch: 0 }, { line: to, ch: editor.getLine(to).length });
+  editor.setSelection({ line: from, ch: 0 }, { line: from + lines.length - 1, ch: lines[lines.length - 1].length });
+  editor.focus();
+}
+function toggleLinePrefix(editor, prefix, test) {
+  const { from, to, lines } = selectedLines(editor);
+  const nonEmpty = lines.filter((l3) => l3.trim());
+  const all = nonEmpty.length > 0 && nonEmpty.every((l3) => test.test(l3));
+  let n = 0;
+  const out = lines.map((l3) => {
+    if (!l3.trim()) return l3;
+    const body = stripBlock(l3);
+    if (all) return body;
+    const p = typeof prefix === "string" ? prefix : prefix(n++);
+    return p + body;
+  });
+  replaceLines(editor, from, to, out);
+}
+function heading(level) {
+  const mark = "#".repeat(level) + " ";
+  return (editor) => toggleLinePrefix(editor, mark, new RegExp(`^#{${level}}\\s+`));
+}
+function wrapInline(editor, mark) {
+  const sel = editor.getSelection();
+  if (!sel) {
+    const cur = editor.getCursor();
+    editor.replaceRange(mark + mark, cur);
+    editor.setCursor({ line: cur.line, ch: cur.ch + mark.length });
+    editor.focus();
+    return;
+  }
+  const unwrapped = sel.startsWith(mark) && sel.endsWith(mark) && sel.length > mark.length * 2 ? sel.slice(mark.length, -mark.length) : null;
+  editor.replaceSelection(unwrapped != null ? unwrapped : mark + sel + mark);
+  editor.focus();
+}
+function table(editor) {
+  const sel = editor.getSelection();
+  const rows = sel.split("\n").map((l3) => l3.trim()).filter(Boolean);
+  const splitRow = (l3) => {
+    if (l3.includes("	")) return l3.split("	");
+    if (/^\|.*\|$/.test(l3)) return l3.slice(1, -1).split("|");
+    if (l3.includes("|") || l3.includes("\uFF5C")) return l3.split(/[|｜]/);
+    if (/[,，]/.test(l3)) return l3.split(/[,，]/);
+    return l3.split(/\s{2,}/);
+  };
+  let cells = rows.map((r) => splitRow(r).map((c) => c.trim()));
+  const cols = Math.max(0, ...cells.map((r) => r.length));
+  let md;
+  if (rows.length >= 1 && cols >= 2) {
+    cells = cells.filter((r) => !r.every((c) => /^:?-{2,}:?$/.test(c) || c === ""));
+    cells = cells.map((r) => [...r, ...Array(cols - r.length).fill("")]);
+    const line = (r) => `| ${r.map((c) => c.replace(/\|/g, "\\|")).join(" | ")} |`;
+    md = [line(cells[0]), line(Array(cols).fill("---")), ...cells.slice(1).map(line)].join("\n");
+  } else {
+    md = "| \u6807\u9898 | \u8BF4\u660E |\n| --- | --- |\n| \u5185\u5BB9 | \u5185\u5BB9 |\n| \u5185\u5BB9 | \u5185\u5BB9 |";
+  }
+  insertBlock(editor, md, sel.length > 0);
+}
+function insertBlock(editor, block2, replace) {
+  var _a2, _b;
+  const from = editor.getCursor("from");
+  const to = replace ? editor.getCursor("to") : from;
+  const before = from.ch > 0 ? editor.getLine(from.line).slice(0, from.ch) : from.line > 0 ? editor.getLine(from.line - 1) : "";
+  const afterLine = editor.getLine(to.line).slice(to.ch);
+  const lead = from.ch > 0 ? "\n\n" : before.trim() ? "\n" : "";
+  const tail = afterLine.trim() ? "\n\n" : "\n";
+  editor.replaceRange(lead + block2 + tail, from, to);
+  const startLine = from.line + ((_b = (_a2 = lead.match(/\n/g)) == null ? void 0 : _a2.length) != null ? _b : 0);
+  editor.setCursor({ line: startLine, ch: 0 });
+  editor.focus();
+}
+function codeBlock(editor) {
+  const sel = editor.getSelection();
+  insertBlock(editor, "```\n" + (sel || "\u5728\u8FD9\u91CC\u7C98\u8D34\u4EE3\u7801") + "\n```", sel.length > 0);
+}
+function divider(editor) {
+  insertBlock(editor, "---", false);
+}
+function clearFormat(editor) {
+  const { from, to, lines } = selectedLines(editor);
+  replaceLines(editor, from, to, lines.map((l3) => stripBlock(l3).replace(/\*\*(.+?)\*\*/g, "$1")));
+}
+var QUICK_FORMATS = [
+  { id: "h2", label: "\u8BBE\u4E3A\u7AE0\u8282\u6807\u9898", short: "\u7AE0\u8282\u6807\u9898", icon: "heading-2", run: heading(2) },
+  { id: "h3", label: "\u8BBE\u4E3A\u5C0F\u6807\u9898", short: "\u5C0F\u6807\u9898", icon: "heading-3", run: heading(3) },
+  { id: "bold", label: "\u52A0\u7C97", short: "\u52A0\u7C97", icon: "bold", run: (e) => wrapInline(e, "**") },
+  { id: "quote", label: "\u8BBE\u4E3A\u5F15\u7528", short: "\u5F15\u7528", icon: "quote", run: (e) => toggleLinePrefix(e, "> ", QUOTE_RE) },
+  { id: "ul", label: "\u8BBE\u4E3A\u5217\u8868", short: "\u5217\u8868", icon: "list", run: (e) => toggleLinePrefix(e, "- ", BULLET_RE) },
+  { id: "ol", label: "\u8BBE\u4E3A\u7F16\u53F7\u5217\u8868", short: "\u7F16\u53F7", icon: "list-ordered", run: (e) => toggleLinePrefix(e, (i) => `${i + 1}. `, ORDERED_RE) },
+  { id: "table", label: "\u8F6C\u6210\u8868\u683C / \u63D2\u5165\u8868\u683C", short: "\u8868\u683C", icon: "table", run: table },
+  { id: "code", label: "\u8BBE\u4E3A\u4EE3\u7801\u5757", short: "\u4EE3\u7801\u5757", icon: "code-2", run: codeBlock },
+  { id: "hr", label: "\u63D2\u5165\u5206\u5272\u7EBF", short: "\u5206\u5272\u7EBF", icon: "minus", run: divider },
+  { id: "clear", label: "\u6E05\u9664\u683C\u5F0F\uFF08\u53D8\u56DE\u6B63\u6587\uFF09", short: "\u6E05\u9664", icon: "eraser", run: clearFormat }
+];
+
+// src/views/live-preview-view.ts
 var VIEW_TYPE_LIVE_PREVIEW = "serena-post-live-preview";
 var LivePreviewView = class extends import_obsidian11.ItemView {
   constructor(leaf, plugin2) {
     super(leaf);
     this.plugin = plugin2;
     this.md = null;
+    this.mode = "wechat";
+    this.blobUrls = [];
+    this.tabs = {};
     this.timer = null;
     this.running = false;
     this.pending = false;
@@ -25958,7 +26052,7 @@ var LivePreviewView = class extends import_obsidian11.ItemView {
     return VIEW_TYPE_LIVE_PREVIEW;
   }
   getDisplayText() {
-    return "\u516C\u4F17\u53F7\u9884\u89C8";
+    return "SerenaPost \u9884\u89C8";
   }
   getIcon() {
     return ICON_ID;
@@ -25968,12 +26062,35 @@ var LivePreviewView = class extends import_obsidian11.ItemView {
     root2.empty();
     root2.addClass("sp-live");
     const head = root2.createDiv({ cls: "sp-live-head" });
-    const info = head.createDiv({ cls: "sp-live-info" });
+    const tabs = head.createDiv({ cls: "sp-live-tabs" });
+    for (const [mode, text] of [["wechat", "\u516C\u4F17\u53F7"], ["x", "X \u6587\u7AE0"]]) {
+      const tab = tabs.createEl("button", { cls: "sp-live-tab", text });
+      tab.onclick = () => this.setMode(mode);
+      this.tabs[mode] = tab;
+    }
+    this.copyBtn = head.createEl("button", { text: "\u590D\u5236\u5230\u516C\u4F17\u53F7", cls: "mod-cta sp-live-copy" });
+    this.copyBtn.onclick = () => void this.copy(this.copyBtn);
+    const info = root2.createDiv({ cls: "sp-live-info" });
     info.createSpan({ cls: "sp-live-dot" });
     info.createSpan({ cls: "sp-live-title", text: "\u5B9E\u65F6\u9884\u89C8" });
     this.nameEl = info.createSpan({ cls: "sp-live-name" });
-    const copyBtn = head.createEl("button", { text: "\u590D\u5236\u5230\u516C\u4F17\u53F7", cls: "mod-cta" });
-    copyBtn.onclick = () => void this.copy(copyBtn);
+    const bar = root2.createDiv({ cls: "sp-format-bar" });
+    for (const f of QUICK_FORMATS) {
+      const btn = bar.createEl("button", { cls: "sp-format-btn", attr: { "aria-label": f.label } });
+      const ic = btn.createSpan({ cls: "sp-format-ic" });
+      (0, import_obsidian11.setIcon)(ic, f.icon);
+      btn.createSpan({ text: f.short });
+      btn.onmousedown = (e) => e.preventDefault();
+      btn.onclick = () => {
+        const md = this.currentMd();
+        if (!md) {
+          new import_obsidian11.Notice("\u5148\u5728\u7B14\u8BB0\u91CC\u9009\u4E2D\u8981\u8BBE\u7F6E\u7684\u6587\u5B57");
+          return;
+        }
+        f.run(md.editor);
+        this.schedule(200);
+      };
+    }
     this.scrollEl = root2.createDiv({ cls: "sp-live-scroll" });
     const phone = this.scrollEl.createDiv({ cls: "sp-live-phone" });
     this.contentEl2 = phone.createDiv({ cls: "sp-live-content" });
@@ -25990,10 +26107,31 @@ var LivePreviewView = class extends import_obsidian11.ItemView {
     }));
     this.registerEvent(this.app.workspace.on("file-open", () => this.schedule(100)));
     this.registerEvent(this.app.metadataCache.on("resolved", () => this.schedule(800)));
+    this.registerEvent(this.app.vault.on("modify", (f) => {
+      var _a2;
+      if (this.mode === "x" && f === ((_a2 = this.md) == null ? void 0 : _a2.file)) this.schedule(600);
+    }));
+    this.applyModeUi();
     await this.update();
   }
   async onClose() {
     if (this.timer) window.clearTimeout(this.timer);
+    this.releaseBlobs();
+  }
+  setMode(mode) {
+    if (this.mode !== mode) this.scrollEl.scrollTop = 0;
+    this.mode = mode;
+    this.applyModeUi();
+    this.schedule(10);
+  }
+  applyModeUi() {
+    for (const [m, el] of Object.entries(this.tabs)) el == null ? void 0 : el.toggleClass("is-active", m === this.mode);
+    this.copyBtn.toggle(this.mode === "wechat");
+    this.contentEl.toggleClass("is-x", this.mode === "x");
+  }
+  releaseBlobs() {
+    for (const u of this.blobUrls) URL.revokeObjectURL(u);
+    this.blobUrls = [];
   }
   /** 设置或内容变了：稍等一下再刷新，连续输入时不会卡 */
   schedule(ms = 300) {
@@ -26035,15 +26173,30 @@ var LivePreviewView = class extends import_obsidian11.ItemView {
         this.message("\u6253\u5F00\u4E00\u7BC7\u7B14\u8BB0\uFF0C\u8FD9\u91CC\u4F1A\u5B9E\u65F6\u663E\u793A\u5B83\u5728\u516C\u4F17\u53F7\u91CC\u7684\u6837\u5B50\u3002");
         return;
       }
-      const html = await publisher.buildWechatHtml(md, false);
-      if (html === null) {
-        this.message("\u8FD9\u7BC7\u7B14\u8BB0\u8FD8\u662F\u7A7A\u7684\u3002");
-        return;
-      }
       const top = this.scrollEl.scrollTop;
-      this.contentEl2.replaceChildren((0, import_obsidian11.sanitizeHTMLToDom)(html));
+      if (this.mode === "x") {
+        const file = md.file;
+        if (!(file instanceof import_obsidian11.TFile)) {
+          this.message("\u6253\u5F00\u4E00\u7BC7\u7B14\u8BB0\u5373\u53EF\u9884\u89C8\u3002");
+          return;
+        }
+        const { prepared, cover } = await publisher.buildXPreview(file);
+        const old = this.blobUrls;
+        this.contentEl2.empty();
+        this.blobUrls = renderXPreviewInto(this.contentEl2, prepared.resolved, prepared.report, prepared.resolved.title, cover);
+        for (const u of old) URL.revokeObjectURL(u);
+        this.nameEl.setText(`${file.basename} \xB7 X \u6587\u7AE0`);
+      } else {
+        const html = await publisher.buildWechatHtml(md, false);
+        if (html === null) {
+          this.message("\u8FD9\u7BC7\u7B14\u8BB0\u8FD8\u662F\u7A7A\u7684\u3002");
+          return;
+        }
+        this.releaseBlobs();
+        this.contentEl2.replaceChildren((0, import_obsidian11.sanitizeHTMLToDom)(html));
+        this.nameEl.setText(`${(_b = (_a2 = md.file) == null ? void 0 : _a2.basename) != null ? _b : ""} \xB7 ${publisher.selectedTheme}`);
+      }
       this.scrollEl.scrollTop = top;
-      this.nameEl.setText(`${(_b = (_a2 = md.file) == null ? void 0 : _a2.basename) != null ? _b : ""} \xB7 ${publisher.selectedTheme}`);
     } catch (e) {
       console.error("[SerenaPost] \u5B9E\u65F6\u9884\u89C8\u5931\u8D25", e);
       this.message(`\u9884\u89C8\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
@@ -26473,6 +26626,20 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
       name: "\u6253\u5F00\u516C\u4F17\u53F7\u5B9E\u65F6\u9884\u89C8",
       callback: () => void this.openLivePreview()
     });
+    for (const f of QUICK_FORMATS) {
+      this.addCommand({ id: `format-${f.id}`, name: `\u683C\u5F0F\uFF1A${f.label}`, icon: f.icon, editorCallback: (editor) => f.run(editor) });
+    }
+    this.registerEvent(this.app.workspace.on("editor-menu", (menu, editor) => {
+      menu.addItem((item) => {
+        var _a2;
+        item.setTitle("SerenaPost \u5FEB\u6377\u683C\u5F0F").setIcon(ICON_ID).setSection("selection");
+        const sub = (_a2 = item.setSubmenu) == null ? void 0 : _a2.call(item);
+        const target = sub != null ? sub : menu;
+        for (const f of QUICK_FORMATS) {
+          target.addItem((i) => i.setTitle(f.label).setIcon(f.icon).onClick(() => f.run(editor)));
+        }
+      });
+    }));
     this.addRibbonIcon(ICON_ID, PLUGIN_NAME, () => {
       void this.activateView();
     });
@@ -26632,7 +26799,7 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
     return (_a2 = leaf == null ? void 0 : leaf.view) != null ? _a2 : null;
   }
   /** 在笔记右边打开（或显示）实时预览 */
-  async openLivePreview() {
+  async openLivePreview(mode) {
     const { workspace } = this.app;
     let leaf = workspace.getLeavesOfType(VIEW_TYPE_LIVE_PREVIEW)[0];
     if (!leaf) {
@@ -26642,7 +26809,8 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
       await leaf.setViewState({ type: VIEW_TYPE_LIVE_PREVIEW, active: false });
     }
     await workspace.revealLeaf(leaf);
-    this.refreshLivePreview();
+    if (mode && leaf.view instanceof LivePreviewView) leaf.view.setMode(mode);
+    else this.refreshLivePreview();
   }
   /** 排版 / 章节样式 / 头像 / END 改了以后刷新预览 */
   refreshLivePreview() {

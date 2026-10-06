@@ -41,52 +41,36 @@ export function renderStyleReport(container: HTMLElement, report: StyleReport | 
 	}
 }
 
-export class XPreviewModal extends Modal {
-	private urls: string[] = [];
-
-	constructor(
-		app: App,
-		private resolved: Resolved,
-		private report: StyleReport,
-		private title: string,
-		private coverDataUrl?: string
-	) {
-		super(app);
+/** 把 X 文章预览（格式检查 + 正文）画进 container，返回需要释放的 blob 地址 */
+export function renderXPreviewInto(
+	container: HTMLElement,
+	resolved: Resolved,
+	report: StyleReport,
+	title: string,
+	coverDataUrl?: string
+): string[] {
+	const urls: string[] = [];
+	renderStyleReport(container, report, resolved.unresolved);
+	const bySrc: Record<string, string> = {};
+	for (const a of resolved.assets) {
+		const u = bytesToBlobUrl(a.bytes, a.mime);
+		urls.push(u);
+		bySrc[a.src] = u;
 	}
-
-	onOpen() {
-		this.modalEl.addClass('wechatpb-x-preview-modal');
-		const { contentEl } = this;
-		contentEl.createEl('h3', { text: 'X 文章预览' });
-		renderStyleReport(contentEl, this.report, this.resolved.unresolved);
-
-		const bySrc: Record<string, string> = {};
-		for (const a of this.resolved.assets) {
-			const u = bytesToBlobUrl(a.bytes, a.mime);
-			this.urls.push(u);
-			bySrc[a.src] = u;
-		}
-		let coverUrl: string | undefined = this.coverDataUrl;
-		if (!coverUrl && this.resolved.cover) {
-			coverUrl = bytesToBlobUrl(this.resolved.cover.bytes, this.resolved.cover.mime);
-			this.urls.push(coverUrl);
-		}
-
-		const { markdown } = extractMermaidBlocks(this.resolved.body);
-		const html = renderPreviewHtml(markdown, {
-			title: this.title,
-			coverUrl,
-			resolveImage: src => (src.startsWith(MERMAID_SRC_PREFIX) ? null : bySrc[src] ?? null)
-		});
-		const frame = contentEl.createDiv({ cls: 'wechatpb-x-preview-frame' });
-		// renderPreviewHtml 的文本与属性已全部转义；用 DOMParser 解析以保留 blob: 图片地址（同 Kaitox 做法）
-		const doc = new DOMParser().parseFromString(html, 'text/html');
-		for (const node of Array.from(doc.body.childNodes)) frame.appendChild(document.importNode(node, true));
+	let coverUrl: string | undefined = coverDataUrl;
+	if (!coverUrl && resolved.cover) {
+		coverUrl = bytesToBlobUrl(resolved.cover.bytes, resolved.cover.mime);
+		urls.push(coverUrl);
 	}
-
-	onClose() {
-		for (const u of this.urls) URL.revokeObjectURL(u);
-		this.urls = [];
-		this.contentEl.empty();
-	}
+	const { markdown } = extractMermaidBlocks(resolved.body);
+	const html = renderPreviewHtml(markdown, {
+		title,
+		coverUrl,
+		resolveImage: src => (src.startsWith(MERMAID_SRC_PREFIX) ? null : bySrc[src] ?? null)
+	});
+	const frame = container.createDiv({ cls: 'wechatpb-x-preview-frame' });
+	// renderPreviewHtml 的文本与属性已全部转义；用 DOMParser 解析以保留 blob: 图片地址（同 Kaitox 做法）
+	const doc = new DOMParser().parseFromString(html, 'text/html');
+	for (const node of Array.from(doc.body.childNodes)) frame.appendChild(document.importNode(node, true));
+	return urls;
 }

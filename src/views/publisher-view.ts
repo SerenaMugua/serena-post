@@ -8,7 +8,6 @@ import { ThemeManager } from '../utils/theme-manager';
 import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
 import { compressImage } from '../utils/image';
 import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
-import { XPreviewModal } from '../x/x-preview-modal';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
 import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
 import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
@@ -764,7 +763,7 @@ export class PublisherView extends ItemView {
 	}
 
 	async handlePreview() {
-		await this.plugin.openLivePreview();
+		await this.plugin.openLivePreview('wechat');
 	}
 
 	async handlePreviewModal() {
@@ -1242,23 +1241,17 @@ export class PublisherView extends ItemView {
 	}
 
 	async handleXPreview() {
-		const file = this.currentFile ?? this.app.workspace.getActiveFile();
-		if (!file || file.extension !== 'md') {
-			new Notice('请先打开一篇 Markdown 笔记');
-			return;
-		}
-		const loading = new Notice('正在生成 X 预览…', 0);
-		try {
-			const prepared = await prepareXDraft(this.app, file);
-			const cover = this.coverImage?.base64
-				?? (this.autoCover?.filePath === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : undefined);
-			loading.hide();
-			new XPreviewModal(this.app, prepared.resolved, prepared.report, prepared.resolved.title, cover).open();
-		} catch (error) {
-			loading.hide();
-			new Notice(`X 预览失败：${error instanceof Error ? error.message : error}`);
-		}
+		await this.plugin.openLivePreview('x');
 	}
+
+	/** X 文章预览所需数据（按 Kaitox 规则解析当前笔记） */
+	async buildXPreview(file: TFile) {
+		const prepared = await prepareXDraft(this.app, file);
+		const cover = this.coverImage?.base64
+			?? (this.autoCover?.filePath === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : undefined);
+		return { prepared, cover };
+	}
+
 
 	async publishToAccount(accountId: string, draft: DraftMeta, content: string) {
 		const account = this.plugin.settings.accounts.find(a => a.id === accountId);

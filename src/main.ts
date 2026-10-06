@@ -4,7 +4,8 @@ import { squareAvatar } from './utils/image';
 import { EmbeddedRelay } from './x/embedded-relay';
 import { PluginSettings, DEFAULT_SETTINGS, WeChatAccount, ResolvedWeChatAccount, ResolvedProxyConfig } from './types';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
-import { LivePreviewView, VIEW_TYPE_LIVE_PREVIEW } from './views/live-preview-view';
+import { LivePreviewView, VIEW_TYPE_LIVE_PREVIEW, type PreviewMode } from './views/live-preview-view';
+import { QUICK_FORMATS } from './utils/quick-format';
 import { AccountModal } from './modals/account-modal';
 import { getAccessToken } from './services/weixin-api';
 import { DEFAULT_BUILTIN_THEME } from './builtin-themes';
@@ -94,6 +95,21 @@ export default class WeChatPublisherPlugin extends Plugin {
 			name: '打开公众号实时预览',
 			callback: () => void this.openLivePreview()
 		});
+
+		// 快捷格式：命令（可绑快捷键）+ 编辑器右键菜单
+		for (const f of QUICK_FORMATS) {
+			this.addCommand({ id: `format-${f.id}`, name: `格式：${f.label}`, icon: f.icon, editorCallback: editor => f.run(editor) });
+		}
+		this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor) => {
+			menu.addItem(item => {
+				item.setTitle('SerenaPost 快捷格式').setIcon(ICON_ID).setSection('selection');
+				const sub = (item as unknown as { setSubmenu?: () => import('obsidian').Menu }).setSubmenu?.();
+				const target = sub ?? menu;
+				for (const f of QUICK_FORMATS) {
+					target.addItem(i => i.setTitle(f.label).setIcon(f.icon).onClick(() => f.run(editor)));
+				}
+			});
+		}));
 
 		// Add ribbon icon
 		this.addRibbonIcon(ICON_ID, PLUGIN_NAME, () => {
@@ -278,7 +294,7 @@ export default class WeChatPublisherPlugin extends Plugin {
 	}
 
 	/** 在笔记右边打开（或显示）实时预览 */
-	async openLivePreview() {
+	async openLivePreview(mode?: PreviewMode) {
 		const { workspace } = this.app;
 		let leaf = workspace.getLeavesOfType(VIEW_TYPE_LIVE_PREVIEW)[0];
 		if (!leaf) {
@@ -288,7 +304,8 @@ export default class WeChatPublisherPlugin extends Plugin {
 			await leaf.setViewState({ type: VIEW_TYPE_LIVE_PREVIEW, active: false });
 		}
 		await workspace.revealLeaf(leaf);
-		this.refreshLivePreview();
+		if (mode && leaf.view instanceof LivePreviewView) leaf.view.setMode(mode);
+		else this.refreshLivePreview();
 	}
 
 	/** 排版 / 章节样式 / 头像 / END 改了以后刷新预览 */

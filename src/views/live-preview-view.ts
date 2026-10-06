@@ -1,15 +1,23 @@
 /**
- * 公众号实时预览：放在笔记旁边，边写边看。
+ * 实时预览：放在笔记旁边，边写边看。公众号 / X 两个标签切换，呈现方式统一。
  * 笔记内容、排版、章节样式、IP 头像、END 标记任何一个变了，都会自动刷新。
+ * 顶部还有一排快捷格式按钮，选中文字点一下就能变成章节标题、表格等。
  */
-import { ItemView, MarkdownView, Notice, WorkspaceLeaf, sanitizeHTMLToDom } from 'obsidian';
+import { ItemView, MarkdownView, Notice, TFile, WorkspaceLeaf, sanitizeHTMLToDom, setIcon } from 'obsidian';
 import type WeChatPublisherPlugin from '../main';
 import { ICON_ID } from '../brand';
+import { QUICK_FORMATS } from '../utils/quick-format';
+import { renderXPreviewInto } from '../x/x-preview-modal';
 
 export const VIEW_TYPE_LIVE_PREVIEW = 'serena-post-live-preview';
+export type PreviewMode = 'wechat' | 'x';
 
 export class LivePreviewView extends ItemView {
 	private md: MarkdownView | null = null;
+	private mode: PreviewMode = 'wechat';
+	private blobUrls: string[] = [];
+	private tabs: Partial<Record<PreviewMode, HTMLElement>> = {};
+	private copyBtn!: HTMLButtonElement;
 	private timer: number | null = null;
 	private running = false;
 	private pending = false;
@@ -22,7 +30,7 @@ export class LivePreviewView extends ItemView {
 	}
 
 	getViewType() { return VIEW_TYPE_LIVE_PREVIEW; }
-	getDisplayText() { return '公众号预览'; }
+	getDisplayText() { return 'SerenaPost 预览'; }
 	getIcon() { return ICON_ID; }
 
 	async onOpen() {
@@ -30,12 +38,36 @@ export class LivePreviewView extends ItemView {
 		root.empty();
 		root.addClass('sp-live');
 		const head = root.createDiv({ cls: 'sp-live-head' });
-		const info = head.createDiv({ cls: 'sp-live-info' });
+		const tabs = head.createDiv({ cls: 'sp-live-tabs' });
+		for (const [mode, text] of [['wechat', '公众号'], ['x', 'X 文章']] as const) {
+			const tab = tabs.createEl('button', { cls: 'sp-live-tab', text });
+			tab.onclick = () => this.setMode(mode);
+			this.tabs[mode] = tab;
+		}
+		this.copyBtn = head.createEl('button', { text: '复制到公众号', cls: 'mod-cta sp-live-copy' });
+		this.copyBtn.onclick = () => void this.copy(this.copyBtn);
+
+		const info = root.createDiv({ cls: 'sp-live-info' });
 		info.createSpan({ cls: 'sp-live-dot' });
 		info.createSpan({ cls: 'sp-live-title', text: '实时预览' });
 		this.nameEl = info.createSpan({ cls: 'sp-live-name' });
-		const copyBtn = head.createEl('button', { text: '复制到公众号', cls: 'mod-cta' });
-		copyBtn.onclick = () => void this.copy(copyBtn);
+
+		// 快捷格式：选中文字点一下
+		const bar = root.createDiv({ cls: 'sp-format-bar' });
+		for (const f of QUICK_FORMATS) {
+			const btn = bar.createEl('button', { cls: 'sp-format-btn', attr: { 'aria-label': f.label } });
+			const ic = btn.createSpan({ cls: 'sp-format-ic' });
+			setIcon(ic, f.icon);
+			btn.createSpan({ text: f.short });
+			// mousedown 时阻止抢焦点，编辑器里的选区就不会丢
+			btn.onmousedown = e => e.preventDefault();
+			btn.onclick = () => {
+				const md = this.currentMd();
+				if (!md) { new Notice('先在笔记里选中要设置的文字'); return; }
+				f.run(md.editor);
+				this.schedule(200);
+			};
+		}
 
 		this.scrollEl = root.createDiv({ cls: 'sp-live-scroll' });
 		const phone = this.scrollEl.createDiv({ cls: 'sp-live-phone' });
@@ -54,12 +86,35 @@ export class LivePreviewView extends ItemView {
 		}));
 		this.registerEvent(this.app.workspace.on('file-open', () => this.schedule(100)));
 		this.registerEvent(this.app.metadataCache.on('resolved', () => this.schedule(800)));
+		this.registerEvent(this.app.vault.on('modify', f => {
+			if (this.mode === 'x' && f === this.md?.file) this.schedule(600);
+		}));
 
+		this.applyModeUi();
 		await this.update();
 	}
 
 	async onClose() {
 		if (this.timer) window.clearTimeout(this.timer);
+		this.releaseBlobs();
+	}
+
+	setMode(mode: PreviewMode) {
+		if (this.mode !== mode) this.scrollEl.scrollTop = 0;
+		this.mode = mode;
+		this.applyModeUi();
+		this.schedule(10);
+	}
+
+	private applyModeUi() {
+		for (const [m, el] of Object.entries(this.tabs)) el?.toggleClass('is-active', m === this.mode);
+		this.copyBtn.toggle(this.mode === 'wechat');
+		this.contentEl.toggleClass('is-x', this.mode === 'x');
+	}
+
+	private releaseBlobs() {
+		for (const u of this.blobUrls) URL.revokeObjectURL(u);
+		this.blobUrls = [];
 	}
 
 	/** 设置或内容变了：稍等一下再刷新，连续输入时不会卡 */
@@ -100,15 +155,27 @@ export class LivePreviewView extends ItemView {
 				this.message('打开一篇笔记，这里会实时显示它在公众号里的样子。');
 				return;
 			}
-			const html = await publisher.buildWechatHtml(md, false);
-			if (html === null) {
-				this.message('这篇笔记还是空的。');
-				return;
-			}
 			const top = this.scrollEl.scrollTop;
-			this.contentEl2.replaceChildren(sanitizeHTMLToDom(html));
+			if (this.mode === 'x') {
+				const file = md.file;
+				if (!(file instanceof TFile)) { this.message('打开一篇笔记即可预览。'); return; }
+				const { prepared, cover } = await publisher.buildXPreview(file);
+				const old = this.blobUrls;
+				this.contentEl2.empty();
+				this.blobUrls = renderXPreviewInto(this.contentEl2, prepared.resolved, prepared.report, prepared.resolved.title, cover);
+				for (const u of old) URL.revokeObjectURL(u);
+				this.nameEl.setText(`${file.basename} · X 文章`);
+			} else {
+				const html = await publisher.buildWechatHtml(md, false);
+				if (html === null) {
+					this.message('这篇笔记还是空的。');
+					return;
+				}
+				this.releaseBlobs();
+				this.contentEl2.replaceChildren(sanitizeHTMLToDom(html));
+				this.nameEl.setText(`${md.file?.basename ?? ''} · ${publisher.selectedTheme}`);
+			}
 			this.scrollEl.scrollTop = top;
-			this.nameEl.setText(`${md.file?.basename ?? ''} · ${publisher.selectedTheme}`);
 		} catch (e) {
 			console.error('[SerenaPost] 实时预览失败', e);
 			this.message(`预览失败：${e instanceof Error ? e.message : e}`);
