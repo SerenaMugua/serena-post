@@ -954,3 +954,28 @@
 	object-fit: cover; flex-shrink: 0;
 }
 .serena-post-tagline { font-size: var(--font-ui-small); color: var(--text-muted); }
+
+/* ===== 可视化排版编辑器 ===== */
+.wechat-multi-publisher-view .theme-edit-row { display: flex; gap: 8px; margin-top: 8px; }
+.wechat-multi-publisher-view .theme-edit-row button { flex: 1; }
+.serena-theme-editor { width: min(1120px, 96vw); max-width: 96vw; height: min(860px, 92vh); }
+.serena-theme-editor .modal-content { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.ste-wrap { display: flex; gap: 16px; flex: 1; min-height: 0; }
+.ste-controls { flex: 0 0 380px; overflow-y: auto; padding-right: 8px; }
+.ste-controls .setting-item { padding: 8px 0; }
+.ste-section { margin: 14px 0 2px; font-weight: 600; color: var(--text-accent); font-size: var(--font-ui-small); }
+.ste-value { min-width: 56px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: var(--font-ui-small); }
+.ste-preview-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ste-preview-label { font-size: var(--font-ui-small); color: var(--text-muted); margin-bottom: 6px; }
+.ste-phone {
+	flex: 1; overflow-y: auto; background: #ffffff; border-radius: 12px;
+	border: 1px solid var(--background-modifier-border); padding: 16px 0;
+}
+.ste-preview { max-width: 420px; margin: 0 auto; color: #333333; }
+.ste-preview img { max-width: 100%; }
+.ste-footer { display: flex; justify-content: space-between; gap: 8px; padding-top: 12px; border-top: 1px solid var(--background-modifier-border); margin-top: 12px; }
+.ste-footer-left, .ste-footer-right { display: flex; gap: 8px; }
+@media (max-width: 760px) {
+	.ste-wrap { flex-direction: column; }
+	.ste-controls { flex: none; max-height: 45%; }
+}

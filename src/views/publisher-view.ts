@@ -10,6 +10,9 @@ import { compressImage } from '../utils/image';
 import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
 import { XPreviewModal } from '../x/x-preview-modal';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
+import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
+import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
+import { CUSTOM_THEME_PREFIX } from '../utils/theme-manager';
 
 /** 发布进度里 X 渠道使用的伪账号 id */
 const X_TARGET_ID = '__x_article__';
@@ -62,6 +65,7 @@ export class PublisherView extends ItemView {
 		// 初始化主题管理器
 		this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
 		this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
+		this.themeManager.setCustomDefs(this.plugin.settings.customThemes);
 		await this.themeManager.loadThemes();
 		const initialTheme = this.themeManager.getTheme(this.plugin.settings.defaultTheme) ?? this.themeManager.getDefaultTheme();
 		this.selectedTheme = initialTheme.name;
@@ -269,6 +273,105 @@ export class PublisherView extends ItemView {
 		}
 	}
 
+	async reloadThemes() {
+		this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
+		this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
+		this.themeManager.setCustomDefs(this.plugin.settings.customThemes);
+		await this.themeManager.loadThemes();
+		if (!this.themeManager.getTheme(this.selectedTheme)) {
+			this.selectedTheme = this.themeManager.getDefaultTheme().name;
+		}
+	}
+
+	private async selectTheme(name: string) {
+		this.selectedTheme = name;
+		this.plugin.settings.defaultTheme = name;
+		await this.plugin.saveSettings();
+	}
+
+	/** 编辑器预览用：当前笔记正文（去掉属性、图片转成可显示的数据） */
+	private async getPreviewMarkdown(): Promise<string> {
+		const file = this.currentFile ?? this.app.workspace.getActiveFile();
+		if (!file || file.extension !== 'md') return '';
+		let content = this.removeFrontmatter(await this.app.vault.cachedRead(file));
+		const leaf = this.app.workspace.getLeavesOfType('markdown').find(l => (l.view as MarkdownView).file?.path === file.path);
+		if (leaf) {
+			try { content = await this.processImageLinks(content, leaf.view as MarkdownView); } catch { /* 预览不显示图片也无妨 */ }
+		}
+		return content;
+	}
+
+	async openThemeEditor() {
+		const current = this.themeManager.getTheme(this.selectedTheme);
+		const builtins = this.themeManager.getBuiltinThemes();
+		const editing = current?.customDef;
+		const startBase = editing?.base ?? (current?.builtin ? current.name : builtins[0]?.name);
+		new ThemeEditorModal(this.app, {
+			builtins,
+			editing,
+			startBase,
+			existingNames: this.plugin.settings.customThemes.map(t => t.name),
+			previewMarkdown: await this.getPreviewMarkdown(),
+			onSave: async (def, isNew) => {
+				const list = this.plugin.settings.customThemes;
+				if (isNew) list.push(def);
+				else {
+					const i = list.findIndex(t => t.id === def.id);
+					if (i >= 0) list[i] = def; else list.push(def);
+				}
+				await this.plugin.saveSettings();
+				await this.reloadThemes();
+				await this.selectTheme(CUSTOM_THEME_PREFIX + def.name);
+				new Notice(isNew ? `已保存新排版「${def.name}」` : `已更新排版「${def.name}」`);
+				this.render();
+			},
+			onDelete: async def => {
+				this.plugin.settings.customThemes = this.plugin.settings.customThemes.filter(t => t.id !== def.id);
+				await this.plugin.saveSettings();
+				await this.reloadThemes();
+				await this.selectTheme(this.themeManager.getTheme(def.base)?.name ?? this.themeManager.getDefaultTheme().name);
+				new Notice(`已删除排版「${def.name}」`);
+				this.render();
+			},
+			onExport: def => this.exportTheme(def)
+		}).open();
+	}
+
+	async exportTheme(def: CustomThemeDef) {
+		const folder = 'SerenaPost排版';
+		const safe = def.name.replace(/[\\/:*?"<>|]/g, '-');
+		const path = normalizePath(`${folder}/${safe}.serenapost.json`);
+		try {
+			if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+			const existing = this.app.vault.getAbstractFileByPath(path);
+			if (existing instanceof TFile) await this.app.vault.modify(existing, exportThemeJson(def));
+			else await this.app.vault.create(path, exportThemeJson(def));
+			new Notice(`已导出到仓库：${path}\n把这个文件发给别人，对方点「导入排版」即可使用`, 8000);
+		} catch (e) {
+			new Notice(`导出失败：${e instanceof Error ? e.message : e}`);
+		}
+	}
+
+	async importTheme(raw: string) {
+		try {
+			const builtins = this.themeManager.getBuiltinThemes().map(t => t.name);
+			const def = parseThemeJson(raw, builtins, this.themeManager.getDefaultTheme().name);
+			const names = this.plugin.settings.customThemes.map(t => t.name);
+			let name = def.name;
+			let i = 2;
+			while (names.includes(name)) name = `${def.name} ${i++}`;
+			def.name = name;
+			this.plugin.settings.customThemes.push(def);
+			await this.plugin.saveSettings();
+			await this.reloadThemes();
+			await this.selectTheme(CUSTOM_THEME_PREFIX + def.name);
+			new Notice(`已导入排版「${def.name}」`);
+			this.render();
+		} catch (e) {
+			new Notice(`导入失败：${e instanceof Error ? e.message : e}`);
+		}
+	}
+
 	renderThemeSelection(container: HTMLElement) {
 		const section = container.createDiv({ cls: 'theme-selection-section' });
 
@@ -282,7 +385,7 @@ export class PublisherView extends ItemView {
 		const select = controlRow.createEl('select', { cls: 'theme-select' });
 
 		const themes = this.themeManager.getThemes();
-		const builtinGroup = select.createEl('optgroup', { attr: { label: 'Memoria 内置排版' } });
+		const builtinGroup = select.createEl('optgroup', { attr: { label: '内置排版' } });
 		const customThemes = themes.filter(theme => !theme.builtin);
 		const customGroup = customThemes.length > 0
 			? select.createEl('optgroup', { attr: { label: '自定义排版' } })
@@ -312,21 +415,37 @@ export class PublisherView extends ItemView {
 		refreshBtn.onclick = async () => {
 			// Reload themes
 			this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
-			this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
-			await this.themeManager.loadThemes();
+			await this.reloadThemes();
 			new Notice('主题列表已刷新');
 			this.render();
 		};
+
+		// 可视化编辑器入口
+		const selectedForEdit = this.themeManager.getTheme(this.selectedTheme);
+		const editRow = section.createDiv({ cls: 'theme-edit-row' });
+		const editBtn = editRow.createEl('button', {
+			text: selectedForEdit?.customDef ? '编辑这套排版' : '基于这套新建排版'
+		});
+		editBtn.onclick = () => void this.openThemeEditor();
+		const importBtn = editRow.createEl('button', { text: '导入排版' });
+		const importInput = editRow.createEl('input', { type: 'file', cls: 'hidden-input' });
+		importInput.accept = '.json,application/json';
+		importInput.onchange = async () => {
+			const f = importInput.files?.[0];
+			importInput.value = '';
+			if (f) await this.importTheme(await f.text());
+		};
+		importBtn.onclick = () => importInput.click();
 
 		const selected = this.themeManager.getTheme(this.selectedTheme);
 		const themeHint = section.createDiv({ cls: 'theme-hint' });
 		themeHint.createSpan({ cls: 'theme-color-dot', attr: { style: `--theme-accent: ${selected?.accent ?? '#64748b'}` } });
 		themeHint.createSpan({
-			text: selected?.description ?? 'Memoria 内置排版已自动加载，无需设置本地文件夹'
+			text: selected?.description ?? '内置排版已自动加载，开箱即用'
 		});
 		section.createDiv({
 			cls: 'theme-library-hint',
-			text: `Memoria 已内置 ${themes.filter(theme => theme.builtin).length} 套排版${customThemes.length > 0 ? `，另加载 ${customThemes.length} 套自定义排版` : '，开箱即用'}`
+			text: `已内置 ${themes.filter(theme => theme.builtin).length} 套排版${customThemes.length > 0 ? `，另加载 ${customThemes.length} 套自定义排版` : '，开箱即用'}`
 		});
 	}
 

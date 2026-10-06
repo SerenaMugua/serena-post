@@ -479,7 +479,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName('排版样式').setHeading();
 
 		new Setting(containerEl)
-			.setName('Memoria 内置排版')
+			.setName('内置排版')
 			.setDesc('已内置 14 套优化排版，新用户无需选择文件夹或保存应用，默认使用“绿白清简”。')
 			.addButton(button => button
 				.setButtonText('查看 AI 排版规范')
@@ -487,7 +487,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('启用自定义排版')
-			.setDesc('仅在你要导入或让 AI 设计自己的 CSS 排版时开启。关闭时只显示 Memoria 内置排版。')
+			.setDesc('仅在你要导入或让 AI 设计自己的 CSS 排版时开启。关闭时只显示内置排版和你在编辑器里做的排版。')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.customThemesEnabled)
 				.onChange(async enabled => {
@@ -562,6 +562,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 			const view = leaf.view as PublisherView;
 			view.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
 			view.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
+			view.themeManager.setCustomDefs(this.plugin.settings.customThemes);
 			await view.themeManager.loadThemes();
 			const selected = view.themeManager.getTheme(view.selectedTheme) ?? view.themeManager.getDefaultTheme();
 			view.selectedTheme = selected.name;

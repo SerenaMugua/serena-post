@@ -1,5 +1,6 @@
 import { App, TFile, TFolder, Notice, normalizePath } from 'obsidian';
 import { BUILTIN_THEME_DOCUMENTS, BUILTIN_THEME_REFINEMENT, DEFAULT_BUILTIN_THEME } from '../builtin-themes';
+import { buildCustomCss, type CustomThemeDef } from '../theme-editor/custom-theme';
 
 export interface Theme {
 	name: string;           // 显示名称
@@ -11,13 +12,18 @@ export interface Theme {
 	accent?: string;
 	aliases?: string[];
 	headingLabel?: string;
+	/** SerenaPost 可视化编辑器做的排版 */
+	customDef?: CustomThemeDef;
 }
+
+export const CUSTOM_THEME_PREFIX = '★ ';
 
 export class ThemeManager {
 	app: App;
 	themes: Theme[] = [];
 	themesFolder: string = '';
 	customThemesEnabled: boolean = false;
+	customDefs: CustomThemeDef[] = [];
 
 	constructor(app: App) {
 		this.app = app;
@@ -32,6 +38,32 @@ export class ThemeManager {
 
 	setCustomThemesEnabled(enabled: boolean) {
 		this.customThemesEnabled = enabled;
+	}
+
+	setCustomDefs(defs: CustomThemeDef[]) {
+		this.customDefs = defs;
+	}
+
+	/** 内置排版（作为自定义排版的底） */
+	getBuiltinThemes(): Theme[] {
+		return this.themes.filter(t => t.builtin);
+	}
+
+	/** 把一条自定义排版定义变成可用的 Theme */
+	buildFromDef(def: CustomThemeDef): Theme {
+		const base = this.themes.find(t => t.builtin && (t.name === def.base || t.aliases?.includes(def.base)))
+			?? this.themes.find(t => t.builtin)!;
+		return {
+			name: CUSTOM_THEME_PREFIX + def.name,
+			filename: def.id,
+			css: buildCustomCss(base.css, base.accent ?? '', def),
+			path: `custom:${def.id}`,
+			builtin: false,
+			description: `基于「${base.name}」的自定义排版`,
+			accent: def.accent || base.accent,
+			headingLabel: def.h2Style === 'theme' ? base.headingLabel : undefined,
+			customDef: def
+		};
 	}
 
 	/**
@@ -49,6 +81,14 @@ export class ThemeManager {
 			aliases: legacyNames,
 			headingLabel
 		})).filter(theme => theme.css.length > 0);
+
+		for (const def of this.customDefs) {
+			try {
+				this.themes.push(this.buildFromDef(def));
+			} catch (e) {
+				console.error('[SerenaPost] 自定义排版加载失败', def.name, e);
+			}
+		}
 
 		if (!this.customThemesEnabled || !this.themesFolder) {
 			return this.themes;
@@ -112,7 +152,7 @@ export class ThemeManager {
 				}
 			}
 
-			const customThemeCount = this.themes.filter(theme => !theme.builtin).length;
+			const customThemeCount = this.themes.filter(theme => !theme.builtin && !theme.customDef).length;
 			if (customThemeCount > 0) {
 				new Notice(`已加载 ${customThemeCount} 个自定义主题`, 3000);
 			} else {

@@ -1,3 +1,5 @@
+import type { CustomThemeDef } from '../theme-editor/custom-theme';
+
 export interface ProxyConfig {
 	type: 'socks5' | 'http' | 'https';
 	host: string;
@@ -61,6 +63,7 @@ export interface PluginSettings {
 	openXAfterPush: boolean;
 	xSelected: boolean;           // 侧边栏是否勾选「X 文章草稿」
 	embeddedRelay: boolean;       // 是否在 Obsidian 内运行中转
+	customThemes: CustomThemeDef[]; // 可视化编辑器保存的排版
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -79,7 +82,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	relayToken: '',
 	openXAfterPush: true,
 	xSelected: false,
-	embeddedRelay: true
+	embeddedRelay: true,
+	customThemes: []
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */
