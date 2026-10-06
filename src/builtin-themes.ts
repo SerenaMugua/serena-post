@@ -109,7 +109,7 @@ export const BUILTIN_THEME_DOCUMENTS: ReadonlyArray<BuiltinThemeDocument> = [
 	{
 		name: 'Serena 蓝白',
 		content: serenaBlue,
-		description: 'Serena 木瓜 IP 配色：深蓝 + 亮蓝，章节序号标题，Mac 窗口代码块，表格左对齐',
+		description: 'Serena 木瓜 IP 配色：深蓝 + 亮蓝，章节序号标题，Mac 窗口代码块，全框线表格左对齐',
 		accent: '#0058a3',
 		headingNumbers: true,
 		codeWindow: true

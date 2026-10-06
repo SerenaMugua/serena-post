@@ -1,7 +1,7 @@
 # Serena 蓝白
 
 Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
-章节标题带「01」序号与粗下划线；代码块为 Mac 窗口 + 主题色底；表格左对齐，便于阅读。
+章节标题带「01」序号与粗下划线；代码块为 Mac 窗口 + 主题色底；表格全框线、文字左对齐，便于阅读。
 
 ```css
 .note-to-mp {
@@ -196,23 +196,23 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
   width: 100%;
   margin: 28px 0;
   border-collapse: collapse;
-  border-top: 2px solid #0058a3;
-  border-bottom: 2px solid #0058a3;
+  border: 2px solid #0058a3;
   font-size: 14.5px;
   line-height: 1.65 !important;
 }
 
 .note-to-mp th {
-  padding: 10px 8px;
-  border-bottom: 1px solid #0058a3;
+  padding: 10px 10px;
+  border: 1px solid #0058a3;
+  background: #eff3f6 !important;
   color: #0058a3 !important;
   font-weight: 800;
   text-align: left !important;
 }
 
 .note-to-mp td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #e3ebf2;
+  padding: 10px 10px;
+  border: 1px solid #c7d8e8;
   color: #1b252d !important;
   text-align: left !important;
   vertical-align: top;
