@@ -1,5 +1,8 @@
 name: 发布 Obsidian 插件
 
+# 推一个和 manifest.json 里 version 一样的标签（例如 1.1.0，不带 v），就会自动构建并发布 Release。
+# Obsidian 社区插件市场和 BRAT 都从 Release 里下载 main.js / manifest.json / styles.css。
+
 on:
   push:
     tags:
@@ -21,14 +24,32 @@ jobs:
         run: npm ci
       - name: 构建插件
         run: npm run build
-      - name: 检查标签与插件版本一致
+      - name: 检查标签与插件版本一致（社区市场要求标签不带 v）
         shell: bash
         run: |
-          test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./manifest.json').version")"
+          VERSION=$(node -p "require('./manifest.json').version")
+          if [ "$GITHUB_REF_NAME" != "$VERSION" ]; then
+            echo "标签 $GITHUB_REF_NAME 和 manifest.json 的版本 $VERSION 不一致"; exit 1
+          fi
+          node -e "const v=require('./versions.json'); if(!v['$VERSION']) { console.error('versions.json 缺少 $VERSION'); process.exit(1) }"
+      - name: 打包 zip（手动安装用）
+        run: |
+          mkdir -p dist/serena-post
+          cp main.js manifest.json styles.css dist/serena-post/
+          cd dist && zip -r "serena-post-${GITHUB_REF_NAME}.zip" serena-post
+      - name: 从 CHANGELOG 取这一版的说明
+        shell: bash
+        run: |
+          awk -v v="## ${GITHUB_REF_NAME}" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md > release-notes.md
+          echo "" >> release-notes.md
+          echo "**安装：** 下载 \`serena-post-${GITHUB_REF_NAME}.zip\`，解压到仓库的 \`.obsidian/plugins/\` 里，或用 BRAT 填 \`${GITHUB_REPOSITORY}\`。详见 README。" >> release-notes.md
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: SerenaPost ${{ github.ref_name }}
+          body_path: release-notes.md
           files: |
             main.js
             manifest.json
             styles.css
+            dist/serena-post-${{ github.ref_name }}.zip
