@@ -24497,6 +24497,10 @@ var PublisherView = class extends import_obsidian10.ItemView {
     }));
     this.render();
     void this.checkRelay();
+    for (const ms of [2e3, 5e3]) {
+      const t = window.setTimeout(() => void this.checkRelay(), ms);
+      this.register(() => window.clearTimeout(t));
+    }
     this.registerInterval(window.setInterval(() => void this.checkRelay(), 15e3));
     const initial = this.app.workspace.getActiveFile();
     if (initial && initial.extension === "md") void this.setCurrentFile(initial);

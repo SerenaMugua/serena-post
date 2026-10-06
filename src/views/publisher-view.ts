@@ -84,6 +84,11 @@ export class PublisherView extends ItemView {
 
 		this.render();
 		void this.checkRelay();
+		// 内置中转在 Obsidian 布局就绪后才启动，开头几秒多查两次，避免误显示「未运行」
+		for (const ms of [2000, 5000]) {
+			const t = window.setTimeout(() => void this.checkRelay(), ms);
+			this.register(() => window.clearTimeout(t));
+		}
 		this.registerInterval(window.setInterval(() => void this.checkRelay(), 15000));
 		const initial = this.app.workspace.getActiveFile();
 		if (initial && initial.extension === 'md') void this.setCurrentFile(initial);
