@@ -52,12 +52,16 @@ export function headingStyleCss(id: string | undefined, accent: string, accent2?
 	const r: string[] = [];
 	r.push(`${h} { display: block !important; margin: 40px 0 20px !important; padding: 0 !important; border: none !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; text-align: left !important; color: ${a} !important; font-size: 19px !important; font-weight: 900 !important; line-height: 1.5 !important; letter-spacing: 0.5px !important; }`);
 	r.push(`${lab} { display: inline !important; margin: 0 8px 0 0 !important; padding: 0 !important; border: none !important; background: none !important; color: ${b} !important; font-size: inherit !important; font-weight: 900 !important; font-family: inherit !important; }`);
+	r.push(`${h}.sp-has-avatar .sp-h-text { display: inline-block !important; max-width: 82% !important; vertical-align: middle !important; }`);
 	r.push(`${suf} { display: inline !important; margin: 0 0 0 8px !important; color: ${b} !important; font-weight: 900 !important; }`);
 
 	switch (def.id) {
 		case 'underline':
 			r.push(`${h} { display: table !important; margin: 44px auto 24px !important; padding: 0 4px 6px !important; border-bottom: 4px solid ${b} !important; text-align: center !important; }`);
 			r.push(`${lab} { color: ${a} !important; font-family: ${MONO} !important; margin-right: 10px !important; }`);
+			// 有头像时：下划线只划在「01 + 标题」下面
+			r.push(`${h}.sp-has-avatar { padding: 0 !important; border-bottom: none !important; }`);
+			r.push(`${h}.sp-has-avatar .sp-h-text { display: inline-block !important; max-width: 82% !important; padding: 0 4px 6px !important; border-bottom: 4px solid ${b} !important; vertical-align: middle !important; }`);
 			break;
 		case 'slash':
 			r.push(`${lab} { font-size: 22px !important; font-weight: 400 !important; margin-right: 4px !important; }`);

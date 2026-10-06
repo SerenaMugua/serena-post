@@ -50,6 +50,19 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
   text-align: center;
 }
 
+.note-to-mp h2.sp-has-avatar:not(.sp-h) {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+.note-to-mp h2.sp-has-avatar:not(.sp-h) .sp-h-text {
+  display: inline-block;
+  max-width: 82%;
+  padding: 0 4px 6px;
+  border-bottom: 4px solid #53a4ea;
+  vertical-align: middle;
+}
+
 .note-to-mp .wechatpb-heading-label {
   display: inline-block;
   margin: 0 10px 0 0;
@@ -195,14 +208,15 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
   width: 100%;
   margin: 28px 0;
   border-collapse: collapse;
-  border: 2px solid #0058a3;
+  border: 4px solid #53a4ea;
   font-size: 14.5px;
   line-height: 1.65 !important;
 }
 
 .note-to-mp th {
   padding: 10px 10px;
-  border: 1px solid #0058a3;
+  border: 2px solid #53a4ea;
+  border-bottom: 4px solid #53a4ea;
   background: #eff3f6 !important;
   color: #0058a3 !important;
   font-weight: 800;
@@ -211,7 +225,7 @@ Serena 木瓜 IP 配色：深蓝 #0058a3 + 亮蓝 #53a4ea + 两个近白。
 
 .note-to-mp td {
   padding: 10px 10px;
-  border: 1px solid #c7d8e8;
+  border: 2px solid #53a4ea;
   color: #1b252d !important;
   text-align: left !important;
   vertical-align: top;

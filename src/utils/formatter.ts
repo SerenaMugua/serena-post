@@ -440,9 +440,12 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 				img.className = 'sp-h-avatar';
 				img.src = avatar;
 				img.alt = '';
-				// 上置序号：序号单独一行，头像跟标题文字在同一行
-				if (style?.id === 'superscript' && label.parentElement === heading) label.after(img);
-				else heading.prepend(img);
+				// 标题文字（含序号）包一层，排版可以只给文字加下划线、不连头像一起划
+				const text = document.createElement('span');
+				text.className = 'sp-h-text';
+				text.append(...Array.from(heading.childNodes));
+				heading.append(img, text);
+				heading.classList.add('sp-has-avatar');
 			}
 		}
 
