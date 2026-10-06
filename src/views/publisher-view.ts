@@ -14,6 +14,7 @@ import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
 import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
 import { CUSTOM_THEME_PREFIX, renderSetup, type Theme } from '../utils/theme-manager';
 import { HEADING_STYLES } from '../utils/heading-styles';
+import { squareAvatar } from '../utils/image';
 
 /** 发布进度里 X 渠道使用的伪账号 id */
 const X_TARGET_ID = '__x_article__';
@@ -495,6 +496,36 @@ export class PublisherView extends ItemView {
 			};
 		};
 		toggle('章节标题前放 IP 头像', () => st.headingAvatar, v => { st.headingAvatar = v; });
+		const avatarRow = box.createDiv({ cls: 'sp-brand-row sp-avatar-row' });
+		const avatarImg = avatarRow.createEl('img', { cls: 'sp-avatar-preview' });
+		avatarImg.src = st.brandAvatar || AVATAR_DATA_URI;
+		avatarRow.createSpan({ cls: 'sp-brand-label', text: st.brandAvatar ? '自己上传的头像' : '内置 Serena 头像' });
+		const upload = avatarRow.createEl('button', { text: '上传头像' });
+		const input = avatarRow.createEl('input', { type: 'file', cls: 'hidden-input' });
+		input.accept = 'image/png,image/jpeg';
+		upload.onclick = () => input.click();
+		input.onchange = async () => {
+			const f = input.files?.[0];
+			input.value = '';
+			if (!f) return;
+			try {
+				st.brandAvatar = await squareAvatar(f);
+				st.headingAvatar = true;
+				await this.plugin.saveSettings();
+				new Notice('IP 头像已更新');
+				this.render();
+			} catch (e) {
+				new Notice(`头像读取失败：${e instanceof Error ? e.message : e}`);
+			}
+		};
+		if (st.brandAvatar) {
+			const reset = avatarRow.createEl('button', { text: '恢复内置' });
+			reset.onclick = async () => {
+				st.brandAvatar = '';
+				await this.plugin.saveSettings();
+				this.render();
+			};
+		}
 		toggle(`文末加「${st.endMarkText || 'END'}」标记`, () => st.endMark, v => { st.endMark = v; });
 	}
 

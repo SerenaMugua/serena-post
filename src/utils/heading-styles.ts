@@ -97,7 +97,7 @@ export function brandingCss(accent: string, accent2?: string): string {
 	const b = accent2 || tint(a, 0.35);
 	return `
 /* SerenaPost 品牌元素 */
-${ROOT} img.sp-h-avatar { display: inline-block !important; width: 30px !important; height: 30px !important; max-width: 30px !important; margin: 0 8px 0 0 !important; padding: 0 !important; border: 2px solid ${b} !important; border-radius: 50% !important; box-shadow: none !important; vertical-align: middle !important; background: #ffffff !important; }
+${ROOT} img.sp-h-avatar { display: inline-block !important; width: 44px !important; height: 44px !important; max-width: 44px !important; margin: 0 8px 0 0 !important; padding: 0 !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; vertical-align: middle !important; background: none !important; object-fit: contain; }
 ${ROOT} .sp-end { display: block !important; margin: 48px 0 8px !important; padding: 14px 0 0 !important; border-top: 1px solid ${tint(a, 0.75)} !important; text-align: center !important; }
 ${ROOT} .sp-end-text { display: inline-block !important; color: ${a} !important; font-size: 13px !important; font-style: italic !important; font-weight: 700 !important; letter-spacing: 3px !important; line-height: 1.6 !important; }
 `;

@@ -47,3 +47,25 @@ function canvasToBlob(canvas: HTMLCanvasElement, mimeType: string, quality: numb
 		canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('图片压缩失败')), mimeType, quality);
 	});
 }
+
+/** 把头像裁成居中正方形并缩到 240px，PNG data URL（体积小，发布时只上传一次） */
+export async function squareAvatar(file: File): Promise<string> {
+	const url = URL.createObjectURL(file);
+	try {
+		const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+			const el = new Image();
+			el.onload = () => resolve(el);
+			el.onerror = () => reject(new Error('不是有效的图片'));
+			el.src = url;
+		});
+		const side = Math.min(img.naturalWidth, img.naturalHeight);
+		const size = Math.min(240, side);
+		const canvas = document.createElement('canvas');
+		canvas.width = canvas.height = size;
+		const ctx = canvas.getContext('2d')!;
+		ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+		return canvas.toDataURL('image/png');
+	} finally {
+		URL.revokeObjectURL(url);
+	}
+}

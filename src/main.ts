@@ -1,5 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, Notice, WorkspaceLeaf, FuzzySuggestModal, Modal, normalizePath, addIcon } from 'obsidian';
 import { AVATAR_DATA_URI, ICON_ID, ICON_SVG, PLUGIN_NAME } from './brand';
+import { squareAvatar } from './utils/image';
 import { EmbeddedRelay } from './x/embedded-relay';
 import { PluginSettings, DEFAULT_SETTINGS, WeChatAccount, ResolvedWeChatAccount, ResolvedProxyConfig } from './types';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
@@ -705,24 +706,3 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 	}
 }
 
-/** 把头像裁成居中正方形并缩到 160px，PNG data URL（体积小，发布时只上传一次） */
-async function squareAvatar(file: File): Promise<string> {
-	const url = URL.createObjectURL(file);
-	try {
-		const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-			const el = new Image();
-			el.onload = () => resolve(el);
-			el.onerror = () => reject(new Error('不是有效的图片'));
-			el.src = url;
-		});
-		const side = Math.min(img.naturalWidth, img.naturalHeight);
-		const size = Math.min(160, side);
-		const canvas = document.createElement('canvas');
-		canvas.width = canvas.height = size;
-		const ctx = canvas.getContext('2d')!;
-		ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
-		return canvas.toDataURL('image/png');
-	} finally {
-		URL.revokeObjectURL(url);
-	}
-}

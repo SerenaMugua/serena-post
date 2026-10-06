@@ -1018,3 +1018,13 @@
 	object-fit: cover;
 	border: 1px solid var(--background-modifier-border);
 }
+.sp-avatar-row {
+	margin-top: 2px;
+}
+.sp-avatar-row .sp-brand-label {
+	flex: 1;
+}
+.sp-avatar-row .sp-avatar-preview {
+	border-radius: 6px;
+	border: none;
+}
