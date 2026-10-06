@@ -33,6 +33,8 @@ export class LivePreviewView extends ItemView {
 	private syncRaf = 0;
 	private lastSyncLine = -1;
 	private lastPath = '';
+	/** 从预览点回原文后，短时间内不让编辑器滚动反过来带动预览 */
+	private suppressSyncUntil = 0;
 
 	constructor(leaf: WorkspaceLeaf, private plugin: WeChatPublisherPlugin) {
 		super(leaf);
@@ -175,6 +177,7 @@ export class LivePreviewView extends ItemView {
 		const line = Number(block.dataset.spLine);
 		if (!Number.isFinite(line)) return;
 		const editor = md.editor;
+		this.suppressSyncUntil = Date.now() + 1200;
 		const len = editor.getLine(line)?.length ?? 0;
 		editor.setSelection({ line, ch: 0 }, { line, ch: len });
 		editor.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true);
@@ -196,6 +199,7 @@ export class LivePreviewView extends ItemView {
 	/** 编辑器滚到哪，预览就跟到哪 */
 	private syncFromEditor() {
 		if (this.mode !== 'wechat' || !this.plugin.settings.previewSyncScroll || this.blocks.length === 0) return;
+		if (Date.now() < this.suppressSyncUntil) return;
 		if (this.syncRaf) return;
 		this.syncRaf = window.requestAnimationFrame(() => {
 			this.syncRaf = 0;
@@ -204,7 +208,9 @@ export class LivePreviewView extends ItemView {
 			if (!cm?.scrollDOM) return;
 			let top: number;
 			try {
-				const block = cm.lineBlockAtHeight(cm.scrollDOM.scrollTop);
+				// 视口顶部相对文档开头的高度（扣掉标题、笔记属性等上方的内容）
+				const h = cm.scrollDOM.getBoundingClientRect().top - cm.documentTop;
+				const block = cm.lineBlockAtHeight(Math.max(0, h));
 				top = cm.state.doc.lineAt(block.from).number - 1;
 			} catch {
 				return;

@@ -27265,6 +27265,8 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
     this.syncRaf = 0;
     this.lastSyncLine = -1;
     this.lastPath = "";
+    /** 从预览点回原文后，短时间内不让编辑器滚动反过来带动预览 */
+    this.suppressSyncUntil = 0;
   }
   getViewType() {
     return VIEW_TYPE_LIVE_PREVIEW;
@@ -27406,6 +27408,7 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
     const line = Number(block2.dataset.spLine);
     if (!Number.isFinite(line)) return;
     const editor = md.editor;
+    this.suppressSyncUntil = Date.now() + 1200;
     const len = (_b = (_a2 = editor.getLine(line)) == null ? void 0 : _a2.length) != null ? _b : 0;
     editor.setSelection({ line, ch: 0 }, { line, ch: len });
     editor.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true);
@@ -27426,6 +27429,7 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
   /** 编辑器滚到哪，预览就跟到哪 */
   syncFromEditor() {
     if (this.mode !== "wechat" || !this.plugin.settings.previewSyncScroll || this.blocks.length === 0) return;
+    if (Date.now() < this.suppressSyncUntil) return;
     if (this.syncRaf) return;
     this.syncRaf = window.requestAnimationFrame(() => {
       var _a2, _b, _c;
@@ -27435,7 +27439,8 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
       if (!(cm == null ? void 0 : cm.scrollDOM)) return;
       let top;
       try {
-        const block2 = cm.lineBlockAtHeight(cm.scrollDOM.scrollTop);
+        const h2 = cm.scrollDOM.getBoundingClientRect().top - cm.documentTop;
+        const block2 = cm.lineBlockAtHeight(Math.max(0, h2));
         top = cm.state.doc.lineAt(block2.from).number - 1;
       } catch (e) {
         return;
