@@ -60,6 +60,7 @@ export interface PluginSettings {
 	relayToken: string;
 	openXAfterPush: boolean;
 	xSelected: boolean;           // 侧边栏是否勾选「X 文章草稿」
+	embeddedRelay: boolean;       // 是否在 Obsidian 内运行中转
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -77,7 +78,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	relayBase: 'http://127.0.0.1:8765',
 	relayToken: '',
 	openXAfterPush: true,
-	xSelected: false
+	xSelected: false,
+	embeddedRelay: true
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */

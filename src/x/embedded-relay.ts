@@ -1,0 +1,61 @@
+/**
+ * 内置中转：Obsidian 启动时在本机 127.0.0.1 上运行 Kaitox 兼容的 relay，
+ * 用户不用再装 npm / 敲 `kaitox relay --daemon`。
+ *
+ * - 端口已被占用且那边是健康的 relay（例如用户自己跑着 Kaitox CLI）→ 直接复用；
+ * - 草稿存放在 ~/.kaitox（与原版一致），所以原版 Kaitox Chrome 扩展无需任何改动。
+ */
+import { startRelay, type RelayServerHandle } from '../../vendor/kaitox/relay/server';
+import { DEFAULT_RELAY_BASE, isRelayUp, type XSettings } from './xpush';
+
+export type RelayMode = 'embedded' | 'external' | 'off' | 'error';
+
+export class EmbeddedRelay {
+	private handle: RelayServerHandle | null = null;
+	mode: RelayMode = 'off';
+	error = '';
+
+	private portOf(base: string): number {
+		try {
+			const u = new URL(base || DEFAULT_RELAY_BASE);
+			return u.port ? parseInt(u.port, 10) : 80;
+		} catch {
+			return 8765;
+		}
+	}
+
+	async start(s: XSettings): Promise<RelayMode> {
+		if (this.handle) return this.mode;
+		if (await isRelayUp(s)) {
+			this.mode = 'external';
+			return this.mode;
+		}
+		try {
+			this.handle = await startRelay(this.portOf(s.relayBase));
+			this.mode = 'embedded';
+			this.error = '';
+		} catch (e) {
+			// 端口被其他程序占用等：再确认一次是不是已有 relay
+			if (await isRelayUp(s)) {
+				this.mode = 'external';
+			} else {
+				this.mode = 'error';
+				this.error = e instanceof Error ? e.message : String(e);
+				console.error('[SerenaPost] 内置中转启动失败', e);
+			}
+		}
+		return this.mode;
+	}
+
+	async stop(): Promise<void> {
+		const h = this.handle;
+		this.handle = null;
+		this.mode = 'off';
+		if (h) await h.close().catch(() => {});
+	}
+
+	async restart(s: XSettings): Promise<RelayMode> {
+		await this.stop();
+		return this.start(s);
+	}
+}

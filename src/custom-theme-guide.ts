@@ -1,4 +1,4 @@
-export const CUSTOM_THEME_AI_GUIDE = `请为 WeChatPB 设计一套微信公众号长文 CSS 排版。
+export const CUSTOM_THEME_AI_GUIDE = `请为 SerenaPost 设计一套微信公众号长文 CSS 排版。
 
 请严格遵守以下规范：
 1. 只输出一个 \`\`\`css 代码块，不要输出 HTML、JavaScript 或解释文字。

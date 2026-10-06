@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-wechatpb",
-  "version": "2.4.0",
-  "description": "Publish Markdown notes to multiple WeChat Official Accounts.",
+  "name": "serena-post",
+  "version": "1.0.0",
+  "description": "Obsidian plugin: push one note to WeChat Official Account drafts and X Article drafts.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -12,15 +12,11 @@
     "obsidian",
     "plugin",
     "wechat",
-    "multi-account",
-    "official-account"
+    "x",
+    "twitter",
+    "draft"
   ],
-  "author": "zhouxing",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Kianzzz/wechatPB.git"
-  },
-  "bugs": "https://github.com/Kianzzz/wechatPB/issues",
+  "author": "Serena 木瓜",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.0.0",

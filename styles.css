@@ -944,3 +944,13 @@
   color: var(--xp-text-muted, var(--xp-text-muted-default));
   text-align: center;
 }
+
+/* ===== SerenaPost 品牌头部 ===== */
+.serena-post-brand { display: flex; align-items: center; gap: 10px; }
+.serena-post-brand h3 { margin: 0; }
+.serena-post-avatar {
+	width: 40px; height: 40px; border-radius: 50%;
+	background: #ffffff; border: 1.5px solid var(--background-modifier-border);
+	object-fit: cover; flex-shrink: 0;
+}
+.serena-post-tagline { font-size: var(--font-ui-small); color: var(--text-muted); }

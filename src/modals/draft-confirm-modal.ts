@@ -85,7 +85,7 @@ export async function resolveImageRef(app: App, ref: string, sourcePath: string)
 			const type = (res.headers['content-type'] || res.headers['Content-Type'] || 'image/jpeg').split(';')[0];
 			return await toCoverDataUrl(res.arrayBuffer, type);
 		} catch (e) {
-			console.error('[WeChatPB] 下载封面失败', e);
+			console.error('[SerenaPost] 下载封面失败', e);
 			return null;
 		}
 	}
@@ -287,7 +287,7 @@ export class DraftConfirmModal extends Modal {
 			if (!this.xInfo.relayOnline) {
 				xBox.createDiv({
 					cls: 'wechatpb-x-warn',
-					text: '⚠ Kaitox 中转程序没有运行，X 会推送失败。请先在终端执行 kaitox relay --daemon'
+					text: '⚠ 中转程序没有运行，X 会推送失败。请在 SerenaPost 设置里打开「内置中转」'
 				});
 			}
 			renderStyleReport(xBox, this.xInfo.report, this.xInfo.unresolved);

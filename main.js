@@ -2094,16 +2094,16 @@ var require_html2canvas = __commonJS({
           [width, 0],
           [width, height]
         ];
-        return corners.reduce(function(stat, corner) {
+        return corners.reduce(function(stat2, corner) {
           var cx = corner[0], cy = corner[1];
           var d = distance(x2 - cx, y2 - cy);
-          if (closest ? d < stat.optimumDistance : d > stat.optimumDistance) {
+          if (closest ? d < stat2.optimumDistance : d > stat2.optimumDistance) {
             return {
               optimumCorner: corner,
               optimumDistance: d
             };
           }
-          return stat;
+          return stat2;
         }, {
           optimumDistance: closest ? Infinity : -Infinity,
           optimumCorner: null
@@ -9315,7 +9315,7 @@ var require_previous_map = __commonJS({
   "node_modules/postcss/lib/previous-map.js"(exports, module2) {
     "use strict";
     var { existsSync, readFileSync, realpathSync } = require("fs");
-    var { dirname, isAbsolute, join, relative, sep } = require("path");
+    var { dirname, isAbsolute, join: join3, relative, sep } = require("path");
     var { SourceMapConsumer, SourceMapGenerator } = require_source_map();
     function realPath(path) {
       try {
@@ -9430,7 +9430,7 @@ var require_previous_map = __commonJS({
           return this.decodeInline(this.annotation);
         } else if (this.annotation) {
           let map = this.annotation;
-          if (file) map = join(dirname(file), map);
+          if (file) map = join3(dirname(file), map);
           let unknown = this.loadFile(map, file, false);
           if (unknown) {
             try {
@@ -17343,72 +17343,844 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian11 = require("obsidian");
 
-// src/types/index.ts
-var DEFAULT_SETTINGS = {
-  accounts: [],
-  publishHistory: [],
-  maxConcurrent: 3,
-  autoCheckInterval: 36e5,
-  // 1 hour
-  themesFolder: "",
-  customThemesEnabled: false,
-  defaultTheme: "\u7EFF\u767D\u6E05\u7B80",
-  excludeFrontmatter: false,
-  defaultCoverImage: "",
-  defaultAuthor: "",
-  defaultOpenComment: false,
-  relayBase: "http://127.0.0.1:8765",
-  relayToken: "",
-  openXAfterPush: true,
-  xSelected: false
+// src/brand.ts
+var PLUGIN_NAME = "SerenaPost";
+var ICON_ID = "serena-post";
+var ICON_SVG = '<path fill="currentColor" fill-rule="evenodd" d="M45.7 97.2C39.2 95.9 36.1 94.4 31.8 90.2C27.4 85.9 24.6 81.7 22.5 76.5C21.2 73.2 21.0 73.1 19.4 73.8C18.7 74.1 17.4 74.5 16.5 74.6C14.9 74.7 14.7 74.7 13.6 73.7C11.3 71.7 9.0 65.2 8.9 60.3C8.8 57.5 8.8 57.5 9.8 57.0C10.4 56.8 11.8 56.5 13.1 56.4C15.3 56.2 15.3 56.2 15.7 55.1C15.9 54.5 16.3 53.9 16.5 53.7C16.9 53.3 17.0 52.4 17.0 49.7C17.0 39.5 19.0 32.6 23.7 26.3C24.8 24.8 26.5 23.0 27.4 22.3C29.0 21.0 36.1 17.3 36.9 17.3C37.1 17.3 37.2 16.7 37.1 15.2C36.9 13.0 37.5 10.3 38.7 7.9C39.5 6.3 42.1 3.4 43.4 2.8C45.2 1.9 45.1 2.4 43.1 4.2C40.1 6.9 38.5 10.2 38.5 13.8C38.5 16.0 38.6 16.5 39.0 16.6C39.5 16.7 39.5 16.3 39.6 14.1C39.6 10.8 40.5 8.6 42.7 6.5C46.4 3.1 52.4 1.5 56.6 2.9C63.3 5.1 64.4 11.1 59.1 16.0C57.5 17.5 57.4 17.7 58.2 17.7C59.2 17.7 63.5 19.7 66.1 21.5C71.4 25.0 75.5 29.1 77.4 32.9C79.4 36.8 81.3 43.1 82.1 48.6C82.5 51.3 82.5 51.4 83.6 51.8C84.2 52.1 84.7 52.6 84.9 53.1C85.1 53.9 85.2 54.0 87.0 54.0C88.4 54.0 89.2 54.2 90.0 54.8C91.1 55.5 91.2 55.6 91.3 58.0C91.4 60.5 90.5 64.7 89.4 66.8C88.1 69.4 85.4 71.3 82.9 71.3C81.1 71.3 80.6 71.8 79.7 74.7C76.3 85.5 68.5 93.8 59.1 96.9C56.8 97.6 48.9 97.8 45.7 97.2ZM57.6 94.9C65.8 92.7 72.9 85.9 76.5 76.9C77.1 75.4 77.6 74.1 77.5 74.1C77.5 74.0 76.6 74.2 75.6 74.4C74.5 74.6 72.0 74.7 68.8 74.6C63.0 74.4 61.0 73.8 57.3 71.4C51.7 67.8 48.6 67.9 43.7 71.8C41.2 73.7 39.4 74.6 36.7 75.2C32.4 76.1 29.9 76.3 27.3 76.0C26.0 75.9 24.8 75.8 24.8 75.8C24.7 75.8 25.5 77.4 26.4 79.4C30.0 86.6 35.5 91.6 42.3 93.9C46.3 95.2 54.4 95.7 57.6 94.9ZM48.0 88.8C46.8 87.7 45.2 84.3 45.7 83.8C46.0 83.6 56.7 83.1 57.2 83.3C57.9 83.5 57.7 84.4 56.6 86.5C55.1 89.1 54.2 89.8 51.5 89.9C49.5 90.1 49.4 90.0 48.0 88.8ZM53.2 85.1C55.7 85.0 56.3 84.8 56.3 84.4C56.3 84.1 56.1 84.0 55.8 84.1C55.5 84.2 53.4 84.3 51.1 84.3C47.2 84.3 47.0 84.4 47.0 85.0C47.0 85.7 47.1 85.7 48.6 85.5C49.5 85.4 51.6 85.3 53.2 85.1ZM48.1 77.6C47.7 77.2 49.0 70.3 49.5 69.8C49.9 69.3 50.0 70.1 49.5 73.2C49.2 75.0 49.0 76.6 49.0 76.7C49.0 76.9 50.0 77.0 51.2 77.0C53.7 77.0 53.6 77.1 52.8 73.7C52.3 71.2 52.2 69.4 52.6 69.8C53.0 70.3 54.9 77.6 54.7 77.8C54.3 78.2 48.4 78.0 48.1 77.6ZM33.0 74.3C37.4 73.7 40.0 72.7 42.4 70.6C45.0 68.5 48.1 67.2 50.7 67.2C53.0 67.2 53.8 67.5 58.5 70.4C61.9 72.5 64.6 73.1 70.5 73.1C79.3 73.1 80.8 71.9 83.0 63.1C84.4 57.6 84.4 53.8 82.9 53.1C78.9 51.1 59.8 49.3 48.3 49.8C37.0 50.3 26.7 51.5 21.7 52.9C20.7 53.2 19.5 53.5 19.1 53.6C16.4 54.2 16.0 59.9 18.2 66.4C20.6 73.4 24.7 75.6 33.0 74.3ZM14.3 70.6C12.5 67.2 11.5 63.7 11.5 60.6C11.5 58.2 11.4 58.0 10.8 58.1C8.9 58.3 11.5 69.4 14.1 72.2C15.5 73.8 15.6 73.0 14.3 70.6ZM19.0 71.8C16.3 66.0 15.7 64.2 15.4 60.1C15.2 57.1 15.1 57.0 13.1 57.5C10.9 58.1 13.5 68.6 16.6 72.0C17.6 73.0 17.7 73.0 18.4 72.6C18.8 72.3 19.1 72.0 19.0 71.8ZM25.8 71.5C22.2 70.5 20.1 68.5 19.3 65.2C18.7 62.9 19.2 63.0 20.3 65.4C22.9 71.2 29.1 72.2 38.3 68.1C42.2 66.5 45.4 65.4 47.5 65.1C49.8 64.8 49.2 65.3 46.5 65.8C45.2 66.1 42.4 67.2 39.5 68.7C32.9 71.9 29.7 72.5 25.8 71.5ZM64.0 71.4C62.5 71.1 59.9 70.0 58.5 68.9C56.4 67.5 56.6 67.1 58.8 68.5C64.2 72.1 75.0 70.8 78.4 66.1C79.5 64.7 80.6 64.3 80.9 65.2C81.1 65.9 77.7 69.2 75.9 70.0C72.7 71.4 67.4 72.0 64.0 71.4ZM86.6 63.9C87.4 61.5 88.0 58.4 88.0 56.6C88.0 55.3 87.5 55.0 85.7 55.0C85.0 55.0 85.0 55.1 85.2 56.8C85.4 58.6 84.7 62.6 83.3 67.0C82.5 69.8 82.4 69.8 84.3 67.8C85.5 66.5 86.1 65.4 86.6 63.9ZM88.1 65.9C89.8 62.5 90.6 56.3 89.4 55.7C89.0 55.5 88.7 55.3 88.6 55.3C88.5 55.3 88.5 56.3 88.6 57.4C88.8 60.1 87.9 64.7 86.9 66.8C86.2 68.2 86.2 68.3 86.7 67.8C87.1 67.4 87.7 66.6 88.1 65.9ZM41.3 62.0C33.3 61.5 26.4 59.9 21.2 57.3C18.7 56.0 19.0 55.7 21.7 56.8C27.5 59.1 32.7 60.1 41.2 60.7C53.2 61.5 63.3 60.5 73.7 57.5C75.9 56.8 77.8 56.4 77.9 56.4C78.0 56.6 71.3 59.2 69.0 59.8C61.5 61.9 52.5 62.6 41.3 62.0ZM22.3 54.5C27.3 53.3 41.6 52.2 47.6 52.6C49.6 52.8 51.4 53.0 51.5 53.1C51.6 53.2 47.4 53.3 42.1 53.4C36.8 53.6 32.0 53.7 31.3 53.8C29.4 54.1 21.3 55.0 20.9 55.0C20.7 54.9 21.3 54.7 22.3 54.5ZM78.5 54.3C76.3 53.9 72.0 53.5 69.0 53.4L63.5 53.1L66.7 52.9C71.2 52.5 82.8 53.4 83.6 54.1C83.8 54.4 83.0 55.0 82.7 55.0C82.6 54.9 80.7 54.6 78.5 54.3ZM21.6 51.5C21.7 51.4 21.5 51.1 21.2 50.7C20.9 50.4 20.2 49.2 19.7 48.2L18.7 46.2L18.7 48.6C18.7 51.8 18.8 52.1 20.3 51.8C21.0 51.7 21.6 51.5 21.6 51.5ZM25.5 50.6C27.9 50.2 27.6 50.4 28.0 48.4L28.3 46.8L26.5 44.9C24.3 42.7 22.2 38.7 21.6 35.7C21.1 33.1 21.0 33.4 19.8 38.0C18.5 43.4 18.8 45.0 21.6 49.2C22.9 51.2 22.8 51.2 25.5 50.6ZM80.7 50.0C80.7 48.8 80.2 48.7 79.7 49.8C79.4 50.5 79.5 50.6 79.9 50.8C80.2 50.9 80.5 50.9 80.6 51.0C80.6 51.0 80.7 50.5 80.7 50.0ZM79.0 48.6L80.1 46.9L79.5 44.3C79.2 42.9 78.7 40.6 78.3 39.3L77.6 37.0L76.8 38.9C76.4 40.0 75.3 41.8 74.5 43.0L73.0 45.2L73.5 46.7C73.8 47.4 74.0 48.4 74.0 48.7C74.0 49.5 75.2 50.1 77.5 50.3C77.8 50.3 78.4 49.6 79.0 48.6ZM38.3 49.0C45.7 48.5 45.2 48.7 45.8 46.5C46.1 45.5 46.9 44.0 47.5 43.2L48.6 41.7L47.6 41.4C44.8 40.6 35.6 38.8 33.2 38.6L31.9 38.5L31.0 42.5C30.4 44.7 29.9 47.3 29.8 48.2L29.6 49.9L31.2 49.7C32.1 49.5 35.3 49.2 38.3 49.0ZM72.3 49.0C72.3 48.9 72.0 47.8 71.7 46.6C71.3 45.5 70.7 43.0 70.2 41.2C69.7 39.3 69.2 37.7 69.0 37.6C68.8 37.3 60.4 39.5 54.8 41.4C53.1 41.9 51.4 42.3 51.0 42.2C49.9 41.8 47.4 44.8 46.5 47.6L46.3 48.3L53.2 48.4C57.0 48.4 62.3 48.6 65.0 48.8C71.3 49.4 72.3 49.4 72.3 49.0ZM28.1 42.8C25.0 39.0 23.4 35.5 23.1 32.2C22.9 30.4 22.8 30.3 22.4 30.8C21.0 32.8 23.3 39.7 26.8 43.5C28.4 45.4 28.5 45.4 28.7 44.6C28.8 44.1 28.7 43.5 28.1 42.8ZM75.7 39.1C76.7 37.0 77.0 36.1 76.9 35.5C76.6 34.4 76.4 34.6 75.6 36.7C75.3 37.7 74.6 39.0 74.1 39.8C72.4 42.2 72.2 42.6 72.5 43.2C72.7 43.7 72.8 43.7 73.5 42.8C74.0 42.3 75.0 40.6 75.7 39.1ZM30.2 39.2C30.8 36.6 31.1 36.5 33.3 36.9C34.3 37.1 35.0 37.2 35.0 37.1C35.0 37.0 34.5 36.2 33.8 35.2C31.7 32.0 30.3 26.2 30.9 22.9C31.1 22.0 31.2 21.3 31.1 21.3C30.1 21.3 25.4 25.8 24.4 27.8C22.8 30.9 25.0 38.2 28.4 41.5C29.3 42.4 29.4 42.3 30.2 39.2ZM73.1 38.9C73.8 38.0 74.6 36.2 75.0 35.1L75.7 33.0L74.7 31.4C73.6 29.8 72.5 28.3 72.3 28.3C72.2 28.3 72.1 29.0 72.1 29.8C72.1 30.5 71.6 32.3 71.2 33.6L70.3 36.0L71.0 38.3C71.5 39.6 71.8 40.7 71.9 40.7C71.9 40.7 72.5 39.9 73.1 38.9ZM46.8 38.5C45.2 36.8 42.7 32.1 41.9 29.4C41.0 26.5 41.2 22.4 42.2 19.8C42.7 18.6 43.0 17.6 42.9 17.5C42.7 17.3 35.4 19.3 33.6 20.1L31.7 21.0L31.7 23.9C31.7 27.5 32.0 29.1 33.5 32.1C35.1 35.7 37.0 37.5 39.5 38.0C40.6 38.2 42.9 38.7 44.5 39.1C46.1 39.6 47.7 39.9 47.9 40.0C48.1 40.0 47.6 39.3 46.8 38.5ZM54.7 35.9C56.8 32.0 57.4 29.8 57.5 26.2C57.5 23.0 57.4 22.7 56.4 20.6C55.2 18.1 54.8 17.9 51.2 17.9C49.7 17.8 49.5 17.9 49.2 18.8C49.1 19.4 48.9 21.9 48.9 24.3C48.9 29.0 49.4 32.3 51.0 37.6L51.7 40.1L52.7 39.0C53.2 38.3 54.1 37.0 54.7 35.9ZM57.4 39.0C59.1 38.5 62.3 37.7 64.5 37.1L68.5 36.2L69.6 33.7C70.7 31.1 71.3 28.7 71.1 27.4C70.8 26.0 65.1 21.9 60.7 20.1C58.1 19.1 56.6 18.6 56.7 18.9C58.7 22.6 59.1 25.5 58.2 29.5C57.5 32.5 55.8 36.8 54.5 38.7C53.5 40.3 53.4 40.2 57.4 39.0ZM49.3 36.5C48.2 31.7 47.5 24.1 47.9 21.1C48.1 19.7 48.4 18.2 48.5 17.9C48.7 17.4 48.5 17.3 46.6 17.3C45.2 17.3 44.3 17.5 44.0 17.8C42.7 19.4 42.0 26.1 43.0 28.8C44.1 32.1 46.2 35.9 47.9 37.6C48.9 38.6 49.8 39.3 49.8 39.3C49.9 39.2 49.7 37.9 49.3 36.5ZM56.6 16.2L57.4 15.8L56.2 15.3C54.8 14.9 50.0 15.1 49.2 15.6C49.0 15.7 50.1 16.0 51.7 16.2C55.5 16.7 55.7 16.7 56.6 16.2ZM43.9 11.3C46.2 8.3 50.1 5.7 54.0 4.7C55.9 4.2 56.2 4.1 55.6 3.9C53.5 3.3 49.2 4.0 46.6 5.4C42.5 7.5 39.8 12.4 41.0 15.5L41.4 16.5L42.0 14.8C42.3 13.8 43.1 12.3 43.9 11.3ZM45.1 14.2C49.0 10.3 55.4 8.6 59.3 10.4C60.9 11.1 61.3 10.9 61.3 9.4C61.3 6.9 58.7 4.5 56.5 4.8C51.0 5.7 46.1 9.2 43.9 13.6C42.4 16.5 42.7 16.7 45.1 14.2ZM50.3 14.9C52.4 14.3 53.2 14.3 57.6 14.7C58.8 14.9 60.5 12.7 60.0 11.7C58.5 8.9 50.4 10.4 46.0 14.4L44.5 15.7L46.3 15.6C47.3 15.5 49.1 15.2 50.3 14.9ZM24.9 0.1C38.7 0.0 61.3 0.0 75.1 0.1C88.9 0.1 77.6 0.2 50.0 0.2C22.4 0.2 11.1 0.1 24.9 0.1Z"/>';
+var AVATAR_DATA_URI = "data:image/png;base64,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";
+
+// vendor/kaitox/relay/server.ts
+var import_node_http = require("node:http");
+var import_node_fs = require("node:fs");
+var import_promises3 = require("node:fs/promises");
+
+// vendor/kaitox/relay-protocol/bundle.ts
+var DEFAULT_DRAFT_KIND = "x-article";
+var SCHEMA_VERSION = 1;
+
+// vendor/kaitox/relay-protocol/base64.ts
+function bytesToBase64(bytes) {
+  if (typeof globalThis.Buffer !== "undefined") {
+    return globalThis.Buffer.from(bytes).toString("base64");
+  }
+  let binary = "";
+  const chunk = 32768;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return globalThis.btoa(binary);
+}
+function base64ToBytes(b64) {
+  if (typeof globalThis.Buffer !== "undefined") {
+    return new Uint8Array(globalThis.Buffer.from(b64, "base64"));
+  }
+  const binary = globalThis.atob(b64);
+  const out = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+  return out;
+}
+
+// vendor/kaitox/relay-protocol/relayClient.ts
+var RelayHttpError = class extends Error {
+  constructor(method, url, status, body) {
+    super(`relay ${method} ${url} ${status}${body ? `: ${body}` : ""}`);
+    this.method = method;
+    this.url = url;
+    this.status = status;
+    this.body = body;
+    this.name = "RelayHttpError";
+  }
 };
-
-// src/views/publisher-view.ts
-var import_obsidian9 = require("obsidian");
-var import_html2canvas = __toESM(require_html2canvas());
-
-// src/modals/draft-confirm-modal.ts
-var import_obsidian3 = require("obsidian");
-
-// src/utils/image.ts
-async function compressImage(data, mimeType, maxSizeKB = 500) {
-  if (data.byteLength <= maxSizeKB * 1024 || !/^image\/(png|jpe?g|webp)$/i.test(mimeType)) {
-    return { data, mimeType };
+var DEFAULT_RELAY_PORT = 8765;
+var DEFAULT_RELAY_BASE = `http://127.0.0.1:${DEFAULT_RELAY_PORT}`;
+var HttpRelayClient = class {
+  constructor(baseUrl = DEFAULT_RELAY_BASE, opts = {}) {
+    var _a2, _b, _c, _d;
+    this.base = baseUrl.replace(/\/+$/, "");
+    this.kind = (_a2 = opts.kind) != null ? _a2 : DEFAULT_DRAFT_KIND;
+    const f = (_b = opts.fetchImpl) != null ? _b : globalThis.fetch;
+    if (!f) throw new Error("\u6CA1\u6709\u53EF\u7528\u7684 fetch\uFF0C\u8BF7\u901A\u8FC7 opts.fetchImpl \u6CE8\u5165\u3002");
+    this.fetchImpl = f;
+    this.token = opts.token;
+    this.makeId = (_c = opts.makeId) != null ? _c : (() => globalThis.crypto.randomUUID());
+    this.now = (_d = opts.now) != null ? _d : (() => (/* @__PURE__ */ new Date()).toISOString());
   }
-  const blobUrl = URL.createObjectURL(new Blob([data], { type: mimeType }));
-  try {
-    const image = new Image();
-    await new Promise((resolve, reject) => {
-      image.onload = () => resolve();
-      image.onerror = () => reject(new Error("\u65E0\u6CD5\u8BFB\u53D6\u56FE\u7247"));
-      image.src = blobUrl;
-    });
-    const scale = Math.min(1, 2048 / image.naturalWidth, 2048 / image.naturalHeight);
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
-    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("\u65E0\u6CD5\u521B\u5EFA\u56FE\u7247\u538B\u7F29\u753B\u5E03");
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    const outputMime = mimeType === "image/png" ? "image/jpeg" : mimeType;
-    let quality = 0.9;
-    let output = await canvasToBlob(canvas, outputMime, quality);
-    while (output.size > maxSizeKB * 1024 && quality > 0.2) {
-      quality -= 0.1;
-      output = await canvasToBlob(canvas, outputMime, quality);
+  headers(extra = {}) {
+    const h2 = { ...extra };
+    if (this.token) h2["x-kaitox-token"] = this.token;
+    return h2;
+  }
+  /** /:kind/drafts 前缀（kind 可被单次调用覆盖，如带自定义 kind 的 postDraft）。 */
+  draftsBase(kind = this.kind) {
+    return `${this.base}/${encodeURIComponent(kind)}/drafts`;
+  }
+  async health() {
+    const url = `${this.base}/health`;
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return res.json();
+  }
+  async postDraft(input) {
+    var _a2;
+    const id = this.makeId();
+    const kind = (_a2 = input.kind) != null ? _a2 : this.kind;
+    const bundle = {
+      schemaVersion: SCHEMA_VERSION,
+      id,
+      kind,
+      title: input.title,
+      markdown: input.markdown,
+      mode: input.mode,
+      assets: input.assets.map((a) => ({
+        key: a.key,
+        src: a.src,
+        fileName: a.fileName,
+        mime: a.mime,
+        bytesLen: a.bytes.byteLength
+      })),
+      cover: input.cover ? {
+        key: input.cover.key,
+        src: input.cover.src,
+        fileName: input.cover.fileName,
+        mime: input.cover.mime,
+        bytesLen: input.cover.bytes.byteLength
+      } : void 0,
+      styleReport: input.styleReport,
+      createdAt: this.now(),
+      source: input.source,
+      sourceMeta: input.sourceMeta
+    };
+    const wireAssets = input.assets.map((a) => ({
+      fileName: a.fileName,
+      mime: a.mime,
+      base64: bytesToBase64(a.bytes)
+    }));
+    if (input.cover) {
+      wireAssets.push({
+        fileName: input.cover.fileName,
+        mime: input.cover.mime,
+        base64: bytesToBase64(input.cover.bytes)
+      });
     }
-    return { data: await output.arrayBuffer(), mimeType: outputMime };
-  } finally {
-    URL.revokeObjectURL(blobUrl);
+    const body = {
+      bundle,
+      assets: wireAssets
+    };
+    const url = this.draftsBase(kind);
+    const res = await this.fetchImpl(url, {
+      method: "POST",
+      headers: this.headers({ "content-type": "application/json" }),
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new RelayHttpError("POST", url, res.status, await safeText(res));
+    return res.json();
+  }
+  async listDrafts() {
+    const url = this.draftsBase();
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return res.json();
+  }
+  async getDraft(id) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return res.json();
+  }
+  async getAsset(id, fileName) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}/assets/${encodeURIComponent(fileName)}`;
+    const res = await this.fetchImpl(url, { headers: this.headers() });
+    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
+    return new Uint8Array(await res.arrayBuffer());
+  }
+  async setCover(id, cover) {
+    const body = {
+      fileName: cover.fileName,
+      mime: cover.mime,
+      base64: bytesToBase64(cover.bytes),
+      // undefined 时 JSON.stringify 省略该键，旧 relay 收到的 body 与从前一致。
+      original: cover.original ? {
+        fileName: cover.original.fileName,
+        mime: cover.original.mime,
+        base64: bytesToBase64(cover.original.bytes)
+      } : void 0
+    };
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}/cover`;
+    const res = await this.fetchImpl(url, {
+      method: "PUT",
+      headers: this.headers({ "content-type": "application/json" }),
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new RelayHttpError("PUT", url, res.status, await safeText(res));
+  }
+  async ack(id, patch) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
+    const res = await this.fetchImpl(url, {
+      method: "PATCH",
+      headers: this.headers({ "content-type": "application/json" }),
+      body: JSON.stringify(patch)
+    });
+    if (!res.ok) throw new RelayHttpError("PATCH", url, res.status, await safeText(res));
+  }
+  async deleteDraft(id) {
+    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
+    const res = await this.fetchImpl(url, {
+      method: "DELETE",
+      headers: this.headers()
+    });
+    if (!res.ok) throw new RelayHttpError("DELETE", url, res.status);
+  }
+};
+async function safeText(res) {
+  try {
+    return await res.text();
+  } catch (e) {
+    return "";
   }
 }
-function canvasToBlob(canvas, mimeType, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("\u56FE\u7247\u538B\u7F29\u5931\u8D25")), mimeType, quality);
-  });
+
+// vendor/kaitox/relay-protocol/validate.ts
+var RESERVED_KIND_SEGMENTS = /* @__PURE__ */ new Set(["health", "setting", "drafts"]);
+function isValidKindSegment(kind) {
+  return /^[a-z0-9][a-z0-9-]*$/.test(kind) && !RESERVED_KIND_SEGMENTS.has(kind);
+}
+function isRec(v) {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+function pushStr(v, path, issues, allowEmpty = false) {
+  if (typeof v !== "string" || !allowEmpty && !v) {
+    issues.push({ path, message: allowEmpty ? "expected string" : "expected non-empty string" });
+  }
+}
+function checkAssetMeta(v, path, issues) {
+  if (!isRec(v)) {
+    issues.push({ path, message: "expected object" });
+    return;
+  }
+  pushStr(v.key, `${path}.key`, issues);
+  pushStr(v.src, `${path}.src`, issues);
+  pushStr(v.fileName, `${path}.fileName`, issues);
+  pushStr(v.mime, `${path}.mime`, issues);
+  if (typeof v.bytesLen !== "number") issues.push({ path: `${path}.bytesLen`, message: "expected number" });
+}
+var DRAFT_STATUSES = /* @__PURE__ */ new Set(["pending", "uploading", "done", "failed"]);
+function validatePostDraftWireBody(input) {
+  if (!isRec(input)) return { ok: false, issues: [{ path: "$", message: "expected object" }] };
+  const issues = [];
+  const b = input.bundle;
+  if (!isRec(b)) {
+    issues.push({ path: "$.bundle", message: "expected object" });
+  } else {
+    pushStr(b.id, "$.bundle.id", issues);
+    if (b.kind !== void 0) pushStr(b.kind, "$.bundle.kind", issues);
+    pushStr(b.title, "$.bundle.title", issues, true);
+    pushStr(b.markdown, "$.bundle.markdown", issues, true);
+    if (b.mode !== "rich" && b.mode !== "plaintext") {
+      issues.push({ path: "$.bundle.mode", message: "expected 'rich' | 'plaintext'" });
+    }
+    if (b.schemaVersion !== void 0 && typeof b.schemaVersion !== "number") {
+      issues.push({ path: "$.bundle.schemaVersion", message: "expected number" });
+    }
+    pushStr(b.createdAt, "$.bundle.createdAt", issues);
+    pushStr(b.source, "$.bundle.source", issues);
+    if (!Array.isArray(b.assets)) {
+      issues.push({ path: "$.bundle.assets", message: "expected array" });
+    } else {
+      b.assets.forEach((a, i) => checkAssetMeta(a, `$.bundle.assets[${i}]`, issues));
+    }
+    if (b.cover !== void 0) checkAssetMeta(b.cover, "$.bundle.cover", issues);
+    if (b.coverOriginal !== void 0) checkAssetMeta(b.coverOriginal, "$.bundle.coverOriginal", issues);
+    if (b.styleReport !== void 0 && !isRec(b.styleReport)) {
+      issues.push({ path: "$.bundle.styleReport", message: "expected object" });
+    }
+    if (b.sourceMeta !== void 0 && !isRec(b.sourceMeta)) {
+      issues.push({ path: "$.bundle.sourceMeta", message: "expected object" });
+    }
+  }
+  if (!Array.isArray(input.assets)) {
+    issues.push({ path: "$.assets", message: "expected array" });
+  } else {
+    input.assets.forEach((a, i) => {
+      if (!isRec(a)) {
+        issues.push({ path: `$.assets[${i}]`, message: "expected object" });
+        return;
+      }
+      pushStr(a.fileName, `$.assets[${i}].fileName`, issues);
+      pushStr(a.mime, `$.assets[${i}].mime`, issues);
+      pushStr(a.base64, `$.assets[${i}].base64`, issues, true);
+    });
+  }
+  return issues.length ? { ok: false, issues } : { ok: true, value: input };
+}
+function validateSetCoverWireBody(input) {
+  if (!isRec(input)) return { ok: false, issues: [{ path: "$", message: "expected object" }] };
+  const issues = [];
+  pushStr(input.fileName, "$.fileName", issues);
+  pushStr(input.mime, "$.mime", issues);
+  pushStr(input.base64, "$.base64", issues);
+  if (input.original !== void 0) {
+    if (!isRec(input.original)) {
+      issues.push({ path: "$.original", message: "expected object" });
+    } else {
+      pushStr(input.original.fileName, "$.original.fileName", issues);
+      pushStr(input.original.mime, "$.original.mime", issues);
+      pushStr(input.original.base64, "$.original.base64", issues);
+    }
+  }
+  return issues.length ? { ok: false, issues } : { ok: true, value: input };
+}
+function validateAckPatch(input) {
+  if (!isRec(input)) return { ok: false, issues: [{ path: "$", message: "expected object" }] };
+  const issues = [];
+  if (typeof input.status !== "string" || !DRAFT_STATUSES.has(input.status)) {
+    issues.push({ path: "$.status", message: `expected one of ${[...DRAFT_STATUSES].join(" | ")}` });
+  }
+  if (input.restId !== void 0) pushStr(input.restId, "$.restId", issues);
+  if (input.error !== void 0) pushStr(input.error, "$.error", issues, true);
+  return issues.length ? { ok: false, issues } : { ok: true, value: input };
+}
+function validateSettingPatch(input) {
+  if (!isRec(input)) return { ok: false, issues: [{ path: "$", message: "expected object" }] };
+  const issues = [];
+  if (input.token !== void 0 && input.token !== null && typeof input.token !== "string") {
+    issues.push({ path: "$.token", message: "expected string | null" });
+  }
+  return issues.length ? { ok: false, issues } : { ok: true, value: input };
 }
 
-// src/x/x-preview-modal.ts
+// vendor/kaitox/relay/config.ts
+var import_node_os = require("node:os");
+var import_node_path = require("node:path");
+var import_promises = require("node:fs/promises");
+var RELAY_VERSION = "0.6.1-serenapost";
+var DEFAULT_PORT = DEFAULT_RELAY_PORT;
+var HOST = "127.0.0.1";
+function relayPort() {
+  const p = process.env.KAITOX_RELAY_PORT;
+  const n = p ? parseInt(p, 10) : DEFAULT_PORT;
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_PORT;
+}
+function kaitoxHome() {
+  return process.env.KAITOX_HOME || (0, import_node_path.join)((0, import_node_os.homedir)(), ".kaitox");
+}
+function outboxDir(kind) {
+  return (0, import_node_path.join)(kaitoxHome(), kind, "outbox");
+}
+function sentDir(kind) {
+  return (0, import_node_path.join)(kaitoxHome(), kind, "sent");
+}
+function configPath() {
+  return (0, import_node_path.join)(kaitoxHome(), "config.json");
+}
+async function loadConfig() {
+  try {
+    const raw = await (0, import_promises.readFile)(configPath(), "utf8");
+    const parsed = JSON.parse(raw);
+    return { token: typeof parsed.token === "string" ? parsed.token : void 0 };
+  } catch (e) {
+    return {};
+  }
+}
+async function saveConfig(patch) {
+  let existing = {};
+  try {
+    const parsed = JSON.parse(await (0, import_promises.readFile)(configPath(), "utf8"));
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) existing = parsed;
+  } catch (e) {
+  }
+  if (patch.token !== void 0) {
+    if (patch.token === null) delete existing.token;
+    else existing.token = patch.token;
+  }
+  await (0, import_promises.mkdir)(kaitoxHome(), { recursive: true });
+  await (0, import_promises.writeFile)(configPath(), JSON.stringify(existing, null, 2) + "\n", "utf8");
+}
+var ALLOWED_ORIGIN_RE = [
+  /^https?:\/\/(x\.com|twitter\.com|mobile\.twitter\.com)$/i,
+  /^chrome-extension:\/\/[a-z]+$/i,
+  /^app:\/\/obsidian\.md$/i
+  // Obsidian 桌面端 renderer
+];
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  return ALLOWED_ORIGIN_RE.some((re2) => re2.test(origin));
+}
+
+// vendor/kaitox/relay/storage.ts
+var import_promises2 = require("node:fs/promises");
+var import_node_path2 = require("node:path");
+
+// vendor/kaitox/relay/imageFit.ts
+var MAX_X_IMAGE_BYTES = 5242880;
+var QUALITY = 0.9;
+var SCALE_STEPS = [1, 0.85, 0.7, 0.55, 0.4, 0.3, 0.2];
+var FITTABLE_MIMES = /* @__PURE__ */ new Set(["image/png", "image/jpeg", "image/webp"]);
+function hasTransparency(ctx, w, h2) {
+  const data = ctx.getImageData(0, 0, w, h2).data;
+  for (let i = 3; i < data.length; i += 4) if (data[i] < 255) return true;
+  return false;
+}
+function toBlob(canvas, mime) {
+  return new Promise((resolve, reject) => canvas.toBlob((b) => b ? resolve(b) : reject(new Error("encode failed")), mime, QUALITY));
+}
+async function fitImageBytes(bytes, mime) {
+  if (bytes.byteLength <= MAX_X_IMAGE_BYTES || !FITTABLE_MIMES.has(mime)) return { bytes, mime };
+  if (typeof document === "undefined" || typeof createImageBitmap === "undefined") return { bytes, mime };
+  try {
+    const bitmap = await createImageBitmap(new Blob([bytes], { type: mime }));
+    const probe = document.createElement("canvas");
+    probe.width = bitmap.width;
+    probe.height = bitmap.height;
+    const pctx = probe.getContext("2d");
+    if (!pctx) return { bytes, mime };
+    pctx.drawImage(bitmap, 0, 0);
+    const transparent = hasTransparency(pctx, probe.width, probe.height);
+    const targetMime = transparent ? "image/webp" : "image/jpeg";
+    for (const scale of SCALE_STEPS) {
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const ctx = canvas.getContext("2d");
+      if (!ctx) break;
+      if (!transparent) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await toBlob(canvas, targetMime);
+      if (blob.size <= MAX_X_IMAGE_BYTES) {
+        return { bytes: new Uint8Array(await blob.arrayBuffer()), mime: targetMime };
+      }
+    }
+    return { bytes, mime };
+  } catch (e) {
+    return { bytes, mime };
+  }
+}
+
+// vendor/kaitox/relay/storage.ts
+var BUNDLE_FILE = "bundle.json";
+var ASSETS_DIR = "assets";
+function sanitizeId(id) {
+  const s = (0, import_node_path2.basename)(String(id)).replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!s) throw new Error("\u975E\u6CD5 id");
+  return s;
+}
+function sanitizeFileName(name) {
+  const s = (0, import_node_path2.basename)(String(name));
+  if (!s || s === "." || s === ".." || /[\\/]/.test(name)) throw new Error("\u975E\u6CD5\u6587\u4EF6\u540D");
+  return s;
+}
+async function ensureDirs(kind) {
+  await (0, import_promises2.mkdir)(outboxDir(kind), { recursive: true });
+  await (0, import_promises2.mkdir)(sentDir(kind), { recursive: true });
+}
+function draftDir(kind, id, sent = false) {
+  return (0, import_node_path2.join)(sent ? sentDir(kind) : outboxDir(kind), id);
+}
+async function saveDraft(wire, kind) {
+  var _a2;
+  await ensureDirs(kind);
+  const id = sanitizeId(wire.bundle.id);
+  const dir = draftDir(kind, id);
+  await (0, import_promises2.mkdir)((0, import_node_path2.join)(dir, ASSETS_DIR), { recursive: true });
+  const written = /* @__PURE__ */ new Map();
+  const assetsByName = new Map(wire.assets.map((a) => [sanitizeFileName(a.fileName), a]));
+  for (const [fileName, a] of assetsByName) {
+    const fit = await fitImageBytes(base64ToBytes(a.base64), a.mime);
+    written.set(fileName, { mime: fit.mime, bytesLen: fit.bytes.byteLength });
+    await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, ASSETS_DIR, fileName), fit.bytes);
+  }
+  const bundle = {
+    ...wire.bundle,
+    id,
+    // kind 以路径段为准盖章，与草稿所在的命名空间目录一致。
+    kind,
+    // 重编码可能改变格式与体积，元数据跟着落盘后的实际字节走。
+    assets: ((_a2 = wire.bundle.assets) != null ? _a2 : []).map((meta) => {
+      const w = written.get(sanitizeFileName(meta.fileName));
+      return w ? { ...meta, mime: w.mime, bytesLen: w.bytesLen } : meta;
+    }),
+    status: "pending"
+  };
+  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), JSON.stringify(bundle, null, 2), "utf8");
+  return id;
+}
+async function readBundleFrom(dir) {
+  try {
+    const raw = await (0, import_promises2.readFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), "utf8");
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+async function listDrafts(kind) {
+  var _a2, _b, _c, _d;
+  await ensureDirs(kind);
+  const items = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const sent of [false, true]) {
+    let ids;
+    try {
+      ids = await (0, import_promises2.readdir)(sent ? sentDir(kind) : outboxDir(kind));
+    } catch (e) {
+      continue;
+    }
+    for (const id of ids) {
+      if (seen.has(id)) continue;
+      const b = await readBundleFrom(draftDir(kind, id, sent));
+      if (!b) continue;
+      seen.add(id);
+      items.push({
+        id: b.id,
+        kind: b.kind,
+        title: b.title,
+        source: b.source,
+        createdAt: b.createdAt,
+        mode: b.mode,
+        status: (_a2 = b.status) != null ? _a2 : "pending",
+        counts: (_b = b.styleReport) == null ? void 0 : _b.counts,
+        assetCount: (_d = (_c = b.assets) == null ? void 0 : _c.length) != null ? _d : 0
+      });
+    }
+  }
+  items.sort((a, b) => a.createdAt < b.createdAt ? 1 : -1);
+  return items;
+}
+async function getDraft(id, kind) {
+  var _a2;
+  const safe = sanitizeId(id);
+  return (_a2 = await readBundleFrom(draftDir(kind, safe))) != null ? _a2 : await readBundleFrom(draftDir(kind, safe, true));
+}
+async function getAssetPath(id, fileName, kind) {
+  const safe = sanitizeId(id);
+  const safeName = sanitizeFileName(fileName);
+  for (const sent of [false, true]) {
+    const p = (0, import_node_path2.join)(draftDir(kind, safe, sent), ASSETS_DIR, safeName);
+    try {
+      await (0, import_promises2.stat)(p);
+      return p;
+    } catch (e) {
+    }
+  }
+  return null;
+}
+async function setCover(id, cover, kind) {
+  var _a2, _b, _c;
+  const safe = sanitizeId(id);
+  const dir = draftDir(kind, safe);
+  const b = await readBundleFrom(dir);
+  if (!b) return null;
+  const fileName = `cover-${sanitizeFileName(cover.fileName)}`;
+  const { bytes, mime } = await fitImageBytes(base64ToBytes(cover.base64), cover.mime);
+  await (0, import_promises2.mkdir)((0, import_node_path2.join)(dir, ASSETS_DIR), { recursive: true });
+  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, ASSETS_DIR, fileName), bytes);
+  let coverOriginal = b.coverOriginal;
+  if (cover.original) {
+    const origFileName = `cover-original-${sanitizeFileName(cover.original.fileName)}`;
+    const fit = await fitImageBytes(base64ToBytes(cover.original.base64), cover.original.mime);
+    await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, ASSETS_DIR, origFileName), fit.bytes);
+    coverOriginal = {
+      key: "cover-original",
+      src: origFileName,
+      fileName: origFileName,
+      mime: fit.mime,
+      bytesLen: fit.bytes.byteLength
+    };
+  }
+  const referenced = /* @__PURE__ */ new Set([
+    ...((_a2 = b.assets) != null ? _a2 : []).map((a) => a.fileName),
+    fileName,
+    ...coverOriginal ? [coverOriginal.fileName] : []
+  ]);
+  for (const old of [(_b = b.cover) == null ? void 0 : _b.fileName, (_c = b.coverOriginal) == null ? void 0 : _c.fileName]) {
+    if (old && !referenced.has(old)) {
+      await (0, import_promises2.rm)((0, import_node_path2.join)(dir, ASSETS_DIR, sanitizeFileName(old)), { force: true }).catch(() => {
+      });
+    }
+  }
+  const updated = {
+    ...b,
+    cover: { key: "cover", src: fileName, fileName, mime, bytesLen: bytes.byteLength },
+    coverOriginal
+  };
+  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), JSON.stringify(updated, null, 2), "utf8");
+  return updated;
+}
+async function patchDraft(id, patch, kind) {
+  var _a2, _b;
+  const safe = sanitizeId(id);
+  const dir = draftDir(kind, safe);
+  const b = await readBundleFrom(dir);
+  if (!b) return null;
+  const updated = {
+    ...b,
+    status: patch.status,
+    restId: (_a2 = patch.restId) != null ? _a2 : b.restId,
+    error: (_b = patch.error) != null ? _b : b.error
+  };
+  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), JSON.stringify(updated, null, 2), "utf8");
+  if (patch.status === "done") {
+    const dest = draftDir(kind, safe, true);
+    await (0, import_promises2.rm)(dest, { recursive: true, force: true });
+    await (0, import_promises2.rename)(dir, dest).catch(() => {
+    });
+  }
+  return updated;
+}
+async function deleteDraft(id, kind) {
+  const safe = sanitizeId(id);
+  let removed = false;
+  for (const sent of [false, true]) {
+    const dir = draftDir(kind, safe, sent);
+    try {
+      await (0, import_promises2.stat)(dir);
+      await (0, import_promises2.rm)(dir, { recursive: true, force: true });
+      removed = true;
+    } catch (e) {
+    }
+  }
+  return removed;
+}
+
+// vendor/kaitox/relay/server.ts
+async function startRelay(port = relayPort()) {
+  const state = { token: (await loadConfig()).token };
+  const server = (0, import_node_http.createServer)((req, res) => {
+    handle(req, res, state).catch((err) => {
+      var _a2;
+      sendJson(req, res, 500, { error: String((_a2 = err == null ? void 0 : err.message) != null ? _a2 : err) });
+    });
+  });
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, HOST, () => resolve());
+  });
+  await (0, import_promises3.mkdir)(kaitoxHome(), { recursive: true }).catch(() => {
+  });
+  return {
+    port,
+    async close() {
+      await new Promise((resolve) => server.close(() => resolve()));
+    }
+  };
+}
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  if (isAllowedOrigin(origin)) {
+    if (origin) res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "content-type,x-kaitox-token");
+  }
+}
+function sendJson(req, res, status, body) {
+  setCors(req, res);
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8" });
+  res.end(JSON.stringify(body));
+}
+async function readBody(req) {
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  return Buffer.concat(chunks).toString("utf8");
+}
+async function readJsonBody(req) {
+  try {
+    return { ok: true, value: JSON.parse(await readBody(req)) };
+  } catch (e) {
+    return { ok: false };
+  }
+}
+function settingView(state) {
+  return { port: relayPort(), version: RELAY_VERSION, tokenConfigured: Boolean(state.token) };
+}
+async function getDraftInKind(kind, id) {
+  try {
+    return await getDraft(id, kind);
+  } catch (e) {
+    return null;
+  }
+}
+async function handle(req, res, state) {
+  var _a2, _b;
+  const method = (_a2 = req.method) != null ? _a2 : "GET";
+  if (method === "OPTIONS") {
+    setCors(req, res);
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+  const url = new URL((_b = req.url) != null ? _b : "/", `http://${HOST}`);
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (method === "GET" && parts.length === 1 && parts[0] === "health") {
+    sendJson(req, res, 200, { ok: true, version: RELAY_VERSION, port: relayPort() });
+    return;
+  }
+  if (state.token && req.headers["x-kaitox-token"] !== state.token) {
+    sendJson(req, res, 401, { error: "unauthorized" });
+    return;
+  }
+  if (parts.length === 1 && parts[0] === "setting") {
+    if (method === "GET") {
+      sendJson(req, res, 200, settingView(state));
+      return;
+    }
+    if (method === "PATCH") {
+      const body = await readJsonBody(req);
+      if (!body.ok) {
+        sendJson(req, res, 400, { error: "invalid JSON body" });
+        return;
+      }
+      const v = validateSettingPatch(body.value);
+      if (!v.ok) {
+        sendJson(req, res, 400, { error: "invalid setting patch", issues: v.issues });
+        return;
+      }
+      if (v.value.token !== void 0) {
+        state.token = v.value.token === null ? void 0 : v.value.token;
+        await saveConfig({ token: v.value.token });
+      }
+      sendJson(req, res, 200, settingView(state));
+      return;
+    }
+  }
+  if (parts[0] === "drafts") {
+    sendJson(req, res, 410, {
+      error: "routes are namespaced by kind since v0.5: use /:kind/drafts (e.g. /x-article/drafts)"
+    });
+    return;
+  }
+  if (parts.length >= 2 && parts[1] === "drafts") {
+    const kind = decodeURIComponent(parts[0]);
+    if (!isValidKindSegment(kind)) {
+      sendJson(req, res, 400, {
+        error: `invalid kind path segment '${kind}' (expected /^[a-z0-9][a-z0-9-]*$/, not a reserved word)`
+      });
+      return;
+    }
+    if (method === "GET" && parts.length === 2) {
+      sendJson(req, res, 200, await listDrafts(kind));
+      return;
+    }
+    if (method === "POST" && parts.length === 2) {
+      const body = await readJsonBody(req);
+      if (!body.ok) {
+        sendJson(req, res, 400, { error: "invalid JSON body" });
+        return;
+      }
+      const v = validatePostDraftWireBody(body.value);
+      if (!v.ok) {
+        sendJson(req, res, 400, { error: "invalid draft bundle", issues: v.issues });
+        return;
+      }
+      if (v.value.bundle.kind !== void 0 && v.value.bundle.kind !== kind) {
+        sendJson(req, res, 400, {
+          error: `bundle.kind '${v.value.bundle.kind}' does not match route kind '${kind}'`
+        });
+        return;
+      }
+      const id2 = await saveDraft(v.value, kind);
+      sendJson(req, res, 201, { id: id2 });
+      return;
+    }
+    const id = parts[2] ? decodeURIComponent(parts[2]) : "";
+    if (method === "GET" && parts.length === 5 && parts[3] === "assets") {
+      if (!await getDraftInKind(kind, id)) {
+        sendJson(req, res, 404, { error: "not found" });
+        return;
+      }
+      const fileName = decodeURIComponent(parts[4]);
+      let p;
+      try {
+        p = await getAssetPath(id, fileName, kind);
+      } catch (e) {
+        sendJson(req, res, 400, { error: "\u975E\u6CD5\u6587\u4EF6\u540D" });
+        return;
+      }
+      if (!p) {
+        sendJson(req, res, 404, { error: "asset not found" });
+        return;
+      }
+      setCors(req, res);
+      res.writeHead(200, { "content-type": "application/octet-stream" });
+      (0, import_node_fs.createReadStream)(p).pipe(res);
+      return;
+    }
+    if (method === "GET" && parts.length === 3) {
+      const d = await getDraftInKind(kind, id);
+      if (!d) {
+        sendJson(req, res, 404, { error: "not found" });
+        return;
+      }
+      sendJson(req, res, 200, d);
+      return;
+    }
+    if (method === "PUT" && parts.length === 4 && parts[3] === "cover") {
+      if (!await getDraftInKind(kind, id)) {
+        sendJson(req, res, 404, { error: "not found" });
+        return;
+      }
+      const body = await readJsonBody(req);
+      if (!body.ok) {
+        sendJson(req, res, 400, { error: "invalid JSON body" });
+        return;
+      }
+      const v = validateSetCoverWireBody(body.value);
+      if (!v.ok) {
+        sendJson(req, res, 400, { error: "invalid cover body", issues: v.issues });
+        return;
+      }
+      let updated;
+      try {
+        updated = await setCover(id, v.value, kind);
+      } catch (e) {
+        sendJson(req, res, 400, { error: "\u975E\u6CD5\u6587\u4EF6\u540D" });
+        return;
+      }
+      if (!updated) {
+        sendJson(req, res, 404, { error: "not found" });
+        return;
+      }
+      sendJson(req, res, 200, updated);
+      return;
+    }
+    if (method === "PATCH" && parts.length === 3) {
+      if (!await getDraftInKind(kind, id)) {
+        sendJson(req, res, 404, { error: "not found" });
+        return;
+      }
+      const body = await readJsonBody(req);
+      if (!body.ok) {
+        sendJson(req, res, 400, { error: "invalid JSON body" });
+        return;
+      }
+      const v = validateAckPatch(body.value);
+      if (!v.ok) {
+        sendJson(req, res, 400, { error: "invalid status patch", issues: v.issues });
+        return;
+      }
+      const updated = await patchDraft(id, v.value, kind);
+      if (!updated) {
+        sendJson(req, res, 404, { error: "not found" });
+        return;
+      }
+      sendJson(req, res, 200, updated);
+      return;
+    }
+    if (method === "DELETE" && parts.length === 3) {
+      if (!await getDraftInKind(kind, id)) {
+        sendJson(req, res, 404, { deleted: false });
+        return;
+      }
+      const ok = await deleteDraft(id, kind);
+      sendJson(req, res, ok ? 200 : 404, { deleted: ok });
+      return;
+    }
+  }
+  sendJson(req, res, 404, { error: `no route: ${method} ${url.pathname}` });
+}
+
+// src/x/xpush.ts
 var import_obsidian2 = require("obsidian");
 
 // vendor/kaitox/x-article/types.ts
@@ -19715,7 +20487,212 @@ function bytesToBlobUrl(bytes, mime) {
   return URL.createObjectURL(new Blob([bytes], { type: mime }));
 }
 
+// src/x/xpush.ts
+var X_ARTICLE_COMPOSE_URL = "https://x.com/compose/articles";
+function xArticleComposeUrl(draftId) {
+  if (!draftId) return X_ARTICLE_COMPOSE_URL;
+  const url = new URL(X_ARTICLE_COMPOSE_URL);
+  url.searchParams.set("kaitoxAutoUpload", "1");
+  url.searchParams.set("kaitoxDraftId", draftId);
+  return url.toString();
+}
+function openXComposer(draftId) {
+  window.open(xArticleComposeUrl(draftId), "_blank");
+}
+function makeRelayClient(s) {
+  const relayFetch = async (url, init = {}) => {
+    var _a2;
+    const res = await (0, import_obsidian2.requestUrl)({
+      url: String(url),
+      method: (_a2 = init.method) != null ? _a2 : "GET",
+      headers: init.headers,
+      body: init.body,
+      throw: false
+    });
+    return {
+      ok: res.status >= 200 && res.status < 300,
+      status: res.status,
+      async text() {
+        return res.text;
+      },
+      async json() {
+        return res.json;
+      },
+      async arrayBuffer() {
+        return res.arrayBuffer;
+      }
+    };
+  };
+  return new HttpRelayClient(s.relayBase || DEFAULT_RELAY_BASE, {
+    fetchImpl: relayFetch,
+    token: s.relayToken || void 0
+  });
+}
+async function isRelayUp(s) {
+  var _a2;
+  try {
+    const base = (s.relayBase || DEFAULT_RELAY_BASE).replace(/\/+$/, "");
+    const res = await (0, import_obsidian2.requestUrl)({ url: `${base}/health`, method: "GET", throw: false });
+    return res.status === 200 && ((_a2 = res.json) == null ? void 0 : _a2.ok) === true;
+  } catch (e) {
+    return false;
+  }
+}
+async function prepareXDraft(app, file) {
+  const resolved = await resolveActiveNote(app, file);
+  const report = checkMarkdownStyle(resolved.body, { assetMap: resolved.assetMap });
+  return { resolved, report };
+}
+function coverFromDataUrl(dataUrl, taken) {
+  const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!m) return void 0;
+  const bin = atob(m[2]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ext = m[1].includes("png") ? "png" : "jpg";
+  return makeCoverAsset(bytes, m[1], `cover.${ext}`, taken);
+}
+async function pushXDraft(app, s, file, prepared, opts) {
+  const client = makeRelayClient(s);
+  try {
+    await client.health();
+  } catch (e) {
+    throw new Error("\u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF1A\u8BF7\u5728 SerenaPost \u8BBE\u7F6E\u91CC\u6253\u5F00\u300C\u5185\u7F6E\u4E2D\u8F6C\u300D");
+  }
+  const taken = new Set(prepared.resolved.assets.map((a) => a.fileName));
+  const cover = opts.coverDataUrl ? coverFromDataUrl(opts.coverDataUrl, taken) : prepared.resolved.cover;
+  const { id } = await client.postDraft({
+    kind: "x-article",
+    title: opts.title,
+    markdown: prepared.resolved.body,
+    mode: "rich",
+    source: "obsidian",
+    sourceMeta: { notePath: file.path, vault: app.vault.getName() },
+    styleReport: prepared.report,
+    assets: prepared.resolved.assets,
+    cover
+  });
+  if (s.openXAfterPush) openXComposer(id);
+  return id;
+}
+
+// src/x/embedded-relay.ts
+var EmbeddedRelay = class {
+  constructor() {
+    this.handle = null;
+    this.mode = "off";
+    this.error = "";
+  }
+  portOf(base) {
+    try {
+      const u = new URL(base || DEFAULT_RELAY_BASE);
+      return u.port ? parseInt(u.port, 10) : 80;
+    } catch (e) {
+      return 8765;
+    }
+  }
+  async start(s) {
+    if (this.handle) return this.mode;
+    if (await isRelayUp(s)) {
+      this.mode = "external";
+      return this.mode;
+    }
+    try {
+      this.handle = await startRelay(this.portOf(s.relayBase));
+      this.mode = "embedded";
+      this.error = "";
+    } catch (e) {
+      if (await isRelayUp(s)) {
+        this.mode = "external";
+      } else {
+        this.mode = "error";
+        this.error = e instanceof Error ? e.message : String(e);
+        console.error("[SerenaPost] \u5185\u7F6E\u4E2D\u8F6C\u542F\u52A8\u5931\u8D25", e);
+      }
+    }
+    return this.mode;
+  }
+  async stop() {
+    const h2 = this.handle;
+    this.handle = null;
+    this.mode = "off";
+    if (h2) await h2.close().catch(() => {
+    });
+  }
+  async restart(s) {
+    await this.stop();
+    return this.start(s);
+  }
+};
+
+// src/types/index.ts
+var DEFAULT_SETTINGS = {
+  accounts: [],
+  publishHistory: [],
+  maxConcurrent: 3,
+  autoCheckInterval: 36e5,
+  // 1 hour
+  themesFolder: "",
+  customThemesEnabled: false,
+  defaultTheme: "\u7EFF\u767D\u6E05\u7B80",
+  excludeFrontmatter: false,
+  defaultCoverImage: "",
+  defaultAuthor: "",
+  defaultOpenComment: false,
+  relayBase: "http://127.0.0.1:8765",
+  relayToken: "",
+  openXAfterPush: true,
+  xSelected: false,
+  embeddedRelay: true
+};
+
+// src/views/publisher-view.ts
+var import_obsidian9 = require("obsidian");
+var import_html2canvas = __toESM(require_html2canvas());
+
+// src/modals/draft-confirm-modal.ts
+var import_obsidian4 = require("obsidian");
+
+// src/utils/image.ts
+async function compressImage(data, mimeType, maxSizeKB = 500) {
+  if (data.byteLength <= maxSizeKB * 1024 || !/^image\/(png|jpe?g|webp)$/i.test(mimeType)) {
+    return { data, mimeType };
+  }
+  const blobUrl = URL.createObjectURL(new Blob([data], { type: mimeType }));
+  try {
+    const image = new Image();
+    await new Promise((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("\u65E0\u6CD5\u8BFB\u53D6\u56FE\u7247"));
+      image.src = blobUrl;
+    });
+    const scale = Math.min(1, 2048 / image.naturalWidth, 2048 / image.naturalHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.floor(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.floor(image.naturalHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("\u65E0\u6CD5\u521B\u5EFA\u56FE\u7247\u538B\u7F29\u753B\u5E03");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const outputMime = mimeType === "image/png" ? "image/jpeg" : mimeType;
+    let quality = 0.9;
+    let output = await canvasToBlob(canvas, outputMime, quality);
+    while (output.size > maxSizeKB * 1024 && quality > 0.2) {
+      quality -= 0.1;
+      output = await canvasToBlob(canvas, outputMime, quality);
+    }
+    return { data: await output.arrayBuffer(), mimeType: outputMime };
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("\u56FE\u7247\u538B\u7F29\u5931\u8D25")), mimeType, quality);
+  });
+}
+
 // src/x/x-preview-modal.ts
+var import_obsidian3 = require("obsidian");
 function renderStyleReport(container, report, unresolved) {
   var _a2, _b;
   const issues = (_a2 = report == null ? void 0 : report.issues) != null ? _a2 : [];
@@ -19736,7 +20713,7 @@ function renderStyleReport(container, report, unresolved) {
   for (const issue of issues) {
     const row = list2.createDiv({ cls: `wechatpb-x-issue is-${issue.severity}` });
     const ic = row.createSpan({ cls: "wechatpb-x-issue-ic" });
-    (0, import_obsidian2.setIcon)(ic, issue.severity === "error" ? "x-circle" : issue.severity === "warning" ? "alert-triangle" : "info");
+    (0, import_obsidian3.setIcon)(ic, issue.severity === "error" ? "x-circle" : issue.severity === "warning" ? "alert-triangle" : "info");
     const txt = row.createDiv();
     txt.createDiv({ text: issue.message });
     const meta = [];
@@ -19749,7 +20726,7 @@ function renderStyleReport(container, report, unresolved) {
     row.createDiv({ text: `\u627E\u4E0D\u5230\u3001\u5C06\u88AB\u8DF3\u8FC7\uFF1A${unresolved.join("\u3001")}` });
   }
 }
-var XPreviewModal = class extends import_obsidian2.Modal {
+var XPreviewModal = class extends import_obsidian3.Modal {
   constructor(app, resolved, report, title, coverDataUrl) {
     super(app);
     this.resolved = resolved;
@@ -19853,11 +20830,11 @@ async function resolveImageRef(app, ref, sourcePath) {
   if (link.startsWith("data:image/")) return link;
   if (/^https?:\/\//i.test(link)) {
     try {
-      const res = await (0, import_obsidian3.requestUrl)({ url: link, method: "GET" });
+      const res = await (0, import_obsidian4.requestUrl)({ url: link, method: "GET" });
       const type = (res.headers["content-type"] || res.headers["Content-Type"] || "image/jpeg").split(";")[0];
       return await toCoverDataUrl(res.arrayBuffer, type);
     } catch (e) {
-      console.error("[WeChatPB] \u4E0B\u8F7D\u5C01\u9762\u5931\u8D25", e);
+      console.error("[SerenaPost] \u4E0B\u8F7D\u5C01\u9762\u5931\u8D25", e);
       return null;
     }
   }
@@ -19869,7 +20846,7 @@ async function resolveImageRef(app, ref, sourcePath) {
   } catch (e) {
   }
   const file = (_a2 = app.metadataCache.getFirstLinkpathDest(link, sourcePath)) != null ? _a2 : app.vault.getAbstractFileByPath(link);
-  if (!(file instanceof import_obsidian3.TFile) || !IMAGE_EXT.test(file.extension)) return null;
+  if (!(file instanceof import_obsidian4.TFile) || !IMAGE_EXT.test(file.extension)) return null;
   const data = await app.vault.readBinary(file);
   return await toCoverDataUrl(data, mimeFromExt(file.extension));
 }
@@ -19912,7 +20889,7 @@ async function detectCover(app, file, markdown, notifyMissing = false) {
   if (fmCover) {
     const base64 = await resolveImageRef(app, fmCover, file.path);
     if (base64) return { base64, source: "\u7B14\u8BB0\u5C5E\u6027 cover" };
-    if (notifyMissing) new import_obsidian3.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
+    if (notifyMissing) new import_obsidian4.Notice(`\u7B14\u8BB0\u5C5E\u6027\u91CC\u7684\u5C01\u9762\u300C${fmCover}\u300D\u6CA1\u627E\u5230\uFF0C\u5DF2\u6539\u7528\u5176\u4ED6\u5C01\u9762`);
   }
   const body = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
   const first = findFirstImageRef(body);
@@ -19968,7 +20945,7 @@ async function buildDraftDefaults(app, input) {
     coverSource
   };
 }
-var DraftConfirmModal = class extends import_obsidian3.Modal {
+var DraftConfirmModal = class extends import_obsidian4.Modal {
   constructor(app, meta, coverSource, accountNames, xInfo) {
     super(app);
     this.resolver = null;
@@ -20013,7 +20990,7 @@ var DraftConfirmModal = class extends import_obsidian3.Modal {
       if (!this.xInfo.relayOnline) {
         xBox.createDiv({
           cls: "wechatpb-x-warn",
-          text: "\u26A0 Kaitox \u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF0CX \u4F1A\u63A8\u9001\u5931\u8D25\u3002\u8BF7\u5148\u5728\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon"
+          text: "\u26A0 \u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF0CX \u4F1A\u63A8\u9001\u5931\u8D25\u3002\u8BF7\u5728 SerenaPost \u8BBE\u7F6E\u91CC\u6253\u5F00\u300C\u5185\u7F6E\u4E2D\u8F6C\u300D"
         });
       }
       renderStyleReport(xBox, this.xInfo.report, this.xInfo.unresolved);
@@ -20022,7 +20999,7 @@ var DraftConfirmModal = class extends import_obsidian3.Modal {
       el.setText(`${value.length} / ${max}`);
       el.toggleClass("is-over", value.length > max);
     };
-    const titleSetting = new import_obsidian3.Setting(contentEl).setName("\u6807\u9898").setDesc("");
+    const titleSetting = new import_obsidian4.Setting(contentEl).setName("\u6807\u9898").setDesc("");
     const titleCount = titleSetting.descEl.createSpan({ cls: "wechatpb-counter" });
     counter(titleCount, this.meta.title, DRAFT_LIMITS.title);
     titleSetting.addText((text) => {
@@ -20033,14 +21010,14 @@ var DraftConfirmModal = class extends import_obsidian3.Modal {
       text.inputEl.addClass("wechatpb-wide-input");
     });
     if (this.hasWechat) {
-      const authorSetting = new import_obsidian3.Setting(contentEl).setName("\u4F5C\u8005\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("");
+      const authorSetting = new import_obsidian4.Setting(contentEl).setName("\u4F5C\u8005\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("");
       const authorCount = authorSetting.descEl.createSpan({ cls: "wechatpb-counter" });
       counter(authorCount, this.meta.author, DRAFT_LIMITS.author);
       authorSetting.addText((text) => text.setPlaceholder("\u53EF\u7559\u7A7A").setValue(this.meta.author).onChange((v) => {
         this.meta.author = v;
         counter(authorCount, v, DRAFT_LIMITS.author);
       }));
-      const digestSetting = new import_obsidian3.Setting(contentEl).setName("\u6458\u8981\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("\u7559\u7A7A\u5219\u5FAE\u4FE1\u81EA\u52A8\u622A\u53D6\u6B63\u6587\u524D 54 \u5B57\u3002");
+      const digestSetting = new import_obsidian4.Setting(contentEl).setName("\u6458\u8981\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("\u7559\u7A7A\u5219\u5FAE\u4FE1\u81EA\u52A8\u622A\u53D6\u6B63\u6587\u524D 54 \u5B57\u3002");
       const digestCount = digestSetting.descEl.createSpan({ cls: "wechatpb-counter" });
       counter(digestCount, this.meta.digest, DRAFT_LIMITS.digest);
       digestSetting.addTextArea((area) => {
@@ -20051,28 +21028,28 @@ var DraftConfirmModal = class extends import_obsidian3.Modal {
         area.inputEl.rows = 3;
         area.inputEl.addClass("wechatpb-wide-input");
       });
-      new import_obsidian3.Setting(contentEl).setName("\u539F\u6587\u94FE\u63A5\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("\u53EF\u9009\uFF0C\u6587\u672B\u300C\u9605\u8BFB\u539F\u6587\u300D\u8DF3\u8F6C\u5730\u5740").addText((text) => text.setPlaceholder("https://").setValue(this.meta.contentSourceUrl).onChange((v) => {
+      new import_obsidian4.Setting(contentEl).setName("\u539F\u6587\u94FE\u63A5\uFF08\u516C\u4F17\u53F7\uFF09").setDesc("\u53EF\u9009\uFF0C\u6587\u672B\u300C\u9605\u8BFB\u539F\u6587\u300D\u8DF3\u8F6C\u5730\u5740").addText((text) => text.setPlaceholder("https://").setValue(this.meta.contentSourceUrl).onChange((v) => {
         this.meta.contentSourceUrl = v.trim();
       }));
     }
-    const coverSetting = new import_obsidian3.Setting(contentEl).setName(this.hasWechat ? "\u5C01\u9762\uFF08\u5FC5\u586B\uFF09" : "\u5C01\u9762").setDesc(this.meta.coverBase64 ? `\u6765\u6E90\uFF1A${this.coverSource}` : "\u8FD8\u6CA1\u6709\u5C01\u9762\uFF1A\u5728\u7B14\u8BB0\u5C5E\u6027\u5199 cover\uFF0C\u6216\u70B9\u51FB\u53F3\u4FA7\u9009\u62E9\u56FE\u7247");
+    const coverSetting = new import_obsidian4.Setting(contentEl).setName(this.hasWechat ? "\u5C01\u9762\uFF08\u5FC5\u586B\uFF09" : "\u5C01\u9762").setDesc(this.meta.coverBase64 ? `\u6765\u6E90\uFF1A${this.coverSource}` : "\u8FD8\u6CA1\u6709\u5C01\u9762\uFF1A\u5728\u7B14\u8BB0\u5C5E\u6027\u5199 cover\uFF0C\u6216\u70B9\u51FB\u53F3\u4FA7\u9009\u62E9\u56FE\u7247");
     coverSetting.addButton((btn) => btn.setButtonText(this.meta.coverBase64 ? "\u66F4\u6362" : "\u9009\u62E9\u56FE\u7247").onClick(() => this.pickCover()));
     if (this.meta.coverBase64) {
       const preview = contentEl.createDiv({ cls: "wechatpb-cover-preview" });
       preview.createEl("img", { attr: { src: this.meta.coverBase64, alt: "\u5C01\u9762\u9884\u89C8" } });
     }
     if (this.hasWechat) {
-      new import_obsidian3.Setting(contentEl).setName("\u5F00\u542F\u7559\u8A00\uFF08\u516C\u4F17\u53F7\uFF09").addToggle((t) => t.setValue(this.meta.openComment).onChange((v) => {
+      new import_obsidian4.Setting(contentEl).setName("\u5F00\u542F\u7559\u8A00\uFF08\u516C\u4F17\u53F7\uFF09").addToggle((t) => t.setValue(this.meta.openComment).onChange((v) => {
         this.meta.openComment = v;
         this.render();
       }));
       if (this.meta.openComment) {
-        new import_obsidian3.Setting(contentEl).setName("\u4EC5\u7C89\u4E1D\u53EF\u7559\u8A00").addToggle((t) => t.setValue(this.meta.onlyFansCanComment).onChange((v) => {
+        new import_obsidian4.Setting(contentEl).setName("\u4EC5\u7C89\u4E1D\u53EF\u7559\u8A00").addToggle((t) => t.setValue(this.meta.onlyFansCanComment).onChange((v) => {
           this.meta.onlyFansCanComment = v;
         }));
       }
     }
-    const footer = new import_obsidian3.Setting(contentEl);
+    const footer = new import_obsidian4.Setting(contentEl);
     footer.addButton((btn) => btn.setButtonText("\u53D6\u6D88").onClick(() => this.close()));
     footer.addButton((btn) => btn.setButtonText("\u63A8\u9001\u5230\u8349\u7A3F\u7BB1").setCta().onClick(() => this.submit()));
   }
@@ -20089,7 +21066,7 @@ var DraftConfirmModal = class extends import_obsidian3.Modal {
         this.coverSource = `\u624B\u52A8\u9009\u62E9\uFF08${file.name}\uFF09`;
         this.render();
       } catch (e) {
-        new import_obsidian3.Notice(`\u5C01\u9762\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
+        new import_obsidian4.Notice(`\u5C01\u9762\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
       }
     };
     input.click();
@@ -20101,27 +21078,27 @@ var DraftConfirmModal = class extends import_obsidian3.Modal {
     m.author = m.author.trim();
     m.digest = m.digest.trim();
     if (!m.title) {
-      new import_obsidian3.Notice("\u8BF7\u586B\u5199\u6807\u9898");
+      new import_obsidian4.Notice("\u8BF7\u586B\u5199\u6807\u9898");
       return;
     }
     if (m.title.length > DRAFT_LIMITS.title) {
-      new import_obsidian3.Notice(`\u6807\u9898\u6700\u591A ${DRAFT_LIMITS.title} \u5B57`);
+      new import_obsidian4.Notice(`\u6807\u9898\u6700\u591A ${DRAFT_LIMITS.title} \u5B57`);
       return;
     }
     if (this.hasWechat && m.author.length > DRAFT_LIMITS.author) {
-      new import_obsidian3.Notice(`\u4F5C\u8005\u6700\u591A ${DRAFT_LIMITS.author} \u5B57`);
+      new import_obsidian4.Notice(`\u4F5C\u8005\u6700\u591A ${DRAFT_LIMITS.author} \u5B57`);
       return;
     }
     if (this.hasWechat && m.digest.length > DRAFT_LIMITS.digest) {
-      new import_obsidian3.Notice(`\u6458\u8981\u6700\u591A ${DRAFT_LIMITS.digest} \u5B57`);
+      new import_obsidian4.Notice(`\u6458\u8981\u6700\u591A ${DRAFT_LIMITS.digest} \u5B57`);
       return;
     }
     if (m.contentSourceUrl && !/^https?:\/\//i.test(m.contentSourceUrl)) {
-      new import_obsidian3.Notice("\u539F\u6587\u94FE\u63A5\u9700\u8981\u4EE5 http:// \u6216 https:// \u5F00\u5934");
+      new import_obsidian4.Notice("\u539F\u6587\u94FE\u63A5\u9700\u8981\u4EE5 http:// \u6216 https:// \u5F00\u5934");
       return;
     }
     if (this.hasWechat && !m.coverBase64) {
-      new import_obsidian3.Notice("\u5FAE\u4FE1\u8349\u7A3F\u5FC5\u987B\u6709\u5C01\u9762\uFF0C\u8BF7\u5148\u9009\u62E9\u5C01\u9762");
+      new import_obsidian4.Notice("\u5FAE\u4FE1\u8349\u7A3F\u5FC5\u987B\u6709\u5C01\u9762\uFF0C\u8BF7\u5148\u9009\u62E9\u5C01\u9762");
       return;
     }
     if (!m.openComment) m.onlyFansCanComment = false;
@@ -20159,10 +21136,10 @@ var Root = import_postcss.default.Root;
 var Node2 = import_postcss.default.Node;
 
 // src/utils/css-to-inline.ts
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 function applyInlineCSS(html, css) {
   const tempDiv = document.createElement("div");
-  tempDiv.append((0, import_obsidian4.sanitizeHTMLToDom)(html));
+  tempDiv.append((0, import_obsidian5.sanitizeHTMLToDom)(html));
   const root2 = tempDiv.firstElementChild;
   if (!root2) {
     return html;
@@ -22231,7 +23208,7 @@ var parser = _Parser.parse;
 var lexer = _Lexer.lex;
 
 // src/utils/formatter.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 var MarkedFormatter = class {
   /**
    * Initialize marked with WeChat-friendly renderer
@@ -22381,7 +23358,7 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
     const headingLabel = (_a2 = options2.headingLabel) == null ? void 0 : _a2.trim();
     if (!headingLabel) return html;
     const container = document.createElement("div");
-    container.append((0, import_obsidian5.sanitizeHTMLToDom)(html));
+    container.append((0, import_obsidian6.sanitizeHTMLToDom)(html));
     const headings = Array.from(container.querySelectorAll("h2"));
     for (const [index, heading] of headings.entries()) {
       const label = document.createElement("span");
@@ -22393,14 +23370,14 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
   }
   static sanitize(html) {
     const container = document.createElement("div");
-    container.append((0, import_obsidian5.sanitizeHTMLToDom)(html));
+    container.append((0, import_obsidian6.sanitizeHTMLToDom)(html));
     return container.innerHTML;
   }
 };
 MarkedFormatter.markedInstance = null;
 
 // src/utils/theme-manager.ts
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 
 // themes/Apple极简-黑.md
 var Apple_default = '\n```CSS\n/* \u5168\u5C40\u5C5E\u6027 */\n.note-to-mp {\n  max-width: 620px;\n  margin: 0 auto;\n  padding: 20px 24px;\n  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;\n  font-size: 16px;\n  line-height: 21px !important;\n  color: #6e6e73 !important;\n  background-color: #fbfbfd !important;\n  text-align: left !important;\n  word-wrap: break-word;\n  word-break: break-word;\n}\n\n/* --- \u6807\u9898\u90E8\u5206 --- */\n.note-to-mp h1 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 12px;\n  letter-spacing: -0.03em;\n}\n\n.note-to-mp h2 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 12px;\n  letter-spacing: -0.02em;\n}\n\n.note-to-mp h3 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n  letter-spacing: -0.01em;\n}\n\n.note-to-mp h4 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n.note-to-mp h5 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n.note-to-mp h6 {\n  font-size: 18px;\n  font-weight: 400;\n  color: #1d1d1f !important;\n  line-height: 24px !important;\n  margin: 28px 0 10px;\n}\n\n/* \u6BB5\u843D */\n.note-to-mp p {\n  margin: 18px 0 !important;\n  line-height: 24px !important;\n  color: #6e6e73 !important;\n  font-weight: 300;\n  text-align: left;\n}\n\n/* \u52A0\u7C97 */\n.note-to-mp strong {\n  font-weight: 400;\n  color: #1d1d1f !important;\n}\n\n/* \u659C\u4F53 */\n.note-to-mp em {\n  font-style: normal;\n  color: #6e6e73 !important;\n  font-weight: 300;\n}\n\n/* \u4E0B\u5212\u7EBF */\n.note-to-mp u {\n  text-decoration: none;\n  border-bottom: 1px solid #86868b;\n  padding-bottom: 2px;\n}\n\n/* \u94FE\u63A5 */\n.note-to-mp a {\n  color: #06c !important;\n  text-decoration: none;\n  font-weight: 400;\n  word-break: break-all;\n}\n\n/* --- \u5217\u8868\u4F18\u5316\u7248 --- */\n.note-to-mp ul, .note-to-mp ol {\n  margin: 18px 0;\n  padding-left: 22px;\n}\n.note-to-mp ul { list-style-type: disc; }\n.note-to-mp ol { list-style-type: decimal; }\n\n.note-to-mp li {\n  margin: 8px 0;\n  line-height: 24px !important;\n  color: #6e6e73 !important;\n  font-weight: 300;\n  padding-left: 0;\n  position: relative;\n}\n\n/* --- \u5F15\u7528\u4F18\u5316\u7248 --- */\n.note-to-mp blockquote {\n  margin: 18px 0;\n  padding: 12px 16px;\n  background-color: #f5f5f7 !important;\n  border-left: 4px solid #424245;\n  border-radius: 4px;\n\n  color: #6e6e73 !important;\n  font-size: 14px;\n  line-height: 1.6 !important;\n  font-weight: 400;\n  text-align: left;\n  font-style: normal;\n  max-width: 100%;\n}\n\n/* --- \u4EE3\u7801\u5757\u90E8\u5206 --- */\n\n/* 1. \u884C\u5185\u4EE3\u7801 (\u6587\u5B57\u4E2D\u95F4\u7684\u77ED\u4EE3\u7801) */\n.note-to-mp code {\n  font-family: Menlo, Monaco, Consolas, "Courier New", monospace, sans-serif;\n  font-size: 14px;\n  padding: 2px 6px;\n  background-color: #f5f5f7 !important;\n  color: #6e6e73 !important;\n  border-radius: 6px;\n  font-weight: 400;\n}\n\n/* 2. \u4EE3\u7801\u5757\u5916\u5C42\u5BB9\u5668 (Mac\u7A97\u53E3\u98CE\u683C) */\n.note-to-mp .code-section {\n  margin: 24px 0;\n  padding: 45px 20px 20px;\n  background-color: #282c34 !important;\n  border-radius: 8px;\n  overflow-x: auto;\n\n  background-image:\n    radial-gradient(circle, #ff5f56 6px, transparent 7px),\n    radial-gradient(circle, #ffbd2e 6px, transparent 7px),\n    radial-gradient(circle, #27c93f 6px, transparent 7px),\n    linear-gradient(#21252b, #21252b);\n  background-size: 14px 14px, 14px 14px, 14px 14px, 100% 36px;\n  background-position: 15px 12px, 35px 12px, 55px 12px, 0 0;\n  background-repeat: no-repeat;\n\n  box-shadow: 0 10px 30px rgba(0,0,0,0.15);\n  border: none;\n}\n\n.note-to-mp .code-section ul { display: none; }\n\n/* 3. pre \u6807\u7B7E\u6837\u5F0F\u91CD\u7F6E (\u81EA\u52A8\u6362\u884C) */\n.note-to-mp .code-section pre {\n  margin: 0;\n  padding: 0;\n  background: transparent !important;\n  border: none;\n  line-height: 1.6 !important;\n  white-space: pre-wrap !important;\n  word-wrap: break-word !important;\n  word-break: break-all !important;\n}\n\n/* 4. \u4EE3\u7801\u5757\u5185\u90E8\u6587\u5B57 (\u5F3A\u5236\u9AD8\u4EAE\u989C\u8272) */\n.note-to-mp .code-section code,\n.note-to-mp .code-section span {\n  background-color: transparent !important;\n  color: #e0e6ed !important;\n  padding: 0;\n  border-radius: 0;\n  display: inline;\n  font-family: Menlo, Monaco, Consolas, "Courier New", monospace, sans-serif;\n  font-size: 14px;\n}\n\n/* \u56FE\u7247 */\n.note-to-mp img {\n  max-width: 100%;\n  max-height: 600px !important;\n  height: auto;\n  display: block;\n  margin: 20px auto 41px;\n  border-radius: 15px;\n  box-shadow: 0 15px 30px -6px rgba(33, 150, 243, 0.25), 0 9px 18px -9px rgba(0, 0, 0, 0.3), 0 -6px 18px -4px rgba(0, 0, 0, 0.025);\n}\n.note-to-mp img:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -8px rgba(33, 150, 243, 0.3), 0 12px 24px -12px rgba(0, 0, 0, 0.35); }\n\n/* \u8868\u683C */\n.note-to-mp table { width: 100%; margin: 18px 0; border-collapse: collapse; font-size: 15px; }\n.note-to-mp th { background-color: #f5f5f7 !important; padding: 16px 20px; text-align: left; border: none; font-weight: 500; color: #1d1d1f !important; }\n.note-to-mp td { padding: 16px 20px; border: none; border-top: 1px solid #d2d2d7; color: #6e6e73 !important; font-weight: 300; }\n\n/* WeChatPB \u89C6\u89C9\u6821\u51C6\uFF1A\u63D0\u9AD8\u957F\u6587\u5BF9\u6BD4\u5EA6\uFF0C\u907F\u514D\u7EC6\u7070\u6587\u5B57\u53D1\u865A */\n.note-to-mp { color: #3f3f46 !important; }\n.note-to-mp p,\n.note-to-mp li,\n.note-to-mp td { color: #3f3f46 !important; font-weight: 400; }\n.note-to-mp blockquote { color: #52525b !important; }\n```\n';
@@ -22659,21 +23636,21 @@ ${BUILTIN_THEME_REFINEMENT}`,
       return this.themes;
     }
     try {
-      const cleanPath = (0, import_obsidian6.normalizePath)(this.themesFolder.trim());
+      const cleanPath = (0, import_obsidian7.normalizePath)(this.themesFolder.trim());
       const folder = this.app.vault.getAbstractFileByPath(cleanPath);
       if (!folder) {
-        new import_obsidian6.Notice(`\u627E\u4E0D\u5230\u6587\u4EF6\u5939: ${cleanPath}
+        new import_obsidian7.Notice(`\u627E\u4E0D\u5230\u6587\u4EF6\u5939: ${cleanPath}
 
 \u63D0\u793A\uFF1A\u8BF7\u4F7F\u7528\u76F8\u5BF9\u4E8E vault \u6839\u76EE\u5F55\u7684\u8DEF\u5F84
 \u4F8B\u5982\uFF1Awechat-styles \u6216 styles/wechat`, 8e3);
         return this.themes;
       }
-      if (!(folder instanceof import_obsidian6.TFolder)) {
-        new import_obsidian6.Notice(`"${cleanPath}" \u4E0D\u662F\u4E00\u4E2A\u6587\u4EF6\u5939`, 5e3);
+      if (!(folder instanceof import_obsidian7.TFolder)) {
+        new import_obsidian7.Notice(`"${cleanPath}" \u4E0D\u662F\u4E00\u4E2A\u6587\u4EF6\u5939`, 5e3);
         return this.themes;
       }
       for (const file of folder.children) {
-        if (file instanceof import_obsidian6.TFile) {
+        if (file instanceof import_obsidian7.TFile) {
           try {
             let css = "";
             let themeName = file.basename;
@@ -22704,13 +23681,13 @@ ${BUILTIN_THEME_REFINEMENT}`,
       }
       const customThemeCount = this.themes.filter((theme) => !theme.builtin).length;
       if (customThemeCount > 0) {
-        new import_obsidian6.Notice(`\u5DF2\u52A0\u8F7D ${customThemeCount} \u4E2A\u81EA\u5B9A\u4E49\u4E3B\u9898`, 3e3);
+        new import_obsidian7.Notice(`\u5DF2\u52A0\u8F7D ${customThemeCount} \u4E2A\u81EA\u5B9A\u4E49\u4E3B\u9898`, 3e3);
       } else {
-        new import_obsidian6.Notice(`\u6587\u4EF6\u5939 "${cleanPath}" \u4E2D\u6CA1\u6709\u627E\u5230 CSS \u6587\u4EF6\u6216\u5305\u542B CSS \u4EE3\u7801\u5757\u7684 MD \u6587\u4EF6`, 5e3);
+        new import_obsidian7.Notice(`\u6587\u4EF6\u5939 "${cleanPath}" \u4E2D\u6CA1\u6709\u627E\u5230 CSS \u6587\u4EF6\u6216\u5305\u542B CSS \u4EE3\u7801\u5757\u7684 MD \u6587\u4EF6`, 5e3);
       }
     } catch (error) {
       console.error("Failed to load themes:", error);
-      new import_obsidian6.Notice(`\u52A0\u8F7D\u4E3B\u9898\u5931\u8D25: ${error.message}`, 5e3);
+      new import_obsidian7.Notice(`\u52A0\u8F7D\u4E3B\u9898\u5931\u8D25: ${error.message}`, 5e3);
     }
     return this.themes;
   }
@@ -22746,14 +23723,14 @@ ${BUILTIN_THEME_REFINEMENT}`,
 };
 
 // src/services/weixin-api.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 var import_https_proxy_agent = __toESM(require_dist2());
 var import_socks_proxy_agent = __toESM(require_dist3());
 var http = __toESM(require("node:http"));
 var https = __toESM(require("node:https"));
 async function requestWithProxy(url, options2, proxyConfig) {
   if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
-    const response = await (0, import_obsidian7.requestUrl)(options2);
+    const response = await (0, import_obsidian8.requestUrl)(options2);
     return {
       status: response.status,
       json: response.json,
@@ -22882,7 +23859,7 @@ async function getAccessToken(appid, secret, proxyConfig) {
   }
 }
 function buildMultipart(fieldName, data, filename, contentType) {
-  const boundary = "----WeChatPB" + Date.now().toString(16) + Math.random().toString(16).slice(2);
+  const boundary = "----SerenaPost" + Date.now().toString(16) + Math.random().toString(16).slice(2);
   const head = Buffer.from(
     `--${boundary}\r
 Content-Disposition: form-data; name="${fieldName}"; filename="${filename}"\r
@@ -22913,7 +23890,7 @@ async function uploadImage(imageData, filename, accessToken, proxyConfig) {
   let json;
   if (!proxyConfig || !proxyConfig.host || !proxyConfig.port) {
     const arrayBuffer = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength);
-    const response = await (0, import_obsidian7.requestUrl)({ url, method: "POST", contentType, body: arrayBuffer, throw: false });
+    const response = await (0, import_obsidian8.requestUrl)({ url, method: "POST", contentType, body: arrayBuffer, throw: false });
     json = response.json;
   } else {
     const response = await requestWithProxy(url, {
@@ -22976,277 +23953,9 @@ async function testProxy(proxyConfig) {
   }
 }
 
-// src/x/xpush.ts
-var import_obsidian8 = require("obsidian");
-
-// vendor/kaitox/relay-protocol/bundle.ts
-var DEFAULT_DRAFT_KIND = "x-article";
-var SCHEMA_VERSION = 1;
-
-// vendor/kaitox/relay-protocol/base64.ts
-function bytesToBase64(bytes) {
-  if (typeof globalThis.Buffer !== "undefined") {
-    return globalThis.Buffer.from(bytes).toString("base64");
-  }
-  let binary = "";
-  const chunk = 32768;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-  }
-  return globalThis.btoa(binary);
-}
-
-// vendor/kaitox/relay-protocol/relayClient.ts
-var RelayHttpError = class extends Error {
-  constructor(method, url, status, body) {
-    super(`relay ${method} ${url} ${status}${body ? `: ${body}` : ""}`);
-    this.method = method;
-    this.url = url;
-    this.status = status;
-    this.body = body;
-    this.name = "RelayHttpError";
-  }
-};
-var DEFAULT_RELAY_PORT = 8765;
-var DEFAULT_RELAY_BASE = `http://127.0.0.1:${DEFAULT_RELAY_PORT}`;
-var HttpRelayClient = class {
-  constructor(baseUrl = DEFAULT_RELAY_BASE, opts = {}) {
-    var _a2, _b, _c, _d;
-    this.base = baseUrl.replace(/\/+$/, "");
-    this.kind = (_a2 = opts.kind) != null ? _a2 : DEFAULT_DRAFT_KIND;
-    const f = (_b = opts.fetchImpl) != null ? _b : globalThis.fetch;
-    if (!f) throw new Error("\u6CA1\u6709\u53EF\u7528\u7684 fetch\uFF0C\u8BF7\u901A\u8FC7 opts.fetchImpl \u6CE8\u5165\u3002");
-    this.fetchImpl = f;
-    this.token = opts.token;
-    this.makeId = (_c = opts.makeId) != null ? _c : (() => globalThis.crypto.randomUUID());
-    this.now = (_d = opts.now) != null ? _d : (() => (/* @__PURE__ */ new Date()).toISOString());
-  }
-  headers(extra = {}) {
-    const h2 = { ...extra };
-    if (this.token) h2["x-kaitox-token"] = this.token;
-    return h2;
-  }
-  /** /:kind/drafts 前缀（kind 可被单次调用覆盖，如带自定义 kind 的 postDraft）。 */
-  draftsBase(kind = this.kind) {
-    return `${this.base}/${encodeURIComponent(kind)}/drafts`;
-  }
-  async health() {
-    const url = `${this.base}/health`;
-    const res = await this.fetchImpl(url, { headers: this.headers() });
-    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
-    return res.json();
-  }
-  async postDraft(input) {
-    var _a2;
-    const id = this.makeId();
-    const kind = (_a2 = input.kind) != null ? _a2 : this.kind;
-    const bundle = {
-      schemaVersion: SCHEMA_VERSION,
-      id,
-      kind,
-      title: input.title,
-      markdown: input.markdown,
-      mode: input.mode,
-      assets: input.assets.map((a) => ({
-        key: a.key,
-        src: a.src,
-        fileName: a.fileName,
-        mime: a.mime,
-        bytesLen: a.bytes.byteLength
-      })),
-      cover: input.cover ? {
-        key: input.cover.key,
-        src: input.cover.src,
-        fileName: input.cover.fileName,
-        mime: input.cover.mime,
-        bytesLen: input.cover.bytes.byteLength
-      } : void 0,
-      styleReport: input.styleReport,
-      createdAt: this.now(),
-      source: input.source,
-      sourceMeta: input.sourceMeta
-    };
-    const wireAssets = input.assets.map((a) => ({
-      fileName: a.fileName,
-      mime: a.mime,
-      base64: bytesToBase64(a.bytes)
-    }));
-    if (input.cover) {
-      wireAssets.push({
-        fileName: input.cover.fileName,
-        mime: input.cover.mime,
-        base64: bytesToBase64(input.cover.bytes)
-      });
-    }
-    const body = {
-      bundle,
-      assets: wireAssets
-    };
-    const url = this.draftsBase(kind);
-    const res = await this.fetchImpl(url, {
-      method: "POST",
-      headers: this.headers({ "content-type": "application/json" }),
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) throw new RelayHttpError("POST", url, res.status, await safeText(res));
-    return res.json();
-  }
-  async listDrafts() {
-    const url = this.draftsBase();
-    const res = await this.fetchImpl(url, { headers: this.headers() });
-    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
-    return res.json();
-  }
-  async getDraft(id) {
-    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
-    const res = await this.fetchImpl(url, { headers: this.headers() });
-    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
-    return res.json();
-  }
-  async getAsset(id, fileName) {
-    const url = `${this.draftsBase()}/${encodeURIComponent(id)}/assets/${encodeURIComponent(fileName)}`;
-    const res = await this.fetchImpl(url, { headers: this.headers() });
-    if (!res.ok) throw new RelayHttpError("GET", url, res.status);
-    return new Uint8Array(await res.arrayBuffer());
-  }
-  async setCover(id, cover) {
-    const body = {
-      fileName: cover.fileName,
-      mime: cover.mime,
-      base64: bytesToBase64(cover.bytes),
-      // undefined 时 JSON.stringify 省略该键，旧 relay 收到的 body 与从前一致。
-      original: cover.original ? {
-        fileName: cover.original.fileName,
-        mime: cover.original.mime,
-        base64: bytesToBase64(cover.original.bytes)
-      } : void 0
-    };
-    const url = `${this.draftsBase()}/${encodeURIComponent(id)}/cover`;
-    const res = await this.fetchImpl(url, {
-      method: "PUT",
-      headers: this.headers({ "content-type": "application/json" }),
-      body: JSON.stringify(body)
-    });
-    if (!res.ok) throw new RelayHttpError("PUT", url, res.status, await safeText(res));
-  }
-  async ack(id, patch) {
-    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
-    const res = await this.fetchImpl(url, {
-      method: "PATCH",
-      headers: this.headers({ "content-type": "application/json" }),
-      body: JSON.stringify(patch)
-    });
-    if (!res.ok) throw new RelayHttpError("PATCH", url, res.status, await safeText(res));
-  }
-  async deleteDraft(id) {
-    const url = `${this.draftsBase()}/${encodeURIComponent(id)}`;
-    const res = await this.fetchImpl(url, {
-      method: "DELETE",
-      headers: this.headers()
-    });
-    if (!res.ok) throw new RelayHttpError("DELETE", url, res.status);
-  }
-};
-async function safeText(res) {
-  try {
-    return await res.text();
-  } catch (e) {
-    return "";
-  }
-}
-
-// src/x/xpush.ts
-var X_ARTICLE_COMPOSE_URL = "https://x.com/compose/articles";
-function xArticleComposeUrl(draftId) {
-  if (!draftId) return X_ARTICLE_COMPOSE_URL;
-  const url = new URL(X_ARTICLE_COMPOSE_URL);
-  url.searchParams.set("kaitoxAutoUpload", "1");
-  url.searchParams.set("kaitoxDraftId", draftId);
-  return url.toString();
-}
-function openXComposer(draftId) {
-  window.open(xArticleComposeUrl(draftId), "_blank");
-}
-function makeRelayClient(s) {
-  const relayFetch = async (url, init = {}) => {
-    var _a2;
-    const res = await (0, import_obsidian8.requestUrl)({
-      url: String(url),
-      method: (_a2 = init.method) != null ? _a2 : "GET",
-      headers: init.headers,
-      body: init.body,
-      throw: false
-    });
-    return {
-      ok: res.status >= 200 && res.status < 300,
-      status: res.status,
-      async text() {
-        return res.text;
-      },
-      async json() {
-        return res.json;
-      },
-      async arrayBuffer() {
-        return res.arrayBuffer;
-      }
-    };
-  };
-  return new HttpRelayClient(s.relayBase || DEFAULT_RELAY_BASE, {
-    fetchImpl: relayFetch,
-    token: s.relayToken || void 0
-  });
-}
-async function isRelayUp(s) {
-  var _a2;
-  try {
-    const base = (s.relayBase || DEFAULT_RELAY_BASE).replace(/\/+$/, "");
-    const res = await (0, import_obsidian8.requestUrl)({ url: `${base}/health`, method: "GET", throw: false });
-    return res.status === 200 && ((_a2 = res.json) == null ? void 0 : _a2.ok) === true;
-  } catch (e) {
-    return false;
-  }
-}
-async function prepareXDraft(app, file) {
-  const resolved = await resolveActiveNote(app, file);
-  const report = checkMarkdownStyle(resolved.body, { assetMap: resolved.assetMap });
-  return { resolved, report };
-}
-function coverFromDataUrl(dataUrl, taken) {
-  const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!m) return void 0;
-  const bin = atob(m[2]);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  const ext = m[1].includes("png") ? "png" : "jpg";
-  return makeCoverAsset(bytes, m[1], `cover.${ext}`, taken);
-}
-async function pushXDraft(app, s, file, prepared, opts) {
-  const client = makeRelayClient(s);
-  try {
-    await client.health();
-  } catch (e) {
-    throw new Error("Kaitox \u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF1A\u8BF7\u5728\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon\uFF08\u672A\u5B89\u88C5\u5148 npm i -g @kaitox/cli\uFF09");
-  }
-  const taken = new Set(prepared.resolved.assets.map((a) => a.fileName));
-  const cover = opts.coverDataUrl ? coverFromDataUrl(opts.coverDataUrl, taken) : prepared.resolved.cover;
-  const { id } = await client.postDraft({
-    kind: "x-article",
-    title: opts.title,
-    markdown: prepared.resolved.body,
-    mode: "rich",
-    source: "obsidian",
-    sourceMeta: { notePath: file.path, vault: app.vault.getName() },
-    styleReport: prepared.report,
-    assets: prepared.resolved.assets,
-    cover
-  });
-  if (s.openXAfterPush) openXComposer(id);
-  return id;
-}
-
 // src/views/publisher-view.ts
 var X_TARGET_ID = "__x_article__";
-var VIEW_TYPE_PUBLISHER = "wechat-multi-publisher-view";
+var VIEW_TYPE_PUBLISHER = "serena-post-view";
 var PublisherView = class extends import_obsidian9.ItemView {
   // 发布汇总信息
   constructor(leaf, plugin2) {
@@ -23274,10 +23983,10 @@ var PublisherView = class extends import_obsidian9.ItemView {
     return VIEW_TYPE_PUBLISHER;
   }
   getDisplayText() {
-    return "WeChatPB";
+    return "SerenaPost";
   }
   getIcon() {
-    return "message-circle";
+    return ICON_ID;
   }
   async onOpen() {
     var _a2;
@@ -23341,7 +24050,7 @@ var PublisherView = class extends import_obsidian9.ItemView {
       this.autoCoverLoading = false;
       if (!silent || prev !== ((_b = this.autoCover) == null ? void 0 : _b.base64)) this.render();
     } catch (error) {
-      console.error("[WeChatPB] \u81EA\u52A8\u8BC6\u522B\u5C01\u9762\u5931\u8D25", error);
+      console.error("[SerenaPost] \u81EA\u52A8\u8BC6\u522B\u5C01\u9762\u5931\u8D25", error);
       if (seq !== this.autoCoverSeq) return;
       this.autoCoverLoading = false;
       this.render();
@@ -23353,7 +24062,11 @@ var PublisherView = class extends import_obsidian9.ItemView {
     const container = this.containerEl.children[1];
     container.empty();
     const header = container.createDiv({ cls: "publisher-header" });
-    header.createEl("h3", { text: "WeChatPB \xB7 \u5FAE\u4FE1\u516C\u4F17\u53F7\u53D1\u5E03" });
+    const brand = header.createDiv({ cls: "serena-post-brand" });
+    brand.createEl("img", { cls: "serena-post-avatar", attr: { src: AVATAR_DATA_URI, alt: "Serena" } });
+    const titles = brand.createDiv();
+    titles.createEl("h3", { text: "SerenaPost" });
+    titles.createDiv({ cls: "serena-post-tagline", text: "\u4E00\u7A3F\u53CC\u53D1 \xB7 \u516C\u4F17\u53F7 + X" });
     this.renderAccountSelection(container);
     this.renderCoverUpload(container);
     this.renderThemeSelection(container);
@@ -23409,11 +24122,11 @@ var PublisherView = class extends import_obsidian9.ItemView {
     const dot = label.createSpan({ cls: "wechatpb-relay-dot" });
     const online = this.relayOnline;
     dot.addClass(online === null ? "is-unknown" : online ? "is-on" : "is-off");
-    dot.setAttr("aria-label", online ? "Kaitox \u4E2D\u8F6C\u5DF2\u8FDE\u63A5" : "Kaitox \u4E2D\u8F6C\u672A\u8FDE\u63A5");
+    dot.setAttr("aria-label", online ? "\u4E2D\u8F6C\u5DF2\u8FDE\u63A5" : "\u4E2D\u8F6C\u672A\u8FDE\u63A5");
     label.createSpan({ cls: "account-name", text: "X \u6587\u7AE0\u8349\u7A3F" });
     label.createDiv({
       cls: "account-remark",
-      text: online === null ? "\u6B63\u5728\u68C0\u6D4B Kaitox \u4E2D\u8F6C\u2026" : online ? "Kaitox \u4E2D\u8F6C\u5DF2\u8FDE\u63A5" : "Kaitox \u4E2D\u8F6C\u672A\u8FD0\u884C\uFF1A\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon"
+      text: online === null ? "\u6B63\u5728\u68C0\u6D4B\u4E2D\u8F6C\u2026" : online ? "\u4E2D\u8F6C\u5DF2\u5C31\u7EEA \xB7 \u9700\u8981 Chrome \u91CC\u7684 Kaitox \u6269\u5C55" : "\u4E2D\u8F6C\u672A\u8FD0\u884C\uFF1A\u5230 SerenaPost \u8BBE\u7F6E\u6253\u5F00\u300C\u5185\u7F6E\u4E2D\u8F6C\u300D"
     });
   }
   renderAccountItem(container, account) {
@@ -24473,7 +25186,7 @@ var AccountModal = class extends import_obsidian10.Modal {
 };
 
 // src/custom-theme-guide.ts
-var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A WeChatPB \u8BBE\u8BA1\u4E00\u5957\u5FAE\u4FE1\u516C\u4F17\u53F7\u957F\u6587 CSS \u6392\u7248\u3002
+var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A SerenaPost \u8BBE\u8BA1\u4E00\u5957\u5FAE\u4FE1\u516C\u4F17\u53F7\u957F\u6587 CSS \u6392\u7248\u3002
 
 \u8BF7\u4E25\u683C\u9075\u5B88\u4EE5\u4E0B\u89C4\u8303\uFF1A
 1. \u53EA\u8F93\u51FA\u4E00\u4E2A \`\`\`css \u4EE3\u7801\u5757\uFF0C\u4E0D\u8981\u8F93\u51FA HTML\u3001JavaScript \u6216\u89E3\u91CA\u6587\u5B57\u3002
@@ -24623,19 +25336,26 @@ var WeChatPublisherPlugin = class extends import_obsidian11.Plugin {
   constructor() {
     super(...arguments);
     this.statusCheckInterval = null;
+    this.relay = new EmbeddedRelay();
   }
   async onload() {
     await this.loadSettings();
+    (0, import_obsidian11.addIcon)(ICON_ID, ICON_SVG);
+    if (this.settings.embeddedRelay) {
+      this.app.workspace.onLayoutReady(() => {
+        void this.relay.start(this.settings);
+      });
+    }
     this.registerView(
       VIEW_TYPE_PUBLISHER,
       (leaf) => new PublisherView(leaf, this)
     );
-    this.addRibbonIcon("message-circle", "WeChatPB", () => {
+    this.addRibbonIcon(ICON_ID, PLUGIN_NAME, () => {
       void this.activateView();
     });
     this.addCommand({
       id: "open-publisher",
-      name: "\u6253\u5F00 WeChatPB \u53D1\u5E03\u9762\u677F",
+      name: "\u6253\u5F00\u53D1\u5E03\u9762\u677F",
       callback: () => {
         void this.activateView();
       }
@@ -24645,10 +25365,12 @@ var WeChatPublisherPlugin = class extends import_obsidian11.Plugin {
   }
   onunload() {
     this.stopAutoCheck();
+    void this.relay.stop();
   }
   async loadSettings() {
     var _a2, _b, _c;
-    const saved = await this.loadData();
+    let saved = await this.loadData();
+    if (!saved) saved = await this.migrateFromWeChatPB();
     this.settings = {
       ...DEFAULT_SETTINGS,
       ...saved != null ? saved : {},
@@ -24658,6 +25380,20 @@ var WeChatPublisherPlugin = class extends import_obsidian11.Plugin {
       defaultTheme: !(saved == null ? void 0 : saved.defaultTheme) || saved.defaultTheme === "\u9ED8\u8BA4" ? DEFAULT_BUILTIN_THEME : saved.defaultTheme
     };
     await this.migrateLegacySecrets();
+  }
+  /** 首次安装 SerenaPost 时，自动沿用旧 WeChatPB 插件的设置（账号、主题、默认作者等）。密钥在 SecretStorage 里，ID 不变，直接可用。 */
+  async migrateFromWeChatPB() {
+    try {
+      const oldPath = (0, import_obsidian11.normalizePath)(`${this.app.vault.configDir}/plugins/wechat-multi-publisher/data.json`);
+      if (!await this.app.vault.adapter.exists(oldPath)) return null;
+      const data = JSON.parse(await this.app.vault.adapter.read(oldPath));
+      await this.saveData(data);
+      new import_obsidian11.Notice("SerenaPost\uFF1A\u5DF2\u6CBF\u7528 WeChatPB \u7684\u8D26\u53F7\u548C\u8BBE\u7F6E");
+      return data;
+    } catch (e) {
+      console.error("[SerenaPost] \u8FC1\u79FB\u65E7\u8BBE\u7F6E\u5931\u8D25", e);
+      return null;
+    }
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -24822,12 +25558,23 @@ var WeChatPublisherSettingTab = class extends import_obsidian11.PluginSettingTab
       this.plugin.settings.excludeFrontmatter = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian11.Setting(containerEl).setName("X \u63A8\u9001\uFF08Kaitox\uFF09").setHeading();
+    new import_obsidian11.Setting(containerEl).setName("X \u63A8\u9001").setHeading();
     containerEl.createEl("p", {
       cls: "setting-item-description",
-      text: "\u63A8\u9001\u5230 X \u9700\u8981\u672C\u5730\u8FD0\u884C Kaitox \u4E2D\u8F6C\u7A0B\u5E8F\uFF08\u7EC8\u7AEF\u6267\u884C kaitox relay --daemon\uFF09\uFF0C\u5E76\u5728 Chrome \u5B89\u88C5 Kaitox \u6269\u5C55\u3001\u767B\u5F55 X\u3002"
+      text: "\u63A8\u9001\u5230 X \u9700\u8981\u5728 Chrome \u5B89\u88C5 Kaitox \u6269\u5C55\u5E76\u767B\u5F55 X\u3002\u4E2D\u8F6C\u7A0B\u5E8F\u5DF2\u5185\u7F6E\uFF0CObsidian \u5F00\u7740\u5C31\u81EA\u52A8\u8FD0\u884C\u3002"
     });
-    new import_obsidian11.Setting(containerEl).setName("\u4E2D\u8F6C\u7A0B\u5E8F\u5730\u5740").setDesc("\u672C\u5730 Kaitox relay \u5730\u5740\uFF0C\u4E00\u822C\u662F http://127.0.0.1:8765").addText((text) => text.setPlaceholder("http://127.0.0.1:8765").setValue(this.plugin.settings.relayBase).onChange(async (value) => {
+    const relayStatus = () => {
+      const r = this.plugin.relay;
+      return r.mode === "embedded" ? "\u8FD0\u884C\u4E2D\uFF08\u5185\u7F6E\uFF09" : r.mode === "external" ? "\u8FD0\u884C\u4E2D\uFF08\u4F7F\u7528\u5DF2\u6709\u7684 Kaitox \u4E2D\u8F6C\uFF09" : r.mode === "error" ? `\u542F\u52A8\u5931\u8D25\uFF1A${r.error}` : "\u672A\u8FD0\u884C";
+    };
+    new import_obsidian11.Setting(containerEl).setName("\u5185\u7F6E\u4E2D\u8F6C").setDesc(`\u5F53\u524D\u72B6\u6001\uFF1A${relayStatus()}`).addToggle((toggle) => toggle.setValue(this.plugin.settings.embeddedRelay).onChange(async (value) => {
+      this.plugin.settings.embeddedRelay = value;
+      await this.plugin.saveSettings();
+      if (value) await this.plugin.relay.start(this.plugin.settings);
+      else await this.plugin.relay.stop();
+      this.display();
+    }));
+    new import_obsidian11.Setting(containerEl).setName("\u4E2D\u8F6C\u7A0B\u5E8F\u5730\u5740").setDesc("\u4E00\u822C\u4E0D\u7528\u6539\u3002\u6539\u4E86\u4EE5\u540E\u9700\u8981\u5728 Kaitox \u6269\u5C55\u8BBE\u7F6E\u91CC\u6539\u6210\u540C\u4E00\u4E2A\u5730\u5740").addText((text) => text.setPlaceholder("http://127.0.0.1:8765").setValue(this.plugin.settings.relayBase).onChange(async (value) => {
       this.plugin.settings.relayBase = value.trim() || "http://127.0.0.1:8765";
       await this.plugin.saveSettings();
     }));

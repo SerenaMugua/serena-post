@@ -9,11 +9,12 @@ import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../servic
 import { compressImage } from '../utils/image';
 import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
 import { XPreviewModal } from '../x/x-preview-modal';
+import { AVATAR_DATA_URI, ICON_ID } from '../brand';
 
 /** 发布进度里 X 渠道使用的伪账号 id */
 const X_TARGET_ID = '__x_article__';
 
-export const VIEW_TYPE_PUBLISHER = 'wechat-multi-publisher-view';
+export const VIEW_TYPE_PUBLISHER = 'serena-post-view';
 
 export class PublisherView extends ItemView {
 	plugin: WeChatPublisherPlugin;
@@ -46,11 +47,11 @@ export class PublisherView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return 'WeChatPB';
+		return 'SerenaPost';
 	}
 
 	getIcon(): string {
-		return 'message-circle';  // 使用消息气泡图标
+		return ICON_ID;
 	}
 
 	async onOpen() {
@@ -122,7 +123,7 @@ export class PublisherView extends ItemView {
 			this.autoCoverLoading = false;
 			if (!silent || prev !== this.autoCover?.base64) this.render();
 		} catch (error) {
-			console.error('[WeChatPB] 自动识别封面失败', error);
+			console.error('[SerenaPost] 自动识别封面失败', error);
 			if (seq !== this.autoCoverSeq) return;
 			this.autoCoverLoading = false;
 			this.render();
@@ -139,7 +140,11 @@ export class PublisherView extends ItemView {
 
 		// Header
 		const header = container.createDiv({ cls: 'publisher-header' });
-		header.createEl('h3', { text: 'WeChatPB · 微信公众号发布' });
+		const brand = header.createDiv({ cls: 'serena-post-brand' });
+		brand.createEl('img', { cls: 'serena-post-avatar', attr: { src: AVATAR_DATA_URI, alt: 'Serena' } });
+		const titles = brand.createDiv();
+		titles.createEl('h3', { text: 'SerenaPost' });
+		titles.createDiv({ cls: 'serena-post-tagline', text: '一稿双发 · 公众号 + X' });
 
 		// Account selection
 		this.renderAccountSelection(container);
@@ -219,11 +224,11 @@ export class PublisherView extends ItemView {
 		const dot = label.createSpan({ cls: 'wechatpb-relay-dot' });
 		const online = this.relayOnline;
 		dot.addClass(online === null ? 'is-unknown' : online ? 'is-on' : 'is-off');
-		dot.setAttr('aria-label', online ? 'Kaitox 中转已连接' : 'Kaitox 中转未连接');
+		dot.setAttr('aria-label', online ? '中转已连接' : '中转未连接');
 		label.createSpan({ cls: 'account-name', text: 'X 文章草稿' });
 		label.createDiv({
 			cls: 'account-remark',
-			text: online === null ? '正在检测 Kaitox 中转…' : online ? 'Kaitox 中转已连接' : 'Kaitox 中转未运行：终端执行 kaitox relay --daemon'
+			text: online === null ? '正在检测中转…' : online ? '中转已就绪 · 需要 Chrome 里的 Kaitox 扩展' : '中转未运行：到 SerenaPost 设置打开「内置中转」'
 		});
 	}
 

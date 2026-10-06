@@ -103,7 +103,7 @@ export async function pushXDraft(
 	try {
 		await client.health();
 	} catch {
-		throw new Error('Kaitox 中转程序没有运行：请在终端执行 kaitox relay --daemon（未安装先 npm i -g @kaitox/cli）');
+		throw new Error('中转程序没有运行：请在 SerenaPost 设置里打开「内置中转」');
 	}
 	const taken = new Set(prepared.resolved.assets.map(a => a.fileName));
 	const cover = opts.coverDataUrl ? coverFromDataUrl(opts.coverDataUrl, taken) : prepared.resolved.cover;

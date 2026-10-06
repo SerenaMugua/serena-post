@@ -1,14 +1,10 @@
 <div align="center">
 
-# WeChatPB
+<img src="assets/serena-avatar.png" width="96" alt="SerenaPost">
 
-### 在 Obsidian 里完成公众号排版、多账号管理与草稿发布
+# SerenaPost
 
-无需离开笔记，也无需额外下载排版文件。打开文章、选择主题、预览效果，然后一次发布到多个微信公众号草稿箱。
-
-**当前版本：2.4.0　｜　桌面端：Windows、macOS、Linux　｜　许可证：MIT**
-
-[下载最新版](https://github.com/Kianzzz/wechatPB/releases/latest) · [提交问题](https://github.com/Kianzzz/wechatPB/issues) · [安全反馈](SECURITY.md)
+### 一稿双发：在 Obsidian 里把一篇笔记推到「公众号草稿箱」和「X 文章草稿」
 
 </div>
 
@@ -18,129 +14,60 @@
 
 | 能力 | 说明 |
 | --- | --- |
-| 多账号发布 | 同时管理多个公众号，一次将文章发送到多个草稿箱 |
-| 开箱即用排版 | 内置 14 套主题，首次安装默认使用「绿白清简」，无需配置文件夹 |
-| 实时预览 | 发布前查看标题、正文、引用、代码块、图片等最终效果 |
-| 图片处理 | 自动压缩并上传正文图片，支持上传和保存默认封面 |
-| 长图导出 | 将排版后的全文导出为 PNG 图片并保存到当前笔记目录 |
-| 自定义主题 | 支持读取仓库中的 CSS 文件或包含 CSS 代码块的 Markdown 文件 |
-| AI 排版辅助 | 设置页提供排版规范和示例，可直接复制给 AI 设计新主题 |
-| 安全存储 | AppSecret、访问令牌和代理密码由 Obsidian SecretStorage 保存 |
-| 网络代理 | 支持 HTTP 与 SOCKS5 代理，可检查出口 IP 和账号连接状态 |
-| 发布记录 | 在本地保存每次发布结果，方便查找和排错 |
+| 公众号排版 | 内置 14 套主题，实时预览，可导出长图 |
+| 推到公众号草稿箱 | 走微信官方接口，正文图片、网络图片、封面自动上传；支持多个公众号 |
+| 推到 X 文章草稿 | 通过 Kaitox Chrome 扩展，在你已登录的 X 页面里自动建好文章草稿 |
+| 一键双发 | 勾选公众号和 X，确认一次，两边同时进草稿箱 |
+| 自动封面 | 默认用笔记属性 `cover`，没有就用正文第一张图，可随时更换 |
+| 发布前确认 | 统一确认标题、作者、摘要、封面、留言；X 的格式检查结果也在这里 |
+| 内置中转 | 推 X 所需的本地中转程序已内置，Obsidian 开着就自动运行 |
 
-## 三步开始使用
+## 安装
 
-### 1. 安装插件
+1. 从 Releases 下载 `main.js`、`manifest.json`、`styles.css`，放进仓库的 `.obsidian/plugins/serena-post/`。
+2. Obsidian → 设置 → 第三方插件，启用 **SerenaPost**。
+3. 左侧点 Serena 头像图标打开发布面板。
 
-从 [最新版发布页面](https://github.com/Kianzzz/wechatPB/releases/latest) 下载以下三个文件：
+## 推送到公众号：准备
 
-- `main.js`
-- `manifest.json`
-- `styles.css`
+1. 设置 → SerenaPost → 添加账号，填公众号 AppID 和 AppSecret（公众号后台「设置与开发 → 开发接口管理」）。
+2. 把插件提示的出口 IP 加进同一页的 **IP 白名单**。
+3. 账号需要有「草稿箱 / 素材管理」接口权限（未认证的个人号可能没有）。
 
-将它们放进仓库中的插件目录：
+AppSecret 保存在 Obsidian 的 SecretStorage，不会写进 `data.json`。
 
-```text
-.obsidian/plugins/wechat-multi-publisher/
+## 推送到 X：准备
+
+只需要在 Chrome 里装好 **Kaitox 扩展** 并登录 X。
+
+- 中转程序已内置在插件里，不需要再装 npm、敲命令。
+- 如果你本来就在运行 Kaitox 的中转（`kaitox relay`），SerenaPost 会自动复用它。
+- 推送后插件会打开 X 文章编辑器，扩展在那里接力创建草稿。
+
+## 笔记属性（可选）
+
+```yaml
+title: 文章标题        # 不写用文件名
+cover: "[[封面.png]]"  # 不写用正文第一张图
+wx_author: Serena木瓜  # 公众号作者，不写用设置里的默认作者
+digest: 一句话摘要      # 公众号摘要，不写用 description 截断
+comment: true          # 公众号是否开留言
+source_url: https://…  # 公众号「阅读原文」
 ```
 
-然后打开 Obsidian → 设置 → 第三方插件，启用「WeChatPB」。
-
-> 插件目录和内部标识继续保留 `wechat-multi-publisher`，这是为了让旧版本能够正常升级并保留已有设置，并不是尚未改名。
-
-### 2. 添加公众号
-
-打开 Obsidian → 设置 → WeChatPB → 添加账号，填写公众号的 AppID 与 AppSecret。
-
-这些信息可在[微信公众平台](https://mp.weixin.qq.com/)的「设置与开发 → 基本配置」中获取。发布前还需要将当前服务器或代理的出口 IP 加入公众号 IP 白名单。
-
-### 3. 排版并发布
-
-1. 打开一篇 Markdown 笔记。
-2. 打开侧边栏中的 WeChatPB 面板。
-3. 选择排版主题并点击「预览」。
-4. 选择封面和需要发布的公众号。
-5. 点击「发布」，文章会进入微信公众号草稿箱。
-
-你仍然可以在微信公众平台里继续编辑、检查并正式群发。
-
-## 内置排版主题
-
-首次安装会直接使用「绿白清简」。14 套主题已经打包在插件中，不需要下载本地 CSS，也不需要先点击“保存并应用”。
-
-| 风格方向 | 主题 | 适合内容 |
-| --- | --- | --- |
-| 清爽品牌 | 绿白清简、蓝白案例 | 品牌文章、案例拆解、知识分享 |
-| 极简阅读 | 墨白极简、清墨留白 | 长文、随笔、教程 |
-| 编辑出版 | 赤红报刊、酒红书刊、赤红夹线 | 新闻、趋势、观点、书评 |
-| 卡片层级 | 靛蓝书签、靛蓝浮雕、青绿胶囊 | 清单、方法论、结构化内容 |
-| 强调标记 | 绿荧标记、蓝荧标记 | 教程、重点摘要、学习笔记 |
-| 氛围视觉 | 粉紫渐隐、青紫霓虹 | 创意、科技、年轻化内容 |
-
-「绿白清简」和「蓝白案例」的二级标题会按照文章顺序显示 `TITEL 01`、`TITEL 02`、`TITEL 03`……
-
-## 使用自己的排版
-
-内置主题足够直接使用。只有在需要学习或导入自己的排版时，才需要在设置中开启「启用自定义排版」。
-
-1. 在 Obsidian 仓库中创建一个文件夹，例如 `css-themes/`。
-2. 放入 `.css` 文件，或放入包含 CSS 代码块的 `.md` 文件。
-3. 在 WeChatPB 设置中选择该文件夹。
-4. 返回发布面板，即可选择自定义主题并预览。
-
-Markdown 主题文件可以这样编写：
-
-````markdown
-# 我的自定义主题
-
-```css
-.note-to-mp h1 {
-    color: #333333;
-    border-bottom: 2px solid #07c160;
-}
-
-.note-to-mp p {
-    color: #555555;
-    line-height: 1.8;
-}
-```
-````
-
-不知道如何写 CSS 时，可以在插件设置中打开「查看 AI 排版规范」，复制完整示例给 AI，再补充你的品牌色、文章类型和参考风格。
-
-## 使用前须知
-
-- 插件仅支持 Obsidian 桌面端。
-- 建议使用已认证的微信公众号；不同账号类型拥有的接口权限可能不同。
-- AppSecret、访问令牌和代理密码不会写入 `data.json`，请仍然避免在截图、日志和公开问题中泄露它们。
-- 正文图片会在发布时压缩并上传到微信公众号素材库。
-- 如果「预览」没有反应，请先确认当前打开的是 Markdown 笔记。
-- 如果「发布」按钮不可点击，请先完成账号配置、连接检测并勾选至少一个可用账号。
-
-## 隐私与网络请求
-
-插件只会在测试账号、检查状态、上传素材或创建草稿时请求微信公众平台接口；测试代理或查看出口 IP 时会请求 `api.ipify.org`。如果你配置了代理，相应请求会经过该代理。
-
-文章正文和图片不会发送到插件作者控制的服务器。账号密钥由 Obsidian SecretStorage 保存在本机。
-
-## 开发与反馈
-
-本地构建：
+## 本地构建
 
 ```bash
 npm install
 npm run build
 ```
 
-发现问题时，请通过 [问题页面](https://github.com/Kianzzz/wechatPB/issues) 提交，并附上 Obsidian 版本、WeChatPB 版本、操作系统、复现步骤和已经脱敏的错误信息。
+## 致谢与许可
 
-参与开发前请阅读[贡献指南](CONTRIBUTING.md)；安全漏洞请按照[安全说明](SECURITY.md)私下反馈。
+SerenaPost 基于两个 MIT 开源项目修改而来，感谢原作者：
 
----
+- [WeChatPB](https://github.com/Kianzzz/wechatPB)（zhouxing）—— 公众号排版、多账号与草稿发布
+- [Kaitox](https://github.com/kuangjiajia/kaitox-toolkit)（kaitox）—— X 文章预览、格式检查、中转协议与 Chrome 扩展
 
-<div align="center">
-
-如果 WeChatPB 帮你减少了公众号排版和多账号发布的重复工作，欢迎点亮一个 Star。
-
-</div>
+代码以 [MIT](LICENSE) 许可发布，第三方许可全文见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+Serena 木瓜 IP 头像版权归作者所有，不在 MIT 许可范围内。

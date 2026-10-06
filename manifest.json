@@ -1,10 +1,10 @@
 {
-  "id": "wechat-multi-publisher",
-  "name": "WeChatPB · 公众号 + X",
-  "version": "2.5.0",
+  "id": "serena-post",
+  "name": "SerenaPost",
+  "version": "1.0.0",
   "minAppVersion": "1.11.4",
-  "description": "Format and publish notes to WeChat Official Account drafts, and push them to X Article drafts via Kaitox.",
-  "author": "zhouxing",
-  "authorUrl": "https://github.com/Kianzzz",
+  "description": "One note, two drafts: format and push to WeChat Official Account drafts and X Article drafts. 一稿双发：公众号 + X 草稿箱。",
+  "author": "Serena 木瓜",
+  "authorUrl": "https://x.com/369Serena",
   "isDesktopOnly": true
 }

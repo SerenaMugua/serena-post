@@ -195,7 +195,7 @@ export async function getAccessToken(appid: string, secret: string, proxyConfig?
  * （不用 form-data 包：esbuild 打包时会换成浏览器版 FormData，导致上传报错）
  */
 function buildMultipart(fieldName: string, data: Buffer, filename: string, contentType: string) {
-	const boundary = '----WeChatPB' + Date.now().toString(16) + Math.random().toString(16).slice(2);
+	const boundary = '----SerenaPost' + Date.now().toString(16) + Math.random().toString(16).slice(2);
 	const head = Buffer.from(
 		`--${boundary}\r\n` +
 		`Content-Disposition: form-data; name="${fieldName}"; filename="${filename}"\r\n` +

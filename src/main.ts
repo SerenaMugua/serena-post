@@ -1,4 +1,6 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice, WorkspaceLeaf, FuzzySuggestModal, Modal, normalizePath } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, Notice, WorkspaceLeaf, FuzzySuggestModal, Modal, normalizePath, addIcon } from 'obsidian';
+import { ICON_ID, ICON_SVG, PLUGIN_NAME } from './brand';
+import { EmbeddedRelay } from './x/embedded-relay';
 import { PluginSettings, DEFAULT_SETTINGS, WeChatAccount, ResolvedWeChatAccount, ResolvedProxyConfig } from './types';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
 import { AccountModal } from './modals/account-modal';
@@ -67,9 +69,16 @@ class CustomThemeGuideModal extends Modal {
 export default class WeChatPublisherPlugin extends Plugin {
 	settings: PluginSettings;
 	statusCheckInterval: number | null = null;
+	relay = new EmbeddedRelay();
 
 	async onload() {
 		await this.loadSettings();
+		addIcon(ICON_ID, ICON_SVG);
+
+		// 内置中转：Obsidian 开着就能推送到 X（配合 Chrome 里的 Kaitox 扩展）
+		if (this.settings.embeddedRelay) {
+			this.app.workspace.onLayoutReady(() => { void this.relay.start(this.settings); });
+		}
 
 		// Register the publisher view
 		this.registerView(
@@ -78,14 +87,14 @@ export default class WeChatPublisherPlugin extends Plugin {
 		);
 
 		// Add ribbon icon
-		this.addRibbonIcon('message-circle', 'WeChatPB', () => {
+		this.addRibbonIcon(ICON_ID, PLUGIN_NAME, () => {
 			void this.activateView();
 		});
 
 		// Add command to open publisher
 		this.addCommand({
 			id: 'open-publisher',
-			name: '打开 WeChatPB 发布面板',
+			name: '打开发布面板',
 			callback: () => {
 				void this.activateView();
 			}
@@ -100,10 +109,12 @@ export default class WeChatPublisherPlugin extends Plugin {
 
 	onunload() {
 		this.stopAutoCheck();
+		void this.relay.stop();
 	}
 
 	async loadSettings() {
-		const saved = await this.loadData() as Partial<PluginSettings> | null;
+		let saved = await this.loadData() as Partial<PluginSettings> | null;
+		if (!saved) saved = await this.migrateFromWeChatPB();
 		this.settings = {
 			...DEFAULT_SETTINGS,
 			...(saved ?? {}),
@@ -115,6 +126,21 @@ export default class WeChatPublisherPlugin extends Plugin {
 				: saved.defaultTheme
 		};
 		await this.migrateLegacySecrets();
+	}
+
+	/** 首次安装 SerenaPost 时，自动沿用旧 WeChatPB 插件的设置（账号、主题、默认作者等）。密钥在 SecretStorage 里，ID 不变，直接可用。 */
+	private async migrateFromWeChatPB(): Promise<Partial<PluginSettings> | null> {
+		try {
+			const oldPath = normalizePath(`${this.app.vault.configDir}/plugins/wechat-multi-publisher/data.json`);
+			if (!(await this.app.vault.adapter.exists(oldPath))) return null;
+			const data = JSON.parse(await this.app.vault.adapter.read(oldPath)) as Partial<PluginSettings>;
+			await this.saveData(data);
+			new Notice('SerenaPost：已沿用 WeChatPB 的账号和设置');
+			return data;
+		} catch (e) {
+			console.error('[SerenaPost] 迁移旧设置失败', e);
+			return null;
+		}
 	}
 
 	async saveSettings() {
@@ -319,15 +345,35 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl).setName('X 推送（Kaitox）').setHeading();
+		new Setting(containerEl).setName('X 推送').setHeading();
 		containerEl.createEl('p', {
 			cls: 'setting-item-description',
-			text: '推送到 X 需要本地运行 Kaitox 中转程序（终端执行 kaitox relay --daemon），并在 Chrome 安装 Kaitox 扩展、登录 X。'
+			text: '推送到 X 需要在 Chrome 安装 Kaitox 扩展并登录 X。中转程序已内置，Obsidian 开着就自动运行。'
 		});
+
+		const relayStatus = () => {
+			const r = this.plugin.relay;
+			return r.mode === 'embedded' ? '运行中（内置）'
+				: r.mode === 'external' ? '运行中（使用已有的 Kaitox 中转）'
+				: r.mode === 'error' ? `启动失败：${r.error}`
+				: '未运行';
+		};
+		new Setting(containerEl)
+			.setName('内置中转')
+			.setDesc(`当前状态：${relayStatus()}`)
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.embeddedRelay)
+				.onChange(async value => {
+					this.plugin.settings.embeddedRelay = value;
+					await this.plugin.saveSettings();
+					if (value) await this.plugin.relay.start(this.plugin.settings);
+					else await this.plugin.relay.stop();
+					this.display();
+				}));
 
 		new Setting(containerEl)
 			.setName('中转程序地址')
-			.setDesc('本地 Kaitox relay 地址，一般是 http://127.0.0.1:8765')
+			.setDesc('一般不用改。改了以后需要在 Kaitox 扩展设置里改成同一个地址')
 			.addText(text => text
 				.setPlaceholder('http://127.0.0.1:8765')
 				.setValue(this.plugin.settings.relayBase)
