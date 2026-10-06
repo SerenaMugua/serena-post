@@ -32,6 +32,7 @@ export class LivePreviewView extends ItemView {
 	private onEditorScroll = () => this.syncFromEditor();
 	private syncRaf = 0;
 	private lastSyncLine = -1;
+	private lastPath = '';
 
 	constructor(leaf: WorkspaceLeaf, private plugin: WeChatPublisherPlugin) {
 		super(leaf);
@@ -102,7 +103,11 @@ export class LivePreviewView extends ItemView {
 				this.schedule(50);
 			}
 		}));
-		this.registerEvent(this.app.workspace.on('file-open', () => this.schedule(100)));
+		// 切换笔记时编辑器内容可能还没换好，过一会儿再刷新一次，避免显示上一篇
+		this.registerEvent(this.app.workspace.on('file-open', () => {
+			this.schedule(150);
+			window.setTimeout(() => this.schedule(10), 700);
+		}));
 		this.registerEvent(this.app.metadataCache.on('resolved', () => this.schedule(800)));
 		this.registerEvent(this.app.vault.on('modify', f => {
 			if (this.mode === 'x' && f === this.md?.file) this.schedule(600);
@@ -278,6 +283,12 @@ export class LivePreviewView extends ItemView {
 			if (!md) {
 				this.message('打开一篇笔记，这里会实时显示它在公众号里的样子。');
 				return;
+			}
+			const path = md.file?.path ?? '';
+			if (path !== this.lastPath) {
+				this.lastPath = path;
+				this.scrollEl.scrollTop = 0;
+				this.lastSyncLine = -1;
 			}
 			const top = this.scrollEl.scrollTop;
 			if (this.mode === 'x') {

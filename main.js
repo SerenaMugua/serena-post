@@ -27264,6 +27264,7 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
     this.onEditorScroll = () => this.syncFromEditor();
     this.syncRaf = 0;
     this.lastSyncLine = -1;
+    this.lastPath = "";
   }
   getViewType() {
     return VIEW_TYPE_LIVE_PREVIEW;
@@ -27335,7 +27336,10 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
         this.schedule(50);
       }
     }));
-    this.registerEvent(this.app.workspace.on("file-open", () => this.schedule(100)));
+    this.registerEvent(this.app.workspace.on("file-open", () => {
+      this.schedule(150);
+      window.setTimeout(() => this.schedule(10), 700);
+    }));
     this.registerEvent(this.app.metadataCache.on("resolved", () => this.schedule(800)));
     this.registerEvent(this.app.vault.on("modify", (f) => {
       var _a2;
@@ -27491,7 +27495,7 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
     this.contentEl2.createDiv({ cls: "sp-live-empty", text });
   }
   async update() {
-    var _a2, _b;
+    var _a2, _b, _c, _d;
     if (this.running) {
       this.pending = true;
       return;
@@ -27507,6 +27511,12 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
       if (!md) {
         this.message("\u6253\u5F00\u4E00\u7BC7\u7B14\u8BB0\uFF0C\u8FD9\u91CC\u4F1A\u5B9E\u65F6\u663E\u793A\u5B83\u5728\u516C\u4F17\u53F7\u91CC\u7684\u6837\u5B50\u3002");
         return;
+      }
+      const path = (_b = (_a2 = md.file) == null ? void 0 : _a2.path) != null ? _b : "";
+      if (path !== this.lastPath) {
+        this.lastPath = path;
+        this.scrollEl.scrollTop = 0;
+        this.lastSyncLine = -1;
       }
       const top = this.scrollEl.scrollTop;
       if (this.mode === "x") {
@@ -27529,7 +27539,7 @@ var LivePreviewView = class extends import_obsidian15.ItemView {
         }
         this.releaseBlobs();
         this.contentEl2.replaceChildren((0, import_obsidian15.sanitizeHTMLToDom)(html));
-        this.nameEl.setText(`${(_b = (_a2 = md.file) == null ? void 0 : _a2.basename) != null ? _b : ""} \xB7 ${publisher.selectedTheme}`);
+        this.nameEl.setText(`${(_d = (_c = md.file) == null ? void 0 : _c.basename) != null ? _d : ""} \xB7 ${publisher.selectedTheme}`);
         this.annotateLines(md);
       }
       this.scrollEl.scrollTop = top;
