@@ -21100,6 +21100,7 @@ var DraftConfirmModal = class extends import_obsidian4.Modal {
   }
   /** 发布前体检：列出问题，能一键修的给按钮 */
   issues() {
+    var _a2, _b, _c;
     const m = this.meta;
     const out = [];
     const L2 = DRAFT_LIMITS;
@@ -21153,6 +21154,27 @@ var DraftConfirmModal = class extends import_obsidian4.Modal {
       if (sc == null ? void 0 : sc.remote.length) {
         out.push({ id: "img-remote", level: "info", text: `${sc.remote.length} \u5F20\u7F51\u7EDC\u56FE\u7247\uFF0C\u53D1\u5E03\u65F6\u4F1A\u81EA\u52A8\u4E0B\u8F7D\u518D\u4E0A\u4F20\u5230\u516C\u4F17\u53F7\uFF1B\u5982\u679C\u539F\u7F51\u7AD9\u4E0D\u8BA9\u4E0B\u8F7D\uFF0C\u8349\u7A3F\u91CC\u4F1A\u5C11\u8FD9\u5F20\u56FE` });
       }
+    }
+    const x2 = this.xInfo;
+    if (x2 && !x2.relayOnline) {
+      out.push({
+        id: "x-relay",
+        level: "error",
+        text: "X\uFF1A\u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF0CX \u4F1A\u63A8\u9001\u5931\u8D25",
+        fixLabel: x2.startRelay ? "\u542F\u52A8\u5185\u7F6E\u4E2D\u8F6C" : void 0,
+        fix: x2.startRelay ? async () => {
+          const ok = await x2.startRelay();
+          x2.relayOnline = ok;
+          new import_obsidian4.Notice(ok ? "\u4E2D\u8F6C\u5DF2\u542F\u52A8" : "\u4E2D\u8F6C\u542F\u52A8\u5931\u8D25\uFF0C\u8BF7\u5230 SerenaPost \u8BBE\u7F6E\u91CC\u68C0\u67E5\u300C\u5185\u7F6E\u4E2D\u8F6C\u300D");
+        } : void 0
+      });
+    }
+    if (x2 == null ? void 0 : x2.unresolved.length) {
+      out.push({ id: "x-unresolved", level: "warn", text: `X\uFF1A${x2.unresolved.length} \u4E2A\u5F15\u7528\u627E\u4E0D\u5230\uFF08${x2.unresolved.slice(0, 3).join("\u3001")}\uFF09\uFF0C\u63A8\u9001\u65F6\u4F1A\u8DF3\u8FC7` });
+    }
+    const xErrors = (_c = (_b = (_a2 = x2 == null ? void 0 : x2.report) == null ? void 0 : _a2.counts) == null ? void 0 : _b.error) != null ? _c : 0;
+    if (xErrors) {
+      out.push({ id: "x-style", level: "warn", text: `X\uFF1A\u683C\u5F0F\u68C0\u67E5\u6709 ${xErrors} \u5904\u9519\u8BEF\uFF0C\u53EF\u4EE5\u5728\u4E0B\u65B9\u300CX \u6587\u7AE0\u300D\u91CC\u67E5\u770B\u8BE6\u60C5` });
     }
     return out.filter((i) => i.level === "error" || !this.ignored.has(i.id));
   }
@@ -21236,12 +21258,6 @@ var DraftConfirmModal = class extends import_obsidian4.Modal {
     if (this.xInfo) {
       const xBox = contentEl.createDiv({ cls: "wechatpb-x-confirm" });
       xBox.createEl("div", { cls: "wechatpb-x-confirm-title", text: "X \u6587\u7AE0" });
-      if (!this.xInfo.relayOnline) {
-        xBox.createDiv({
-          cls: "wechatpb-x-warn",
-          text: "\u26A0 \u4E2D\u8F6C\u7A0B\u5E8F\u6CA1\u6709\u8FD0\u884C\uFF0CX \u4F1A\u63A8\u9001\u5931\u8D25\u3002\u8BF7\u5728 SerenaPost \u8BBE\u7F6E\u91CC\u6253\u5F00\u300C\u5185\u7F6E\u4E2D\u8F6C\u300D"
-        });
-      }
       renderStyleReport(xBox, this.xInfo.report, this.xInfo.unresolved);
     }
     const counter = (el, value, max) => {
@@ -26162,6 +26178,8 @@ var PublisherView = class extends import_obsidian13.ItemView {
           label: "\u542F\u52A8\u5185\u7F6E\u4E2D\u8F6C",
           primary: true,
           run: async () => {
+            this.plugin.settings.embeddedRelay = true;
+            await this.plugin.saveSettings();
             const mode = await this.plugin.relay.takeOver(this.plugin.settings);
             this.relayOnline = await isRelayUp(this.plugin.settings);
             new import_obsidian13.Notice(this.relayOnline ? "\u4E2D\u8F6C\u5DF2\u542F\u52A8\uFF0C\u53EF\u4EE5\u91CD\u65B0\u63A8\u9001\u4E86" : `\u4E2D\u8F6C\u542F\u52A8\u5931\u8D25\uFF1A${this.plugin.relay.error || mode}`);
@@ -26483,7 +26501,19 @@ var PublisherView = class extends import_obsidian13.ItemView {
         meta,
         coverSource,
         accountNames,
-        xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : void 0,
+        xPrepared ? {
+          report: xPrepared.report,
+          unresolved: xPrepared.resolved.unresolved,
+          relayOnline: !!this.relayOnline,
+          startRelay: async () => {
+            this.plugin.settings.embeddedRelay = true;
+            await this.plugin.saveSettings();
+            await this.plugin.relay.takeOver(this.plugin.settings);
+            this.relayOnline = await isRelayUp(this.plugin.settings);
+            this.render();
+            return !!this.relayOnline;
+          }
+        } : void 0,
         scanImages(this.app, file, content)
       ).openAndWait();
     } catch (error) {

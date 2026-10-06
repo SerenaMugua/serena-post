@@ -9,6 +9,8 @@ export interface XConfirmInfo {
 	report: StyleReport;
 	unresolved: string[];
 	relayOnline: boolean;
+	/** 启动内置中转，返回是否成功 */
+	startRelay?: () => Promise<boolean>;
 }
 
 export const DRAFT_LIMITS = { title: 64, author: 8, digest: 120 };
@@ -324,6 +326,25 @@ export class DraftConfirmModal extends Modal {
 				out.push({ id: 'img-remote', level: 'info', text: `${sc.remote.length} 张网络图片，发布时会自动下载再上传到公众号；如果原网站不让下载，草稿里会少这张图` });
 			}
 		}
+		const x = this.xInfo;
+		if (x && !x.relayOnline) {
+			out.push({
+				id: 'x-relay', level: 'error', text: 'X：中转程序没有运行，X 会推送失败',
+				fixLabel: x.startRelay ? '启动内置中转' : undefined,
+				fix: x.startRelay ? async () => {
+					const ok = await x.startRelay!();
+					x.relayOnline = ok;
+					new Notice(ok ? '中转已启动' : '中转启动失败，请到 SerenaPost 设置里检查「内置中转」');
+				} : undefined
+			});
+		}
+		if (x?.unresolved.length) {
+			out.push({ id: 'x-unresolved', level: 'warn', text: `X：${x.unresolved.length} 个引用找不到（${x.unresolved.slice(0, 3).join('、')}），推送时会跳过` });
+		}
+		const xErrors = x?.report?.counts?.error ?? 0;
+		if (xErrors) {
+			out.push({ id: 'x-style', level: 'warn', text: `X：格式检查有 ${xErrors} 处错误，可以在下方「X 文章」里查看详情` });
+		}
 		return out.filter(i => i.level === 'error' || !this.ignored.has(i.id));
 	}
 
@@ -412,12 +433,6 @@ export class DraftConfirmModal extends Modal {
 		if (this.xInfo) {
 			const xBox = contentEl.createDiv({ cls: 'wechatpb-x-confirm' });
 			xBox.createEl('div', { cls: 'wechatpb-x-confirm-title', text: 'X 文章' });
-			if (!this.xInfo.relayOnline) {
-				xBox.createDiv({
-					cls: 'wechatpb-x-warn',
-					text: '⚠ 中转程序没有运行，X 会推送失败。请在 SerenaPost 设置里打开「内置中转」'
-				});
-			}
 			renderStyleReport(xBox, this.xInfo.report, this.xInfo.unresolved);
 		}
 

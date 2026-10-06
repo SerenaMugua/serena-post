@@ -880,6 +880,8 @@ export class PublisherView extends ItemView {
 			if (/中转/.test(error)) {
 				actions.push({
 					label: '启动内置中转', primary: true, run: async () => {
+						this.plugin.settings.embeddedRelay = true;
+						await this.plugin.saveSettings();
 						const mode = await this.plugin.relay.takeOver(this.plugin.settings);
 						this.relayOnline = await isRelayUp(this.plugin.settings);
 						new Notice(this.relayOnline ? '中转已启动，可以重新推送了' : `中转启动失败：${this.plugin.relay.error || mode}`);
@@ -1249,7 +1251,19 @@ export class PublisherView extends ItemView {
 				.map(a => a.name);
 			draft = await new DraftConfirmModal(
 				this.app, meta, coverSource, accountNames,
-				xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : undefined,
+				xPrepared ? {
+					report: xPrepared.report,
+					unresolved: xPrepared.resolved.unresolved,
+					relayOnline: !!this.relayOnline,
+					startRelay: async () => {
+						this.plugin.settings.embeddedRelay = true;
+						await this.plugin.saveSettings();
+						await this.plugin.relay.takeOver(this.plugin.settings);
+						this.relayOnline = await isRelayUp(this.plugin.settings);
+						this.render();
+						return !!this.relayOnline;
+					}
+				} : undefined,
 				scanImages(this.app, file, content)
 			).openAndWait();
 		} catch (error) {
