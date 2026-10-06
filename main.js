@@ -23417,7 +23417,8 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
     for (const [index, heading] of headings.entries()) {
       const label = document.createElement("span");
       label.className = "wechatpb-heading-label";
-      const num = String(index + 1).padStart(2, "0");
+      const own = stripHeadingNumber(heading);
+      const num = String(own != null ? own : index + 1).padStart(2, "0");
       label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
       heading.prepend(label);
     }
@@ -23453,6 +23454,33 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
   }
 };
 MarkedFormatter.markedInstance = null;
+var CN_DIGITS = { \u96F6: 0, "\u3007": 0, \u4E00: 1, \u4E8C: 2, \u4E24: 2, \u4E09: 3, \u56DB: 4, \u4E94: 5, \u516D: 6, \u4E03: 7, \u516B: 8, \u4E5D: 9 };
+function parseCnNumber(s) {
+  if (/^\d+$/.test(s)) return parseInt(s, 10);
+  if (!/^[零〇一二两三四五六七八九十]+$/.test(s)) return null;
+  if (!s.includes("\u5341")) return s.length === 1 ? CN_DIGITS[s] : null;
+  const [a, b] = s.split("\u5341");
+  const tens = a === "" ? 1 : CN_DIGITS[a];
+  const ones = b === "" ? 0 : CN_DIGITS[b];
+  if (tens === void 0 || ones === void 0 || s.split("\u5341").length > 2) return null;
+  return tens * 10 + ones;
+}
+var HEADING_NUM_RE = /^\s*(?:第\s*([零〇一二两三四五六七八九十\d]+)\s*[章节部分篇步讲课回]+[、.．:：\s]*|[（(]\s*([零〇一二两三四五六七八九十\d]+)\s*[)）]\s*|([零〇一二两三四五六七八九十]+)\s*[、.．:：]\s*|(\d{1,2})\s*[、.．:：)）](?!\d)\s*|(0\d)\s+)/;
+function stripHeadingNumber(heading) {
+  var _a2, _b, _c, _d;
+  const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node && !node.data.trim()) node = walker.nextNode();
+  if (!node) return null;
+  const m = node.data.match(HEADING_NUM_RE);
+  if (!m) return null;
+  const n = parseCnNumber((_d = (_c = (_b = (_a2 = m[1]) != null ? _a2 : m[2]) != null ? _b : m[3]) != null ? _c : m[4]) != null ? _d : m[5]);
+  if (n === null || n <= 0) return null;
+  const rest = node.data.slice(m[0].length);
+  if (!rest.trim() && node === heading.lastChild) return null;
+  node.data = rest;
+  return n;
+}
 
 // src/utils/theme-manager.ts
 var import_obsidian7 = require("obsidian");

@@ -397,7 +397,9 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 		for (const [index, heading] of headings.entries()) {
 			const label = document.createElement('span');
 			label.className = 'wechatpb-heading-label';
-			const num = String(index + 1).padStart(2, '0');
+			// 标题自己带了「一、」「1.」「第一章」之类的序号：去掉它，并沿用它的数字，避免出现「01 一、」
+			const own = stripHeadingNumber(heading);
+			const num = String(own ?? index + 1).padStart(2, '0');
 			label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
 			heading.prepend(label);
 		}
@@ -432,4 +434,37 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 		container.append(sanitizeHTMLToDom(html));
 		return container.innerHTML;
 	}
+}
+
+const CN_DIGITS: Record<string, number> = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+
+/** 中文数字（一 ~ 九十九）转数字 */
+export function parseCnNumber(s: string): number | null {
+	if (/^\d+$/.test(s)) return parseInt(s, 10);
+	if (!/^[零〇一二两三四五六七八九十]+$/.test(s)) return null;
+	if (!s.includes('十')) return s.length === 1 ? CN_DIGITS[s] : null;
+	const [a, b] = s.split('十');
+	const tens = a === '' ? 1 : CN_DIGITS[a];
+	const ones = b === '' ? 0 : CN_DIGITS[b];
+	if (tens === undefined || ones === undefined || s.split('十').length > 2) return null;
+	return tens * 10 + ones;
+}
+
+// 「一、」「一.」「(一)」「第一章 / 第1部分」「1.」「1、」「1）」「01 」（「5 个技巧」这种不算序号）
+const HEADING_NUM_RE = /^\s*(?:第\s*([零〇一二两三四五六七八九十\d]+)\s*[章节部分篇步讲课回]+[、.．:：\s]*|[（(]\s*([零〇一二两三四五六七八九十\d]+)\s*[)）]\s*|([零〇一二两三四五六七八九十]+)\s*[、.．:：]\s*|(\d{1,2})\s*[、.．:：)）](?!\d)\s*|(0\d)\s+)/;
+
+/** 去掉标题开头自带的序号，返回该序号；没有则返回 null（不改动标题） */
+export function stripHeadingNumber(heading: Element): number | null {
+	const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+	let node = walker.nextNode() as Text | null;
+	while (node && !node.data.trim()) node = walker.nextNode() as Text | null;
+	if (!node) return null;
+	const m = node.data.match(HEADING_NUM_RE);
+	if (!m) return null;
+	const n = parseCnNumber(m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5]);
+	if (n === null || n <= 0) return null;
+	const rest = node.data.slice(m[0].length);
+	if (!rest.trim() && node === heading.lastChild) return null; // 标题只有序号本身就不动
+	node.data = rest;
+	return n;
 }
