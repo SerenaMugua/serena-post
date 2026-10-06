@@ -95,7 +95,9 @@ export class ThemeEditorModal extends Modal {
 		const md = this.opts.previewMarkdown.trim() ? this.opts.previewMarkdown : SAMPLE_MD;
 		try {
 			const html = MarkedFormatter.markdownToHtmlSync(md, css, {
-				headingLabel: this.d.h2Style === 'theme' ? base.headingLabel : undefined
+				headingLabel: this.d.h2Style === 'theme' ? base.headingLabel : undefined,
+				headingNumbers: this.d.h2Style === 'theme' ? base.headingNumbers : undefined,
+				codeWindow: base.codeWindow
 			});
 			this.previewEl.replaceChildren(sanitizeHTMLToDom(html));
 		} catch (e) {

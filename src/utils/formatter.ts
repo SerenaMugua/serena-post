@@ -172,6 +172,10 @@ ${html}
  */
 export interface FormatterOptions {
 	headingLabel?: string;
+	/** 二级标题只加「01」序号（不带文字前缀） */
+	headingNumbers?: boolean;
+	/** 代码块加 Mac 窗口标题栏（三个圆点 + 语言） */
+	codeWindow?: boolean;
 }
 
 export class MarkedFormatter {
@@ -302,6 +306,7 @@ export class MarkedFormatter {
 ${html}
 </section>`.trim();
 		html = this.decorateHeadings(html, options);
+		if (options.codeWindow) html = this.decorateCodeWindows(html);
 
 		// Apply custom CSS as inline styles if provided
 		if (customCSS) {
@@ -331,6 +336,7 @@ ${html}
 ${html}
 </section>`.trim();
 		html = this.decorateHeadings(html, options);
+		if (options.codeWindow) html = this.decorateCodeWindows(html);
 
 		// Apply custom CSS as inline styles if provided
 		if (customCSS) {
@@ -383,7 +389,7 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 
 	private static decorateHeadings(html: string, options: FormatterOptions): string {
 		const headingLabel = options.headingLabel?.trim();
-		if (!headingLabel) return html;
+		if (!headingLabel && !options.headingNumbers) return html;
 
 		const container = document.createElement('div');
 		container.append(sanitizeHTMLToDom(html));
@@ -391,8 +397,32 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 		for (const [index, heading] of headings.entries()) {
 			const label = document.createElement('span');
 			label.className = 'wechatpb-heading-label';
-			label.textContent = `${headingLabel} ${String(index + 1).padStart(2, '0')}`;
+			const num = String(index + 1).padStart(2, '0');
+			label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
 			heading.prepend(label);
+		}
+		return container.innerHTML;
+	}
+
+	/** 给每个代码块加 Mac 窗口标题栏 */
+	private static decorateCodeWindows(html: string): string {
+		const container = document.createElement('div');
+		container.append(sanitizeHTMLToDom(html));
+		for (const section of Array.from(container.querySelectorAll('section.code-section'))) {
+			const lang = Array.from(section.classList).find(c => c.startsWith('language-'))?.slice(9) ?? '';
+			const bar = document.createElement('section');
+			bar.className = 'code-window-bar';
+			for (let i = 1; i <= 3; i++) {
+				const dot = document.createElement('span');
+				dot.className = `code-window-dot code-window-dot-${i}`;
+				dot.textContent = '●';
+				bar.append(dot);
+			}
+			const label = document.createElement('span');
+			label.className = 'code-window-label';
+			label.textContent = (lang || 'code').toUpperCase();
+			bar.append(label);
+			section.prepend(bar);
 		}
 		return container.innerHTML;
 	}

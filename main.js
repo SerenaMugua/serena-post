@@ -23341,6 +23341,7 @@ var MarkedFormatter = class {
 ${html}
 </section>`.trim();
     html = this.decorateHeadings(html, options2);
+    if (options2.codeWindow) html = this.decorateCodeWindows(html);
     if (customCSS) {
       try {
         html = applyInlineCSS(html, customCSS);
@@ -23361,6 +23362,7 @@ ${html}
 ${html}
 </section>`.trim();
     html = this.decorateHeadings(html, options2);
+    if (options2.codeWindow) html = this.decorateCodeWindows(html);
     if (customCSS) {
       try {
         html = applyInlineCSS(html, customCSS);
@@ -23408,15 +23410,39 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
   static decorateHeadings(html, options2) {
     var _a2;
     const headingLabel = (_a2 = options2.headingLabel) == null ? void 0 : _a2.trim();
-    if (!headingLabel) return html;
+    if (!headingLabel && !options2.headingNumbers) return html;
     const container = document.createElement("div");
     container.append((0, import_obsidian6.sanitizeHTMLToDom)(html));
     const headings = Array.from(container.querySelectorAll("h2"));
     for (const [index, heading] of headings.entries()) {
       const label = document.createElement("span");
       label.className = "wechatpb-heading-label";
-      label.textContent = `${headingLabel} ${String(index + 1).padStart(2, "0")}`;
+      const num = String(index + 1).padStart(2, "0");
+      label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
       heading.prepend(label);
+    }
+    return container.innerHTML;
+  }
+  /** 给每个代码块加 Mac 窗口标题栏 */
+  static decorateCodeWindows(html) {
+    var _a2, _b;
+    const container = document.createElement("div");
+    container.append((0, import_obsidian6.sanitizeHTMLToDom)(html));
+    for (const section of Array.from(container.querySelectorAll("section.code-section"))) {
+      const lang = (_b = (_a2 = Array.from(section.classList).find((c) => c.startsWith("language-"))) == null ? void 0 : _a2.slice(9)) != null ? _b : "";
+      const bar = document.createElement("section");
+      bar.className = "code-window-bar";
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.createElement("span");
+        dot.className = `code-window-dot code-window-dot-${i}`;
+        dot.textContent = "\u25CF";
+        bar.append(dot);
+      }
+      const label = document.createElement("span");
+      label.className = "code-window-label";
+      label.textContent = (lang || "code").toUpperCase();
+      bar.append(label);
+      section.prepend(bar);
     }
     return container.innerHTML;
   }
@@ -23472,6 +23498,9 @@ var __default11 = '```css\n.note-to-mp {\n  max-width: 677px;\n  margin: 0 auto;
 
 // themes/绿白清简.md
 var __default12 = '```css\n.note-to-mp {\n  max-width: 677px;\n  margin: 0 auto;\n  padding: 0 20px 32px;\n  background: #ffffff !important;\n  color: #334155 !important;\n  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;\n  font-size: 16px;\n  line-height: 1.88 !important;\n  letter-spacing: 0.03em;\n  overflow-x: hidden;\n  word-break: break-word;\n}\n\n.note-to-mp p {\n  margin: 0 0 21px !important;\n  color: #334155 !important;\n  font-size: 16px;\n  line-height: 1.88 !important;\n  text-align: justify !important;\n}\n\n.note-to-mp h1 {\n  margin: 0 0 34px;\n  padding: 28px 24px 30px;\n  border: 1px solid #c8f0d2;\n  border-radius: 18px;\n  background: linear-gradient(135deg, #e9faee 0%, #ffffff 72%) !important;\n  color: #015f25 !important;\n  font-size: 26px;\n  font-weight: 650;\n  line-height: 1.4 !important;\n  letter-spacing: 0;\n}\n\n.note-to-mp h2 {\n  margin: 48px 0 24px !important;\n  padding: 0 0 0 12px;\n  border-left: 4px solid #01a539;\n  color: #015f25 !important;\n  font-size: 20px;\n  font-weight: 650;\n  line-height: 1.4 !important;\n}\n\n.note-to-mp .wechatpb-heading-label {\n  display: block;\n  margin: 0 0 6px;\n  color: #01a539 !important;\n  font-size: 10px;\n  font-weight: 650;\n  line-height: 1.2 !important;\n  letter-spacing: 3px;\n}\n\n.note-to-mp h3 {\n  margin: 32px 0 18px !important;\n  color: #015f25 !important;\n  font-size: 17px;\n  font-weight: 650;\n  line-height: 1.5 !important;\n}\n\n.note-to-mp h4,\n.note-to-mp h5,\n.note-to-mp h6 {\n  margin: 28px 0 14px !important;\n  color: #015f25 !important;\n  font-size: 16px;\n  font-weight: 620;\n  line-height: 1.55 !important;\n}\n\n.note-to-mp strong {\n  padding: 0 2px;\n  background: linear-gradient(transparent 64%, rgba(1, 165, 57, 0.22) 64%);\n  color: #111827 !important;\n  font-weight: 650;\n}\n\n.note-to-mp em,\n.note-to-mp a {\n  color: #018a31 !important;\n}\n\n.note-to-mp em {\n  font-style: normal;\n  font-weight: 620;\n}\n\n.note-to-mp a {\n  border-bottom: 1px solid #84d99d;\n  text-decoration: none;\n}\n\n.note-to-mp blockquote {\n  margin: 0 0 24px !important;\n  padding: 17px 18px;\n  border: none;\n  border-left: 4px solid #01a539;\n  border-radius: 0 10px 10px 0;\n  background: #f2fff5 !important;\n  color: #475569 !important;\n}\n\n.note-to-mp blockquote p {\n  margin: 0 !important;\n  color: #475569 !important;\n  font-size: 15px;\n  line-height: 1.75 !important;\n}\n\n.note-to-mp ul,\n.note-to-mp ol {\n  margin: 0 0 24px;\n  padding-left: 24px;\n  color: #475569 !important;\n  line-height: 1.85 !important;\n}\n\n.note-to-mp li {\n  margin: 7px 0;\n}\n\n.note-to-mp li::marker {\n  color: #01a539;\n  font-weight: 700;\n}\n\n.note-to-mp code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: #e9faee !important;\n  color: #015f25 !important;\n  font-family: Menlo, Monaco, Consolas, monospace;\n  font-size: 14px;\n}\n\n.note-to-mp .code-section {\n  margin: 0 0 24px;\n  padding: 18px;\n  border: 1px solid #0b6b2d;\n  border-radius: 10px;\n  background: #052614 !important;\n  overflow-x: auto;\n}\n\n.note-to-mp .code-section pre {\n  margin: 0;\n  padding: 0;\n  background: transparent !important;\n  white-space: pre-wrap !important;\n  word-break: break-all !important;\n}\n\n.note-to-mp .code-section code {\n  display: block;\n  padding: 0;\n  background: transparent !important;\n  color: #d9ffd7 !important;\n}\n\n.note-to-mp img {\n  width: 100%;\n  max-width: 100%;\n  height: auto;\n  display: block;\n  margin: 28px auto;\n  border: 1px solid #d8f4df;\n  border-radius: 12px;\n}\n\n.note-to-mp hr {\n  height: 1px;\n  margin: 44px 0 30px;\n  border: none;\n  background: #d8f4df;\n}\n```\n';
+
+// themes/Serena蓝白.md
+var Serena_default = '# Serena \u84DD\u767D\n\nSerena \u6728\u74DC IP \u914D\u8272\uFF1A\u6DF1\u84DD #0058a3 + \u4EAE\u84DD #53a4ea + \u4E24\u4E2A\u8FD1\u767D\u3002\n\u7AE0\u8282\u6807\u9898\u5E26\u300C01\u300D\u5E8F\u53F7\u4E0E\u7C97\u4E0B\u5212\u7EBF\uFF1B\u4EE3\u7801\u5757\u4E3A Mac \u7A97\u53E3 + \u4E3B\u9898\u8272\u5E95\uFF1B\u8868\u683C\u5DE6\u5BF9\u9F50\uFF0C\u4FBF\u4E8E\u9605\u8BFB\u3002\n\n```css\n.note-to-mp {\n  max-width: 677px;\n  margin: 0 auto;\n  padding: 0 20px 32px;\n  background: #ffffff !important;\n  color: #1b252d !important;\n  font-family: "Source Han Sans SC", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;\n  font-size: 16px;\n  line-height: 1.9 !important;\n  letter-spacing: 1px;\n  word-break: break-word;\n}\n\n.note-to-mp p {\n  margin: 10px 0 15px !important;\n  color: #1b252d !important;\n  font-size: 16px;\n  line-height: 1.9 !important;\n  letter-spacing: 1px;\n  text-align: left !important;\n}\n\n.note-to-mp h1 {\n  margin: 8px 0 30px;\n  padding: 0 0 14px;\n  border-bottom: 3px solid #0058a3;\n  color: #0058a3 !important;\n  font-size: 24px;\n  font-weight: 900;\n  line-height: 1.45 !important;\n  text-align: left;\n}\n\n.note-to-mp h2 {\n  display: table;\n  margin: 44px auto 24px !important;\n  padding: 0 4px 6px;\n  border-bottom: 4px solid #53a4ea;\n  color: #0058a3 !important;\n  font-size: 19px;\n  font-weight: 900;\n  line-height: 1.45 !important;\n  letter-spacing: 0.5px;\n  text-align: center;\n}\n\n.note-to-mp .wechatpb-heading-label {\n  display: inline-block;\n  margin: 0 10px 0 0;\n  color: #0058a3 !important;\n  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;\n  font-size: 19px;\n  font-weight: 900;\n}\n\n.note-to-mp h3 {\n  margin: 32px 0 13px;\n  padding: 0 0 0 12px;\n  border-left: 5px solid #53a4ea;\n  color: #0058a3 !important;\n  font-size: 17px;\n  font-weight: 800;\n  line-height: 1.5 !important;\n}\n\n.note-to-mp h4 {\n  margin: 26px 0 10px;\n  color: #0058a3 !important;\n  font-size: 16px;\n  font-weight: 800;\n}\n\n.note-to-mp strong {\n  color: #53a4ea !important;\n  font-weight: 800;\n}\n\n.note-to-mp em {\n  color: #0058a3 !important;\n}\n\n.note-to-mp a {\n  color: #0058a3 !important;\n  text-decoration: none;\n  border-bottom: 2px solid #53a4ea;\n}\n\n.note-to-mp blockquote {\n  margin: 27px 0;\n  padding: 17px 18px 17px 20px;\n  border-left: 3px solid #0058a3;\n  background: #edf3f9 !important;\n  box-shadow: 0 5px 14px #d1e1ee;\n  color: #1b252d !important;\n}\n\n.note-to-mp blockquote p {\n  margin: 0 !important;\n  color: #1b252d !important;\n}\n\n.note-to-mp ul,\n.note-to-mp ol {\n  margin: 18px 0 24px;\n  padding-left: 22px;\n  color: #1b252d !important;\n}\n\n.note-to-mp li {\n  margin: 12px 0;\n  line-height: 1.9 !important;\n}\n\n.note-to-mp li::marker {\n  color: #0058a3;\n  font-weight: 800;\n}\n\n.note-to-mp code {\n  padding: 2px 5px;\n  border-radius: 3px;\n  background: #eff3f6 !important;\n  color: #0058a3 !important;\n  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;\n  font-size: 14px;\n}\n\n.note-to-mp .code-section {\n  margin: 25px 0;\n  padding: 0;\n  border: 1px solid #0058a3;\n  border-radius: 8px;\n  background: #0058a3 !important;\n  box-shadow: 0 8px 20px rgba(0, 88, 163, 0.15);\n  overflow-x: hidden;\n}\n\n.note-to-mp .code-window-bar {\n  display: block;\n  padding: 6px 11px;\n  border-bottom: 1px solid rgba(255, 255, 255, 0.21);\n  background: #0058a3 !important;\n  line-height: 1.2 !important;\n}\n\n.note-to-mp .code-window-dot {\n  display: inline-block;\n  margin-right: 5px;\n  font-size: 10px;\n  line-height: 1 !important;\n}\n\n.note-to-mp .code-window-dot-1 { color: #53a4ea !important; }\n.note-to-mp .code-window-dot-2 { color: #fffdf6 !important; }\n.note-to-mp .code-window-dot-3 { color: #83b4d7 !important; }\n\n.note-to-mp .code-window-label {\n  margin-left: 8px;\n  color: rgba(255, 255, 255, 0.72) !important;\n  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;\n  font-size: 9px;\n  font-weight: 700;\n  letter-spacing: 1px;\n  line-height: 1.6 !important;\n}\n\n.note-to-mp .code-section pre {\n  margin: 0;\n  padding: 16px 18px 18px;\n  border-radius: 0 0 7px 7px;\n  background: #0058a3 !important;\n  white-space: pre-wrap !important;\n  word-break: break-all !important;\n}\n\n.note-to-mp .code-section code {\n  display: block;\n  padding: 0;\n  border-radius: 0;\n  background: transparent !important;\n  box-shadow: none;\n  color: #ffffff !important;\n  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;\n  font-size: 12px;\n  line-height: 1.6 !important;\n  letter-spacing: 0;\n}\n\n.note-to-mp table {\n  width: 100%;\n  margin: 28px 0;\n  border-collapse: collapse;\n  border-top: 2px solid #0058a3;\n  border-bottom: 2px solid #0058a3;\n  font-size: 14.5px;\n  line-height: 1.65 !important;\n}\n\n.note-to-mp th {\n  padding: 10px 8px;\n  border-bottom: 1px solid #0058a3;\n  color: #0058a3 !important;\n  font-weight: 800;\n  text-align: left !important;\n}\n\n.note-to-mp td {\n  padding: 10px 8px;\n  border-bottom: 1px solid #e3ebf2;\n  color: #1b252d !important;\n  text-align: left !important;\n  vertical-align: top;\n}\n\n.note-to-mp img {\n  width: 100%;\n  max-width: 100%;\n  height: auto;\n  display: block;\n  margin: 28px auto 10px;\n  border-radius: 3px;\n}\n\n.note-to-mp hr {\n  height: 2px;\n  margin: 36px 0;\n  border: none;\n  background: linear-gradient(90deg, rgba(83, 164, 234, 0), #53a4ea, rgba(83, 164, 234, 0));\n}\n```\n';
 
 // src/builtin-themes.ts
 var DEFAULT_BUILTIN_THEME = "\u7EFF\u767D\u6E05\u7B80";
@@ -23548,6 +23577,14 @@ var BUILTIN_THEME_REFINEMENT = `
 }
 `.trim();
 var BUILTIN_THEME_DOCUMENTS = [
+  {
+    name: "Serena \u84DD\u767D",
+    content: Serena_default,
+    description: "Serena \u6728\u74DC IP \u914D\u8272\uFF1A\u6DF1\u84DD + \u4EAE\u84DD\uFF0C\u7AE0\u8282\u5E8F\u53F7\u6807\u9898\uFF0CMac \u7A97\u53E3\u4EE3\u7801\u5757\uFF0C\u8868\u683C\u5DE6\u5BF9\u9F50",
+    accent: "#0058a3",
+    headingNumbers: true,
+    codeWindow: true
+  },
   {
     name: "\u7EFF\u767D\u6E05\u7B80",
     content: __default12,
@@ -23867,6 +23904,8 @@ var ThemeManager = class {
       description: `\u57FA\u4E8E\u300C${base.name}\u300D\u7684\u81EA\u5B9A\u4E49\u6392\u7248`,
       accent: def.accent || base.accent,
       headingLabel: def.h2Style === "theme" ? base.headingLabel : void 0,
+      headingNumbers: def.h2Style === "theme" ? base.headingNumbers : void 0,
+      codeWindow: base.codeWindow,
       customDef: def
     };
   }
@@ -23874,7 +23913,7 @@ var ThemeManager = class {
    * 加载所有CSS主题
    */
   async loadThemes() {
-    this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel }) => ({
+    this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
       name,
       filename: name,
       css: `${this.extractCss(content)}
@@ -23885,7 +23924,9 @@ ${BUILTIN_THEME_REFINEMENT}`,
       description,
       accent,
       aliases: legacyNames,
-      headingLabel
+      headingLabel,
+      headingNumbers,
+      codeWindow
     })).filter((theme) => theme.css.length > 0);
     for (const def of this.customDefs) {
       try {
@@ -23983,6 +24024,9 @@ ${BUILTIN_THEME_REFINEMENT}`,
     return (_a2 = this.getTheme(DEFAULT_BUILTIN_THEME)) != null ? _a2 : this.themes[0];
   }
 };
+function formatterOptionsFor(theme) {
+  return { headingLabel: theme.headingLabel, headingNumbers: theme.headingNumbers, codeWindow: theme.codeWindow };
+}
 
 // src/services/weixin-api.ts
 var import_obsidian8 = require("obsidian");
@@ -24284,7 +24328,9 @@ var ThemeEditorModal = class extends import_obsidian9.Modal {
     const md = this.opts.previewMarkdown.trim() ? this.opts.previewMarkdown : SAMPLE_MD;
     try {
       const html = MarkedFormatter.markdownToHtmlSync(md, css, {
-        headingLabel: this.d.h2Style === "theme" ? base.headingLabel : void 0
+        headingLabel: this.d.h2Style === "theme" ? base.headingLabel : void 0,
+        headingNumbers: this.d.h2Style === "theme" ? base.headingNumbers : void 0,
+        codeWindow: base.codeWindow
       });
       this.previewEl.replaceChildren((0, import_obsidian9.sanitizeHTMLToDom)(html));
     } catch (e) {
@@ -25005,7 +25051,7 @@ var PublisherView = class extends import_obsidian10.ItemView {
     content = await this.processImageLinks(content, activeView);
     const theme = (_a2 = this.themeManager.getTheme(this.selectedTheme)) != null ? _a2 : this.themeManager.getDefaultTheme();
     const customCSS = theme.css;
-    const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
+    const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
     const title = ((_b = activeView.file) == null ? void 0 : _b.basename) || "\u65E0\u6807\u9898";
     const exportDir = ((_d = (_c = activeView.file) == null ? void 0 : _c.parent) == null ? void 0 : _d.path) || "";
     const previewModal = new PreviewModal(this.app, html, title, exportDir);
@@ -25029,7 +25075,7 @@ var PublisherView = class extends import_obsidian10.ItemView {
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
     content = await this.processImageLinks(content, activeView);
     const theme = (_c = this.themeManager.getTheme(this.selectedTheme)) != null ? _c : this.themeManager.getDefaultTheme();
-    const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, { headingLabel: theme.headingLabel });
+    const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, formatterOptionsFor(theme));
     const modal = new PreviewModal(
       this.app,
       html,
@@ -25225,7 +25271,7 @@ var PublisherView = class extends import_obsidian10.ItemView {
     const xPromise = xPrepared ? this.publishToX(file, xPrepared, draft) : Promise.resolve(null);
     const theme = (_d = this.themeManager.getTheme(this.selectedTheme)) != null ? _d : this.themeManager.getDefaultTheme();
     const customCSS = theme.css;
-    const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
+    const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
     const accountIds = Array.from(this.selectedAccountIds);
     const maxConcurrent = this.plugin.settings.maxConcurrent;
     let successCount = 0;

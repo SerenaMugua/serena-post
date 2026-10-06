@@ -12,7 +12,7 @@ import { XPreviewModal } from '../x/x-preview-modal';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
 import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
 import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
-import { CUSTOM_THEME_PREFIX } from '../utils/theme-manager';
+import { CUSTOM_THEME_PREFIX, formatterOptionsFor } from '../utils/theme-manager';
 
 /** 发布进度里 X 渠道使用的伪账号 id */
 const X_TARGET_ID = '__x_article__';
@@ -696,7 +696,7 @@ export class PublisherView extends ItemView {
 		const customCSS = theme.css;
 
 		// Convert markdown to WeChat HTML with custom CSS
-		const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
+		const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
 
 		// Show preview modal
 		const title = activeView.file?.basename || '无标题';
@@ -722,7 +722,7 @@ export class PublisherView extends ItemView {
 		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
 		content = await this.processImageLinks(content, activeView);
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, { headingLabel: theme.headingLabel });
+		const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, formatterOptionsFor(theme));
 		const modal = new PreviewModal(
 			this.app,
 			html,
@@ -972,7 +972,7 @@ export class PublisherView extends ItemView {
 		const customCSS = theme.css;
 
 		// Convert markdown to WeChat HTML with custom CSS
-		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
+		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
 
 		// Publish with concurrency control
 		const accountIds = Array.from(this.selectedAccountIds);

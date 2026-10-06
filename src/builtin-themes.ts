@@ -12,6 +12,7 @@ import markerBlue from '../themes/荧光马克-蓝.md';
 import neonDark from '../themes/霓虹暗底-青紫.md';
 import blueWhiteCase from '../themes/蓝白案例.md';
 import greenWhiteClean from '../themes/绿白清简.md';
+import serenaBlue from '../themes/Serena蓝白.md';
 
 export const DEFAULT_BUILTIN_THEME = '绿白清简';
 
@@ -22,6 +23,8 @@ export interface BuiltinThemeDocument {
 	accent: string;
 	legacyNames?: string[];
 	headingLabel?: string;
+	headingNumbers?: boolean;
+	codeWindow?: boolean;
 }
 
 /**
@@ -103,6 +106,14 @@ export const BUILTIN_THEME_REFINEMENT = `
 `.trim();
 
 export const BUILTIN_THEME_DOCUMENTS: ReadonlyArray<BuiltinThemeDocument> = [
+	{
+		name: 'Serena 蓝白',
+		content: serenaBlue,
+		description: 'Serena 木瓜 IP 配色：深蓝 + 亮蓝，章节序号标题，Mac 窗口代码块，表格左对齐',
+		accent: '#0058a3',
+		headingNumbers: true,
+		codeWindow: true
+	},
 	{
 		name: '绿白清简',
 		content: greenWhiteClean,

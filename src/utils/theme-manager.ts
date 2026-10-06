@@ -12,6 +12,8 @@ export interface Theme {
 	accent?: string;
 	aliases?: string[];
 	headingLabel?: string;
+	headingNumbers?: boolean;
+	codeWindow?: boolean;
 	/** SerenaPost 可视化编辑器做的排版 */
 	customDef?: CustomThemeDef;
 }
@@ -62,6 +64,8 @@ export class ThemeManager {
 			description: `基于「${base.name}」的自定义排版`,
 			accent: def.accent || base.accent,
 			headingLabel: def.h2Style === 'theme' ? base.headingLabel : undefined,
+			headingNumbers: def.h2Style === 'theme' ? base.headingNumbers : undefined,
+			codeWindow: base.codeWindow,
 			customDef: def
 		};
 	}
@@ -70,7 +74,7 @@ export class ThemeManager {
 	 * 加载所有CSS主题
 	 */
 	async loadThemes(): Promise<Theme[]> {
-		this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel }) => ({
+		this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
 			name,
 			filename: name,
 			css: `${this.extractCss(content)}\n\n${BUILTIN_THEME_REFINEMENT}`,
@@ -79,7 +83,9 @@ export class ThemeManager {
 			description,
 			accent,
 			aliases: legacyNames,
-			headingLabel
+			headingLabel,
+			headingNumbers,
+			codeWindow
 		})).filter(theme => theme.css.length > 0);
 
 		for (const def of this.customDefs) {
@@ -195,4 +201,9 @@ export class ThemeManager {
 	getDefaultTheme(): Theme {
 		return this.getTheme(DEFAULT_BUILTIN_THEME) ?? this.themes[0];
 	}
+}
+
+/** 主题 → 渲染选项（标题序号、代码窗口） */
+export function formatterOptionsFor(theme: Theme) {
+	return { headingLabel: theme.headingLabel, headingNumbers: theme.headingNumbers, codeWindow: theme.codeWindow };
 }
