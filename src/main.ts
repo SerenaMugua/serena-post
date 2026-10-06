@@ -7,6 +7,7 @@ import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
 import { LivePreviewView, VIEW_TYPE_LIVE_PREVIEW, type PreviewMode } from './views/live-preview-view';
 import { QUICK_FORMATS } from './utils/quick-format';
 import { AccountModal } from './modals/account-modal';
+import { OnboardingModal } from './modals/onboarding-modal';
 import { getAccessToken } from './services/weixin-api';
 import { DEFAULT_BUILTIN_THEME } from './builtin-themes';
 import { CUSTOM_THEME_AI_GUIDE } from './custom-theme-guide';
@@ -286,6 +287,16 @@ export default class WeChatPublisherPlugin extends Plugin {
 		if (leaf) {
 				await workspace.revealLeaf(leaf);
 		}
+
+	}
+
+	openOnboarding() {
+		new OnboardingModal(this.app, this).open();
+	}
+
+	/** 引导里改了账号 / 头像后刷新侧栏 */
+	refreshPublisherSidebar() {
+		this.getPublisherView()?.render();
 	}
 
 	getPublisherView(): PublisherView | null {

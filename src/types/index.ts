@@ -69,6 +69,8 @@ export interface PluginSettings {
 	brandAvatar: string;          // 自定义 IP 头像（data URL），空 = 内置 Serena 头像
 	endMark: boolean;             // 文末 END 标记
 	endMarkText: string;
+	onboardingDone: boolean;      // 新手引导看过了
+	collapsedCards: string[];     // 侧栏折叠的分组
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -93,7 +95,9 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	headingAvatar: false,
 	brandAvatar: '',
 	endMark: false,
-	endMarkText: 'END'
+	endMarkText: 'END',
+	onboardingDone: false,
+	collapsedCards: []
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */

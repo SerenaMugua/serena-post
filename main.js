@@ -17341,7 +17341,7 @@ __export(main_exports, {
   default: () => WeChatPublisherPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian13 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/brand.ts
 var PLUGIN_NAME = "SerenaPost";
@@ -20758,7 +20758,9 @@ var DEFAULT_SETTINGS = {
   headingAvatar: false,
   brandAvatar: "",
   endMark: false,
-  endMarkText: "END"
+  endMarkText: "END",
+  onboardingDone: false,
+  collapsedCards: []
 };
 
 // src/views/publisher-view.ts
@@ -24446,6 +24448,19 @@ async function testProxy(proxyConfig) {
     };
   }
 }
+async function checkProxyIP(proxyConfig) {
+  var _a2;
+  try {
+    const response = await requestWithProxy("https://api.ipify.org?format=json", {
+      url: "https://api.ipify.org?format=json",
+      method: "GET"
+    }, proxyConfig);
+    const ip = ((_a2 = response.json) == null ? void 0 : _a2.ip) || "unknown";
+    return ip;
+  } catch (error) {
+    return "unknown";
+  }
+}
 
 // src/theme-editor/theme-editor-modal.ts
 var import_obsidian9 = require("obsidian");
@@ -24731,6 +24746,9 @@ var PublisherView = class extends import_obsidian10.ItemView {
     }));
     this.render();
     this.plugin.refreshLivePreview();
+    if (!this.plugin.settings.onboardingDone) {
+      this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.plugin.openOnboarding(), 600));
+    }
     void this.checkRelay();
     for (const ms of [2e3, 5e3]) {
       const t = window.setTimeout(() => void this.checkRelay(), ms);
@@ -24787,26 +24805,68 @@ var PublisherView = class extends import_obsidian10.ItemView {
   render() {
     const container = this.containerEl.children[1];
     container.empty();
+    container.addClass("sp-sidebar");
     const header = container.createDiv({ cls: "publisher-header" });
     const brand = header.createDiv({ cls: "serena-post-brand" });
     brand.createEl("img", { cls: "serena-post-avatar", attr: { src: AVATAR_DATA_URI, alt: "Serena" } });
-    const titles = brand.createDiv();
+    const titles = brand.createDiv({ cls: "sp-brand-titles" });
     titles.createEl("h3", { text: "SerenaPost" });
     titles.createDiv({ cls: "serena-post-tagline", text: "\u4E00\u7A3F\u53CC\u53D1 \xB7 \u516C\u4F17\u53F7 + X" });
-    this.renderAccountSelection(container);
-    this.renderCoverUpload(container);
-    this.renderThemeSelection(container);
-    this.renderActionButtons(container);
+    const guide = brand.createEl("button", { cls: "sp-guide-btn", text: "\u65B0\u624B\u5F15\u5BFC" });
+    guide.onclick = () => this.plugin.openOnboarding();
+    const body = container.createDiv({ cls: "sp-cards" });
+    this.card(body, "target", "\u53D1\u5230\u54EA", this.targetSummary(), (el) => this.renderAccountSelection(el));
+    this.card(body, "look", "\u957F\u4EC0\u4E48\u6837", this.lookSummary(), (el) => this.renderThemeSelection(el));
+    this.card(body, "cover", "\u5C01\u9762", this.coverSummary(), (el) => this.renderCoverUpload(el));
+    const footer = container.createDiv({ cls: "sp-footer" });
     if (this.isPublishing || this.publishSummary) {
-      this.renderPublishProgress(container);
+      this.renderPublishProgress(footer);
     }
+    this.renderActionButtons(footer);
+  }
+  /** 可折叠的分组卡片，折叠时标题右边显示当前选择 */
+  card(parent, id, title, summary, fill) {
+    const collapsed = this.plugin.settings.collapsedCards.includes(id);
+    const card = parent.createDiv({ cls: `sp-card${collapsed ? " is-collapsed" : ""}` });
+    const head = card.createDiv({ cls: "sp-card-head" });
+    const chev = head.createSpan({ cls: "sp-card-chev" });
+    (0, import_obsidian10.setIcon)(chev, "chevron-down");
+    head.createSpan({ cls: "sp-card-title", text: title });
+    head.createSpan({ cls: "sp-card-summary", text: summary });
+    head.onclick = async () => {
+      const list2 = this.plugin.settings.collapsedCards;
+      this.plugin.settings.collapsedCards = collapsed ? list2.filter((c) => c !== id) : [...list2, id];
+      await this.plugin.saveSettings();
+      this.render();
+    };
+    if (!collapsed) fill(card.createDiv({ cls: "sp-card-body" }));
+  }
+  targetSummary() {
+    const parts = [];
+    if (this.selectedAccountIds.size) parts.push(`\u516C\u4F17\u53F7 ${this.selectedAccountIds.size} \u4E2A`);
+    if (this.xSelected) parts.push("X");
+    return parts.length ? parts.join(" + ") : "\u672A\u9009\u62E9";
+  }
+  lookSummary() {
+    const style = HEADING_STYLES.find((h2) => h2.id === this.plugin.settings.headingStyle);
+    const styleText = style && style.id !== "theme" ? ` \xB7 ${style.label.split(/\s|　/)[0]}` : "";
+    return `${this.selectedTheme}${styleText}`;
+  }
+  coverSummary() {
+    const file = this.currentFile;
+    if (this.coverImage) return "\u5DF2\u624B\u52A8\u8BBE\u7F6E";
+    if (this.autoCover && file && this.autoCover.filePath === file.path && !this.autoCoverDismissed.has(file.path)) return "\u81EA\u52A8\uFF1A\u6B63\u6587\u7B2C\u4E00\u5F20\u56FE";
+    return "\u672A\u8BBE\u7F6E";
   }
   renderAccountSelection(container) {
     const section = container.createDiv({ cls: "account-selection-section" });
     section.createEl("h4", { text: "\u9009\u62E9\u8D26\u53F7" });
     if (this.plugin.settings.accounts.length === 0) {
       this.selectedAccountIds.clear();
-      section.createDiv({ cls: "account-remark", text: "\u8FD8\u6CA1\u6709\u516C\u4F17\u53F7\u8D26\u53F7\uFF0C\u53EF\u5728\u63D2\u4EF6\u8BBE\u7F6E\u91CC\u6DFB\u52A0" });
+      const empty = section.createDiv({ cls: "account-remark sp-empty-cta" });
+      empty.createSpan({ text: "\u8FD8\u6CA1\u6709\u516C\u4F17\u53F7\u8D26\u53F7\u3002" });
+      const start = empty.createEl("button", { text: "\u8DDF\u7740\u5F15\u5BFC\u8BBE\u7F6E", cls: "mod-cta" });
+      start.onclick = () => this.plugin.openOnboarding();
       this.renderXItem(section);
       this.renderSelectedCount(section);
       return;
@@ -25244,16 +25304,19 @@ var PublisherView = class extends import_obsidian10.ItemView {
     reader.readAsDataURL(file);
   }
   renderActionButtons(container) {
-    const section = container.createDiv({ cls: "action-buttons" });
-    const previewBtn = section.createEl("button", { text: "\u9884\u89C8", cls: "preview-btn" });
+    const section = container.createDiv({ cls: "action-buttons sp-actions" });
+    const row = section.createDiv({ cls: "sp-actions-row" });
+    const previewBtn = row.createEl("button", { text: "\u9884\u89C8", cls: "preview-btn" });
     previewBtn.onclick = () => this.handlePreview();
-    const xPreviewBtn = section.createEl("button", { text: "X \u9884\u89C8" });
-    xPreviewBtn.onclick = () => this.handleXPreview();
-    const exportBtn = section.createEl("button", { text: "\u5BFC\u51FA\u957F\u56FE" });
+    const exportBtn = row.createEl("button", { text: "\u5BFC\u51FA\u957F\u56FE" });
     exportBtn.onclick = () => this.handleExportLongImage();
-    const publishBtn = section.createEl("button", { text: "\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1", cls: "publish-btn" });
-    publishBtn.disabled = this.selectedAccountIds.size === 0 && !this.xSelected || this.isPublishing;
+    const noTarget = this.selectedAccountIds.size === 0 && !this.xSelected;
+    const publishBtn = section.createEl("button", { text: this.isPublishing ? "\u53D1\u5E03\u4E2D\u2026" : "\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1", cls: "publish-btn mod-cta" });
+    publishBtn.disabled = noTarget || this.isPublishing;
     publishBtn.onclick = () => this.handlePublish();
+    if (noTarget && !this.isPublishing) {
+      section.createDiv({ cls: "sp-actions-hint", text: "\u5148\u5728\u300C\u53D1\u5230\u54EA\u300D\u52FE\u9009\u516C\u4F17\u53F7\u6216 X" });
+    }
   }
   renderPublishProgress(container) {
     const section = container.createDiv({ cls: "publish-progress-section" });
@@ -26455,6 +26518,206 @@ var AccountModal = class extends import_obsidian12.Modal {
   }
 };
 
+// src/modals/onboarding-modal.ts
+var import_obsidian13 = require("obsidian");
+var MP_URL = "https://mp.weixin.qq.com/";
+var KAITOX_URL = "https://github.com/kuangjiajia/kaitox-toolkit";
+var OnboardingModal = class extends import_obsidian13.Modal {
+  constructor(app, plugin2) {
+    super(app);
+    this.plugin = plugin2;
+    this.ip = "";
+    this.accountCheck = null;
+    this.relayOnline = null;
+  }
+  onOpen() {
+    this.modalEl.addClass("sp-onboarding");
+    this.titleEl.setText("\u6B22\u8FCE\u4F7F\u7528 SerenaPost");
+    this.render();
+    void this.probe();
+  }
+  onClose() {
+    this.contentEl.empty();
+    if (!this.plugin.settings.onboardingDone) {
+      this.plugin.settings.onboardingDone = true;
+      void this.plugin.saveSettings();
+    }
+  }
+  /** 后台检测：出口 IP、账号能否连通、X 中转是否在运行 */
+  async probe() {
+    const st2 = this.plugin.settings;
+    const [ip, relay] = await Promise.all([
+      checkProxyIP().catch(() => ""),
+      isRelayUp(st2).catch(() => false)
+    ]);
+    this.ip = ip && ip !== "unknown" ? ip : "";
+    this.relayOnline = relay;
+    if (st2.accounts.length > 0 && !this.accountCheck) await this.testAccount(false);
+    this.render();
+  }
+  async testAccount(rerender = true) {
+    const account = this.plugin.settings.accounts[0];
+    if (!account) return;
+    try {
+      const resolved = this.plugin.resolveAccount(account);
+      if (!resolved.appsecret) throw new Error("\u7F3A\u5C11 AppSecret\uFF0C\u8BF7\u7F16\u8F91\u8D26\u53F7\u91CD\u65B0\u586B\u5199");
+      const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
+      this.plugin.setAccessToken(account, token);
+      account.status = "online";
+      await this.plugin.saveSettings();
+      this.accountCheck = { ok: true, message: `\u300C${account.name}\u300D\u8FDE\u63A5\u6210\u529F\uFF0C\u53EF\u4EE5\u63A8\u9001\u8349\u7A3F\u4E86` };
+    } catch (e) {
+      this.accountCheck = { ok: false, message: e instanceof Error ? e.message : String(e) };
+    }
+    if (rerender) this.render();
+  }
+  render() {
+    const st2 = this.plugin.settings;
+    const el = this.contentEl;
+    el.empty();
+    el.createDiv({
+      cls: "sp-ob-intro",
+      text: "\u8DDF\u7740\u4E0B\u9762\u51E0\u6B65\u8BBE\u7F6E\u4E00\u6B21\uFF0C\u4E4B\u540E\u5199\u5B8C\u7B14\u8BB0\u5C31\u80FD\u4E00\u952E\u63A8\u5230\u516C\u4F17\u53F7\u8349\u7A3F\u7BB1\u548C X \u6587\u7AE0\u8349\u7A3F\u3002\u53EA\u7528\u5176\u4E2D\u4E00\u4E2A\u5E73\u53F0\u4E5F\u53EF\u4EE5\uFF0C\u8DF3\u8FC7\u53E6\u4E00\u4E2A\u5C31\u597D\u3002"
+    });
+    const hasAccount = st2.accounts.length > 0;
+    const s1 = this.step(
+      1,
+      "\u6DFB\u52A0\u516C\u4F17\u53F7",
+      hasAccount ? "done" : "todo",
+      hasAccount ? `\u5DF2\u6DFB\u52A0\uFF1A${st2.accounts.map((a) => a.name).join("\u3001")}` : "\u9700\u8981\u516C\u4F17\u53F7\u7684 AppID \u548C AppSecret\uFF1A\u767B\u5F55\u516C\u4F17\u53F7\u540E\u53F0 \u2192\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406\u300D\u5C31\u80FD\u770B\u5230\u3002AppSecret \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u3002"
+    );
+    const b1 = s1.createDiv({ cls: "sp-ob-actions" });
+    this.button(b1, hasAccount ? "\u518D\u6DFB\u52A0\u4E00\u4E2A" : "\u6DFB\u52A0\u516C\u4F17\u53F7", !hasAccount, () => {
+      new AccountModal(this.app, this.plugin, null, async (account) => {
+        this.plugin.settings.accounts.push(account);
+        await this.plugin.saveSettings();
+        this.plugin.refreshPublisherSidebar();
+        new import_obsidian13.Notice(`\u8D26\u53F7\u300C${account.name}\u300D\u6DFB\u52A0\u6210\u529F`);
+        this.accountCheck = null;
+        await this.testAccount(false);
+        this.render();
+      }).open();
+    });
+    this.button(b1, "\u6253\u5F00\u516C\u4F17\u53F7\u540E\u53F0", false, () => {
+      window.open(MP_URL);
+    });
+    const check = this.accountCheck;
+    const s2state = !hasAccount ? "todo" : (check == null ? void 0 : check.ok) ? "done" : check ? "warn" : "todo";
+    const s2 = this.step(
+      2,
+      "\u628A\u672C\u673A IP \u52A0\u8FDB\u516C\u4F17\u53F7\u767D\u540D\u5355",
+      s2state,
+      "\u5FAE\u4FE1\u53EA\u63A5\u53D7\u767D\u540D\u5355\u91CC\u7684\u7535\u8111\u63A8\u9001\u3002\u5230\u516C\u4F17\u53F7\u540E\u53F0\u300C\u8BBE\u7F6E\u4E0E\u5F00\u53D1 \u2192 \u5F00\u53D1\u63A5\u53E3\u7BA1\u7406 \u2192 IP \u767D\u540D\u5355\u300D\uFF0C\u628A\u4E0B\u9762\u8FD9\u4E2A IP \u52A0\u8FDB\u53BB\uFF0C\u7B49\u51E0\u5206\u949F\u518D\u70B9\u300C\u68C0\u6D4B\u8FDE\u63A5\u300D\u3002"
+    );
+    const ipRow = s2.createDiv({ cls: "sp-ob-ip" });
+    ipRow.createSpan({ text: "\u672C\u673A\u51FA\u53E3 IP\uFF1A" });
+    ipRow.createEl("code", { text: this.ip || "\u68C0\u6D4B\u4E2D\u2026" });
+    const b2 = s2.createDiv({ cls: "sp-ob-actions" });
+    this.button(b2, "\u590D\u5236 IP", !(check == null ? void 0 : check.ok), async () => {
+      if (!this.ip) {
+        new import_obsidian13.Notice("\u8FD8\u6CA1\u68C0\u6D4B\u5230 IP\uFF0C\u7A0D\u7B49\u4E00\u4E0B");
+        return;
+      }
+      await navigator.clipboard.writeText(this.ip);
+      new import_obsidian13.Notice(`\u5DF2\u590D\u5236 ${this.ip}`);
+    });
+    if (hasAccount) {
+      this.button(b2, "\u68C0\u6D4B\u8FDE\u63A5", false, async (btn) => {
+        btn.setText("\u68C0\u6D4B\u4E2D\u2026");
+        btn.disabled = true;
+        await this.testAccount();
+      });
+    }
+    if (check) s2.createDiv({ cls: `sp-ob-result ${check.ok ? "is-ok" : "is-bad"}`, text: check.message });
+    s2.createDiv({ cls: "sp-ob-tip", text: "\u5BB6\u91CC\u7684\u7F51\u7EDC IP \u53EF\u80FD\u4F1A\u53D8\uFF1B\u5F00\u4E86\u4EE3\u7406\u7684\u8BDD\uFF0C\u4EE5\u8FD9\u91CC\u663E\u793A\u7684 IP \u4E3A\u51C6\u3002" });
+    const relay = this.relayOnline;
+    const s3 = this.step(
+      3,
+      "\u63A8\u5230 X \u6587\u7AE0\uFF08\u53EF\u9009\uFF09",
+      relay ? "done" : "optional",
+      "\u5728 Chrome \u91CC\u88C5\u597D Kaitox \u6269\u5C55\u5E76\u767B\u5F55 X \u5C31\u884C\uFF0C\u672C\u5730\u4E2D\u8F6C\u5DF2\u7ECF\u5185\u7F6E\u5728\u63D2\u4EF6\u91CC\uFF0CObsidian \u5F00\u7740\u5C31\u4F1A\u81EA\u52A8\u8FD0\u884C\u3002"
+    );
+    s3.createDiv({
+      cls: `sp-ob-result ${relay ? "is-ok" : "is-muted"}`,
+      text: relay === null ? "\u6B63\u5728\u68C0\u6D4B\u4E2D\u8F6C\u2026" : relay ? "\u4E2D\u8F6C\u5DF2\u5C31\u7EEA" : "\u4E2D\u8F6C\u8FD8\u6CA1\u8FD0\u884C\uFF1A\u53EF\u4EE5\u5230\u300C\u8BBE\u7F6E \u2192 SerenaPost \u2192 X \u63A8\u9001\u300D\u6253\u5F00\u300C\u5185\u7F6E\u4E2D\u8F6C\u300D"
+    });
+    const b3 = s3.createDiv({ cls: "sp-ob-actions" });
+    this.button(b3, "\u83B7\u53D6 Kaitox \u6269\u5C55", false, () => {
+      window.open(KAITOX_URL);
+    });
+    const branded = Boolean(st2.brandAvatar) || st2.headingAvatar || st2.endMark;
+    const s4 = this.step(
+      4,
+      "\u6362\u4E0A\u4F60\u7684 IP\uFF08\u53EF\u9009\uFF09",
+      branded ? "done" : "optional",
+      "\u4E0A\u4F20\u4F60\u7684\u5934\u50CF\uFF0C\u7AE0\u8282\u6807\u9898\u524D\u4F1A\u663E\u793A\u5B83\uFF1B\u6587\u672B\u8FD8\u53EF\u4EE5\u52A0\u4E00\u53E5\u7ED3\u675F\u6807\u8BB0\uFF0C\u6BD4\u5982\u300C\u4F60\u7684\u540D\u5B57 \xB7 END\u300D\u3002"
+    );
+    const brandRow = s4.createDiv({ cls: "sp-ob-brand" });
+    const img = brandRow.createEl("img", { cls: "sp-ob-avatar" });
+    img.src = st2.brandAvatar || AVATAR_DATA_URI;
+    const input = brandRow.createEl("input", { type: "file", cls: "hidden-input" });
+    input.accept = "image/png,image/jpeg";
+    this.button(brandRow, st2.brandAvatar ? "\u6362\u4E00\u5F20\u5934\u50CF" : "\u4E0A\u4F20\u5934\u50CF", false, () => input.click());
+    input.onchange = async () => {
+      var _a2;
+      const f = (_a2 = input.files) == null ? void 0 : _a2[0];
+      if (!f) return;
+      try {
+        st2.brandAvatar = await squareAvatar(f);
+        st2.headingAvatar = true;
+        await this.plugin.saveSettings();
+        this.plugin.refreshPublisherSidebar();
+        this.render();
+      } catch (e) {
+        new import_obsidian13.Notice(`\u5934\u50CF\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
+      }
+    };
+    const endRow = s4.createDiv({ cls: "sp-ob-end" });
+    endRow.createSpan({ text: "\u7ED3\u675F\u6807\u8BB0\uFF1A" });
+    const endInput = endRow.createEl("input", { type: "text" });
+    endInput.placeholder = "\u4F60\u7684\u540D\u5B57 \xB7 END";
+    endInput.value = st2.endMark ? st2.endMarkText : "";
+    endInput.onchange = async () => {
+      const v = endInput.value.trim();
+      st2.endMark = Boolean(v);
+      if (v) st2.endMarkText = v.slice(0, 40);
+      await this.plugin.saveSettings();
+      this.plugin.refreshPublisherSidebar();
+    };
+    const s5 = this.step(
+      5,
+      "\u6253\u5F00\u4E00\u7BC7\u7B14\u8BB0\u8BD5\u8BD5",
+      "optional",
+      "\u70B9\u300C\u6253\u5F00\u9884\u89C8\u300D\uFF0C\u53F3\u8FB9\u4F1A\u5B9E\u65F6\u663E\u793A\u6587\u7AE0\u5728\u516C\u4F17\u53F7 / X \u4E0A\u7684\u6837\u5B50\uFF1B\u9009\u4E2D\u6587\u5B57\u8FD8\u80FD\u4E00\u952E\u8BBE\u6210\u7AE0\u8282\u6807\u9898\u3001\u8868\u683C\u3002\u6EE1\u610F\u4E86\u5C31\u70B9\u4FA7\u680F\u5E95\u90E8\u7684\u300C\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1\u300D\u3002"
+    );
+    const b5 = s5.createDiv({ cls: "sp-ob-actions" });
+    this.button(b5, "\u6253\u5F00\u9884\u89C8", true, async () => {
+      this.close();
+      await this.plugin.openLivePreview("wechat");
+    });
+    const foot = el.createDiv({ cls: "sp-ob-foot" });
+    foot.createSpan({ cls: "sp-ob-foot-tip", text: "\u4EE5\u540E\u53EF\u4EE5\u5728\u4FA7\u680F\u9876\u90E8\u7684\u300C\u65B0\u624B\u5F15\u5BFC\u300D\u518D\u6253\u5F00\u8FD9\u91CC\u3002" });
+    this.button(foot, "\u5B8C\u6210", false, () => this.close());
+  }
+  step(n, title, state, desc) {
+    const box = this.contentEl.createDiv({ cls: `sp-ob-step is-${state}` });
+    const head = box.createDiv({ cls: "sp-ob-step-head" });
+    const badge = head.createSpan({ cls: "sp-ob-badge" });
+    if (state === "done") (0, import_obsidian13.setIcon)(badge, "check");
+    else if (state === "warn") (0, import_obsidian13.setIcon)(badge, "alert-triangle");
+    else badge.setText(String(n));
+    head.createSpan({ cls: "sp-ob-step-title", text: title });
+    if (state === "optional") head.createSpan({ cls: "sp-ob-tag", text: "\u53EF\u9009" });
+    box.createDiv({ cls: "sp-ob-desc", text: desc });
+    return box;
+  }
+  button(parent, text, cta, onClick) {
+    const btn = parent.createEl("button", { text, cls: cta ? "mod-cta" : "" });
+    btn.onclick = () => void onClick(btn);
+    return btn;
+  }
+};
+
 // src/custom-theme-guide.ts
 var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A SerenaPost \u8BBE\u8BA1\u4E00\u5957\u5FAE\u4FE1\u516C\u4F17\u53F7\u957F\u6587 CSS \u6392\u7248\u3002
 
@@ -26555,7 +26818,7 @@ var CUSTOM_THEME_AI_GUIDE = `\u8BF7\u4E3A SerenaPost \u8BBE\u8BA1\u4E00\u5957\u5
 \u8BF7\u4FDD\u6301\u8FD9\u4E9B\u517C\u5BB9\u89C4\u5219\uFF0C\u518D\u6839\u636E\u6211\u63A5\u4E0B\u6765\u63D0\u4F9B\u7684\u53C2\u8003\u56FE\u7247\u3001\u54C1\u724C\u989C\u8272\u6216\u6587\u7AE0\u7C7B\u578B\u5B8C\u6210\u89C6\u89C9\u8BBE\u8BA1\u3002`;
 
 // src/main.ts
-var FolderSuggestModal = class extends import_obsidian13.FuzzySuggestModal {
+var FolderSuggestModal = class extends import_obsidian14.FuzzySuggestModal {
   constructor(app, folderPaths, onChoose) {
     super(app);
     this.folderPaths = folderPaths;
@@ -26572,7 +26835,7 @@ var FolderSuggestModal = class extends import_obsidian13.FuzzySuggestModal {
     this.onChoose(item);
   }
 };
-var CustomThemeGuideModal = class extends import_obsidian13.Modal {
+var CustomThemeGuideModal = class extends import_obsidian14.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
@@ -26593,7 +26856,7 @@ var CustomThemeGuideModal = class extends import_obsidian13.Modal {
         window.setTimeout(() => copyButton.textContent = "\u590D\u5236\u7ED9 AI", 1800);
       } catch (error) {
         console.error("Failed to copy custom theme guide:", error);
-        new import_obsidian13.Notice("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u5728\u793A\u4F8B\u6846\u4E2D\u5168\u9009\u590D\u5236");
+        new import_obsidian14.Notice("\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u5728\u793A\u4F8B\u6846\u4E2D\u5168\u9009\u590D\u5236");
       }
     };
     actions.createEl("button", { text: "\u5173\u95ED", cls: "mod-cancel" }).onclick = () => this.close();
@@ -26602,7 +26865,7 @@ var CustomThemeGuideModal = class extends import_obsidian13.Modal {
     this.contentEl.empty();
   }
 };
-var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
+var WeChatPublisherPlugin = class extends import_obsidian14.Plugin {
   constructor() {
     super(...arguments);
     this.statusCheckInterval = null;
@@ -26610,7 +26873,7 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
   }
   async onload() {
     await this.loadSettings();
-    (0, import_obsidian13.addIcon)(ICON_ID, ICON_SVG);
+    (0, import_obsidian14.addIcon)(ICON_ID, ICON_SVG);
     if (this.settings.embeddedRelay) {
       this.app.workspace.onLayoutReady(() => {
         void this.relay.start(this.settings);
@@ -26674,11 +26937,11 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
   /** 首次安装 SerenaPost 时，自动沿用旧 WeChatPB 插件的设置（账号、主题、默认作者等）。密钥在 SecretStorage 里，ID 不变，直接可用。 */
   async migrateFromWeChatPB() {
     try {
-      const oldPath = (0, import_obsidian13.normalizePath)(`${this.app.vault.configDir}/plugins/wechat-multi-publisher/data.json`);
+      const oldPath = (0, import_obsidian14.normalizePath)(`${this.app.vault.configDir}/plugins/wechat-multi-publisher/data.json`);
       if (!await this.app.vault.adapter.exists(oldPath)) return null;
       const data = JSON.parse(await this.app.vault.adapter.read(oldPath));
       await this.saveData(data);
-      new import_obsidian13.Notice("SerenaPost\uFF1A\u5DF2\u6CBF\u7528 WeChatPB \u7684\u8D26\u53F7\u548C\u8BBE\u7F6E");
+      new import_obsidian14.Notice("SerenaPost\uFF1A\u5DF2\u6CBF\u7528 WeChatPB \u7684\u8D26\u53F7\u548C\u8BBE\u7F6E");
       return data;
     } catch (e) {
       console.error("[SerenaPost] \u8FC1\u79FB\u65E7\u8BBE\u7F6E\u5931\u8D25", e);
@@ -26793,6 +27056,14 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
       await workspace.revealLeaf(leaf);
     }
   }
+  openOnboarding() {
+    new OnboardingModal(this.app, this).open();
+  }
+  /** 引导里改了账号 / 头像后刷新侧栏 */
+  refreshPublisherSidebar() {
+    var _a2;
+    (_a2 = this.getPublisherView()) == null ? void 0 : _a2.render();
+  }
   getPublisherView() {
     var _a2;
     const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER)[0];
@@ -26859,7 +27130,7 @@ var WeChatPublisherPlugin = class extends import_obsidian13.Plugin {
     }
   }
 };
-var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab {
+var WeChatPublisherSettingTab = class extends import_obsidian14.PluginSettingTab {
   constructor(app, plugin2) {
     super(app, plugin2);
     this.plugin = plugin2;
@@ -26867,15 +27138,15 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian13.Setting(containerEl).setName("\u6700\u5927\u5E76\u53D1\u53D1\u5E03\u6570").setDesc("\u540C\u65F6\u53D1\u5E03\u7684\u516C\u4F17\u53F7\u6570\u91CF").addSlider((slider) => slider.setLimits(1, 5, 1).setValue(this.plugin.settings.maxConcurrent).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u6700\u5927\u5E76\u53D1\u53D1\u5E03\u6570").setDesc("\u540C\u65F6\u53D1\u5E03\u7684\u516C\u4F17\u53F7\u6570\u91CF").addSlider((slider) => slider.setLimits(1, 5, 1).setValue(this.plugin.settings.maxConcurrent).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.maxConcurrent = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u6392\u9664\u7B14\u8BB0\u5C5E\u6027").setDesc("\u6392\u7248\u548C\u53D1\u5E03\u65F6\u4E0D\u5305\u542B YAML frontmatter").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFrontmatter).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u6392\u9664\u7B14\u8BB0\u5C5E\u6027").setDesc("\u6392\u7248\u548C\u53D1\u5E03\u65F6\u4E0D\u5305\u542B YAML frontmatter").addToggle((toggle) => toggle.setValue(this.plugin.settings.excludeFrontmatter).onChange(async (value) => {
       this.plugin.settings.excludeFrontmatter = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("X \u63A8\u9001").setHeading();
+    new import_obsidian14.Setting(containerEl).setName("X \u63A8\u9001").setHeading();
     containerEl.createEl("p", {
       cls: "setting-item-description",
       text: "\u63A8\u9001\u5230 X \u9700\u8981\u5728 Chrome \u5B89\u88C5 Kaitox \u6269\u5C55\u5E76\u767B\u5F55 X\u3002\u4E2D\u8F6C\u7A0B\u5E8F\u5DF2\u5185\u7F6E\uFF0CObsidian \u5F00\u7740\u5C31\u81EA\u52A8\u8FD0\u884C\u3002"
@@ -26884,7 +27155,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
       const r = this.plugin.relay;
       return r.mode === "embedded" ? "\u8FD0\u884C\u4E2D\uFF08\u5185\u7F6E\uFF09" : r.mode === "external" ? "\u8FD0\u884C\u4E2D\uFF08\u4F7F\u7528\u5DF2\u6709\u7684 Kaitox \u4E2D\u8F6C\uFF09" : r.mode === "error" ? `\u542F\u52A8\u5931\u8D25\uFF1A${r.error}` : "\u672A\u8FD0\u884C";
     };
-    new import_obsidian13.Setting(containerEl).setName("\u5185\u7F6E\u4E2D\u8F6C").setDesc(`\u5F53\u524D\u72B6\u6001\uFF1A${relayStatus()}`).addToggle((toggle) => toggle.setValue(this.plugin.settings.embeddedRelay).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u5185\u7F6E\u4E2D\u8F6C").setDesc(`\u5F53\u524D\u72B6\u6001\uFF1A${relayStatus()}`).addToggle((toggle) => toggle.setValue(this.plugin.settings.embeddedRelay).onChange(async (value) => {
       this.plugin.settings.embeddedRelay = value;
       await this.plugin.saveSettings();
       if (value) await this.plugin.relay.start(this.plugin.settings);
@@ -26892,35 +27163,35 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
       this.display();
     }));
     if (this.plugin.relay.mode === "external") {
-      new import_obsidian13.Setting(containerEl).setName("\u63A5\u7BA1\u65E7\u7684 Kaitox \u4E2D\u8F6C").setDesc("\u7535\u8111\u4E0A\u8FD8\u5728\u8FD0\u884C Kaitox \u547D\u4EE4\u884C\u4E2D\u8F6C\uFF08kaitox relay\uFF09\u3002\u70B9\u300C\u63A5\u7BA1\u300D\u4F1A\u505C\u6B62\u5B83\uFF0C\u6539\u7528 SerenaPost \u5185\u7F6E\u4E2D\u8F6C\uFF0C\u4EE5\u540E\u4E0D\u7528\u518D\u5355\u72EC\u542F\u52A8").addButton((button) => button.setButtonText("\u63A5\u7BA1").setCta().onClick(async () => {
+      new import_obsidian14.Setting(containerEl).setName("\u63A5\u7BA1\u65E7\u7684 Kaitox \u4E2D\u8F6C").setDesc("\u7535\u8111\u4E0A\u8FD8\u5728\u8FD0\u884C Kaitox \u547D\u4EE4\u884C\u4E2D\u8F6C\uFF08kaitox relay\uFF09\u3002\u70B9\u300C\u63A5\u7BA1\u300D\u4F1A\u505C\u6B62\u5B83\uFF0C\u6539\u7528 SerenaPost \u5185\u7F6E\u4E2D\u8F6C\uFF0C\u4EE5\u540E\u4E0D\u7528\u518D\u5355\u72EC\u542F\u52A8").addButton((button) => button.setButtonText("\u63A5\u7BA1").setCta().onClick(async () => {
         button.setDisabled(true).setButtonText("\u63A5\u7BA1\u4E2D\u2026");
         const mode = await this.plugin.relay.takeOver(this.plugin.settings);
-        new import_obsidian13.Notice(mode === "embedded" ? "SerenaPost\uFF1A\u5DF2\u6539\u7528\u5185\u7F6E\u4E2D\u8F6C" : `SerenaPost\uFF1A\u63A5\u7BA1\u5931\u8D25\uFF08${this.plugin.relay.error || mode}\uFF09`);
+        new import_obsidian14.Notice(mode === "embedded" ? "SerenaPost\uFF1A\u5DF2\u6539\u7528\u5185\u7F6E\u4E2D\u8F6C" : `SerenaPost\uFF1A\u63A5\u7BA1\u5931\u8D25\uFF08${this.plugin.relay.error || mode}\uFF09`);
         this.display();
       }));
     }
-    new import_obsidian13.Setting(containerEl).setName("\u4E2D\u8F6C\u7A0B\u5E8F\u5730\u5740").setDesc("\u4E00\u822C\u4E0D\u7528\u6539\u3002\u6539\u4E86\u4EE5\u540E\u9700\u8981\u5728 Kaitox \u6269\u5C55\u8BBE\u7F6E\u91CC\u6539\u6210\u540C\u4E00\u4E2A\u5730\u5740").addText((text) => text.setPlaceholder("http://127.0.0.1:8765").setValue(this.plugin.settings.relayBase).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u4E2D\u8F6C\u7A0B\u5E8F\u5730\u5740").setDesc("\u4E00\u822C\u4E0D\u7528\u6539\u3002\u6539\u4E86\u4EE5\u540E\u9700\u8981\u5728 Kaitox \u6269\u5C55\u8BBE\u7F6E\u91CC\u6539\u6210\u540C\u4E00\u4E2A\u5730\u5740").addText((text) => text.setPlaceholder("http://127.0.0.1:8765").setValue(this.plugin.settings.relayBase).onChange(async (value) => {
       this.plugin.settings.relayBase = value.trim() || "http://127.0.0.1:8765";
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u4E2D\u8F6C\u4EE4\u724C\uFF08\u53EF\u9009\uFF09").setDesc("\u5982\u679C\u7ED9 relay \u914D\u4E86 token\uFF0C\u8FD9\u91CC\u586B\u4E00\u6837\u7684").addText((text) => text.setValue(this.plugin.settings.relayToken).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u4E2D\u8F6C\u4EE4\u724C\uFF08\u53EF\u9009\uFF09").setDesc("\u5982\u679C\u7ED9 relay \u914D\u4E86 token\uFF0C\u8FD9\u91CC\u586B\u4E00\u6837\u7684").addText((text) => text.setValue(this.plugin.settings.relayToken).onChange(async (value) => {
       this.plugin.settings.relayToken = value.trim();
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u63A8\u9001\u540E\u6253\u5F00 X \u6587\u7AE0\u7F16\u8F91\u5668").setDesc("\u63A8\u9001\u6210\u529F\u540E\u81EA\u52A8\u5728\u6D4F\u89C8\u5668\u6253\u5F00 x.com \u6587\u7AE0\u7F16\u8F91\u5668\uFF0CKaitox \u6269\u5C55\u4F1A\u5728\u90A3\u91CC\u521B\u5EFA\u8349\u7A3F").addToggle((toggle) => toggle.setValue(this.plugin.settings.openXAfterPush).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u63A8\u9001\u540E\u6253\u5F00 X \u6587\u7AE0\u7F16\u8F91\u5668").setDesc("\u63A8\u9001\u6210\u529F\u540E\u81EA\u52A8\u5728\u6D4F\u89C8\u5668\u6253\u5F00 x.com \u6587\u7AE0\u7F16\u8F91\u5668\uFF0CKaitox \u6269\u5C55\u4F1A\u5728\u90A3\u91CC\u521B\u5EFA\u8349\u7A3F").addToggle((toggle) => toggle.setValue(this.plugin.settings.openXAfterPush).onChange(async (value) => {
       this.plugin.settings.openXAfterPush = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u8349\u7A3F\u9ED8\u8BA4\u4FE1\u606F").setHeading();
-    new import_obsidian13.Setting(containerEl).setName("\u9ED8\u8BA4\u4F5C\u8005").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u4F5C\u8005\u680F\u7684\u9ED8\u8BA4\u503C\uFF1B\u7B14\u8BB0\u5C5E\u6027 wx_author\uFF08\u516C\u4F17\u53F7\u4F5C\u8005\uFF09\u4F18\u5148\u3002\u6700\u591A 8 \u4E2A\u5B57").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1ASerena \u6728\u74DC").setValue(this.plugin.settings.defaultAuthor).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u8349\u7A3F\u9ED8\u8BA4\u4FE1\u606F").setHeading();
+    new import_obsidian14.Setting(containerEl).setName("\u9ED8\u8BA4\u4F5C\u8005").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u4F5C\u8005\u680F\u7684\u9ED8\u8BA4\u503C\uFF1B\u7B14\u8BB0\u5C5E\u6027 wx_author\uFF08\u516C\u4F17\u53F7\u4F5C\u8005\uFF09\u4F18\u5148\u3002\u6700\u591A 8 \u4E2A\u5B57").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1ASerena \u6728\u74DC").setValue(this.plugin.settings.defaultAuthor).onChange(async (value) => {
       this.plugin.settings.defaultAuthor = value.trim();
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u9ED8\u8BA4\u5F00\u542F\u7559\u8A00").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u300C\u5F00\u542F\u7559\u8A00\u300D\u7684\u9ED8\u8BA4\u72B6\u6001\uFF1B\u7B14\u8BB0\u5C5E\u6027 comment \u4F18\u5148").addToggle((toggle) => toggle.setValue(this.plugin.settings.defaultOpenComment).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u9ED8\u8BA4\u5F00\u542F\u7559\u8A00").setDesc("\u53D1\u5E03\u786E\u8BA4\u5F39\u7A97\u4E2D\u300C\u5F00\u542F\u7559\u8A00\u300D\u7684\u9ED8\u8BA4\u72B6\u6001\uFF1B\u7B14\u8BB0\u5C5E\u6027 comment \u4F18\u5148").addToggle((toggle) => toggle.setValue(this.plugin.settings.defaultOpenComment).onChange(async (value) => {
       this.plugin.settings.defaultOpenComment = value;
       await this.plugin.saveSettings();
     }));
-    const coverSetting = new import_obsidian13.Setting(containerEl).setName("\u9ED8\u8BA4\u5C01\u9762\u56FE\u7247").setDesc("\u6CA1\u6709\u4E34\u65F6\u5C01\u9762\u65F6\u4F7F\u7528\uFF0C\u6700\u5927 2 MB");
+    const coverSetting = new import_obsidian14.Setting(containerEl).setName("\u9ED8\u8BA4\u5C01\u9762\u56FE\u7247").setDesc("\u6CA1\u6709\u4E34\u65F6\u5C01\u9762\u65F6\u4F7F\u7528\uFF0C\u6700\u5927 2 MB");
     if (this.plugin.settings.defaultCoverImage) {
       coverSetting.addButton((button) => button.setButtonText("\u5220\u9664\u9ED8\u8BA4\u5C01\u9762").setWarning().onClick(async () => {
         this.plugin.settings.defaultCoverImage = "";
@@ -26934,22 +27205,22 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
     } else {
       coverSetting.addButton((button) => button.setButtonText("\u4E0A\u4F20\u9ED8\u8BA4\u5C01\u9762").onClick(() => this.chooseDefaultCover()));
     }
-    new import_obsidian13.Setting(containerEl).setName("\u81EA\u52A8\u68C0\u6D4B\u95F4\u9694\uFF08\u5C0F\u65F6\uFF09").setDesc("\u81EA\u52A8\u68C0\u6D4B Access Token \u72B6\u6001\u7684\u65F6\u95F4\u95F4\u9694").addSlider((slider) => slider.setLimits(1, 24, 1).setValue(this.plugin.settings.autoCheckInterval / 36e5).setDynamicTooltip().onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u81EA\u52A8\u68C0\u6D4B\u95F4\u9694\uFF08\u5C0F\u65F6\uFF09").setDesc("\u81EA\u52A8\u68C0\u6D4B Access Token \u72B6\u6001\u7684\u65F6\u95F4\u95F4\u9694").addSlider((slider) => slider.setLimits(1, 24, 1).setValue(this.plugin.settings.autoCheckInterval / 36e5).setDynamicTooltip().onChange(async (value) => {
       this.plugin.settings.autoCheckInterval = value * 36e5;
       await this.plugin.saveSettings();
       this.plugin.startAutoCheck();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
-    new import_obsidian13.Setting(containerEl).setName("\u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 15 \u5957\u6392\u7248\uFF0C\u5F00\u7BB1\u5373\u7528\uFF1B\u4E5F\u53EF\u4EE5\u5728\u4FA7\u680F\u7528\u53EF\u89C6\u5316\u7F16\u8F91\u5668\u505A\u81EA\u5DF1\u7684\u6392\u7248\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
-    new import_obsidian13.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A\u5185\u7F6E\u6392\u7248\u548C\u4F60\u5728\u7F16\u8F91\u5668\u91CC\u505A\u7684\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
+    new import_obsidian14.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
+    new import_obsidian14.Setting(containerEl).setName("\u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 15 \u5957\u6392\u7248\uFF0C\u5F00\u7BB1\u5373\u7528\uFF1B\u4E5F\u53EF\u4EE5\u5728\u4FA7\u680F\u7528\u53EF\u89C6\u5316\u7F16\u8F91\u5668\u505A\u81EA\u5DF1\u7684\u6392\u7248\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
+    new import_obsidian14.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A\u5185\u7F6E\u6392\u7248\u548C\u4F60\u5728\u7F16\u8F91\u5668\u91CC\u505A\u7684\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
       this.plugin.settings.customThemesEnabled = enabled;
       await this.plugin.saveSettings();
       await this.refreshPublisherViews();
       this.display();
     }));
     if (this.plugin.settings.customThemesEnabled) {
-      new import_obsidian13.Setting(containerEl).setName("\u81EA\u5B9A\u4E49\u6837\u5F0F\u6587\u4EF6\u5939").setDesc("\u9009\u62E9\u5E93\u5185\u5305\u542B .css \u6587\u4EF6\u6216 css \u4EE3\u7801\u5757 Markdown \u7684\u6587\u4EF6\u5939\u3002\u9009\u62E9\u540E\u7ACB\u5373\u4FDD\u5B58\u5E76\u5E94\u7528\u3002").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1Astyles/wechat").setValue(this.plugin.settings.themesFolder).onChange((value) => {
-        this.plugin.settings.themesFolder = (0, import_obsidian13.normalizePath)(value);
+      new import_obsidian14.Setting(containerEl).setName("\u81EA\u5B9A\u4E49\u6837\u5F0F\u6587\u4EF6\u5939").setDesc("\u9009\u62E9\u5E93\u5185\u5305\u542B .css \u6587\u4EF6\u6216 css \u4EE3\u7801\u5757 Markdown \u7684\u6587\u4EF6\u5939\u3002\u9009\u62E9\u540E\u7ACB\u5373\u4FDD\u5B58\u5E76\u5E94\u7528\u3002").addText((text) => text.setPlaceholder("\u4F8B\u5982\uFF1Astyles/wechat").setValue(this.plugin.settings.themesFolder).onChange((value) => {
+        this.plugin.settings.themesFolder = (0, import_obsidian14.normalizePath)(value);
       })).addButton((button) => button.setButtonText("\u9009\u62E9\u6587\u4EF6\u5939").onClick(() => {
         const folders = this.getAllFolders(this.app.vault.getRoot());
         const folderPaths = folders.map((folder) => folder.path).sort();
@@ -26958,15 +27229,15 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
           await this.plugin.saveSettings();
           await this.refreshPublisherViews();
           this.display();
-          new import_obsidian13.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u52A0\u8F7D");
+          new import_obsidian14.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u52A0\u8F7D");
         }).open();
       })).addButton((button) => button.setButtonText("\u5E94\u7528\u8DEF\u5F84").setCta().onClick(async () => {
         await this.plugin.saveSettings();
         await this.refreshPublisherViews();
-        new import_obsidian13.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
+        new import_obsidian14.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
       }));
     }
-    new import_obsidian13.Setting(containerEl).setName("IP \u5934\u50CF").setDesc("\u300C\u7AE0\u8282\u6807\u9898\u524D\u653E IP \u5934\u50CF\u300D\u7528\u7684\u56FE\u7247\uFF0C\u5EFA\u8BAE\u6B63\u65B9\u5F62 PNG/JPG\u3002\u4E0D\u8BBE\u7F6E\u5C31\u7528\u5185\u7F6E\u7684 Serena \u5934\u50CF\u3002").then((setting) => {
+    new import_obsidian14.Setting(containerEl).setName("IP \u5934\u50CF").setDesc("\u300C\u7AE0\u8282\u6807\u9898\u524D\u653E IP \u5934\u50CF\u300D\u7528\u7684\u56FE\u7247\uFF0C\u5EFA\u8BAE\u6B63\u65B9\u5F62 PNG/JPG\u3002\u4E0D\u8BBE\u7F6E\u5C31\u7528\u5185\u7F6E\u7684 Serena \u5934\u50CF\u3002").then((setting) => {
       const img = setting.controlEl.createEl("img", { cls: "sp-avatar-preview" });
       img.src = this.plugin.settings.brandAvatar || AVATAR_DATA_URI;
     }).addButton((button) => button.setButtonText("\u6362\u4E00\u5F20").onClick(() => {
@@ -26983,7 +27254,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
           await this.refreshPublisherViews();
           this.display();
         } catch (e) {
-          new import_obsidian13.Notice(`\u5934\u50CF\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
+          new import_obsidian14.Notice(`\u5934\u50CF\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
         }
       };
       input.click();
@@ -26993,17 +27264,17 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
       await this.refreshPublisherViews();
       this.display();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u6587\u672B\u6807\u8BB0\u6587\u5B57").setDesc("\u4FA7\u680F\u52FE\u9009\u300C\u6587\u672B\u52A0\u7ED3\u675F\u6807\u8BB0\u300D\u540E\u663E\u793A\u5728\u6587\u7AE0\u6700\u540E\uFF0C\u4F8B\u5982\u300C\u4F60\u7684\u540D\u5B57 \xB7 END\u300D\u3002\u4FA7\u680F\u91CC\u4E5F\u80FD\u76F4\u63A5\u6539\u3002").addText((text) => text.setPlaceholder("\u4F60\u7684\u540D\u5B57 \xB7 END").setValue(this.plugin.settings.endMarkText).onChange(async (value) => {
+    new import_obsidian14.Setting(containerEl).setName("\u6587\u672B\u6807\u8BB0\u6587\u5B57").setDesc("\u4FA7\u680F\u52FE\u9009\u300C\u6587\u672B\u52A0\u7ED3\u675F\u6807\u8BB0\u300D\u540E\u663E\u793A\u5728\u6587\u7AE0\u6700\u540E\uFF0C\u4F8B\u5982\u300C\u4F60\u7684\u540D\u5B57 \xB7 END\u300D\u3002\u4FA7\u680F\u91CC\u4E5F\u80FD\u76F4\u63A5\u6539\u3002").addText((text) => text.setPlaceholder("\u4F60\u7684\u540D\u5B57 \xB7 END").setValue(this.plugin.settings.endMarkText).onChange(async (value) => {
       this.plugin.settings.endMarkText = value.slice(0, 40);
       await this.plugin.saveSettings();
     }));
-    new import_obsidian13.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
-    new import_obsidian13.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
+    new import_obsidian14.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
+    new import_obsidian14.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, null, async (account) => {
         this.plugin.settings.accounts.push(account);
         await this.plugin.saveSettings();
         this.display();
-        new import_obsidian13.Notice(`\u8D26\u53F7 "${account.name}" \u6DFB\u52A0\u6210\u529F`);
+        new import_obsidian14.Notice(`\u8D26\u53F7 "${account.name}" \u6DFB\u52A0\u6210\u529F`);
       });
       modal.open();
     }));
@@ -27035,7 +27306,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
       const file = (_a2 = input.files) == null ? void 0 : _a2[0];
       if (!file) return;
       if (file.size > 2 * 1024 * 1024) {
-        new import_obsidian13.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2 MB");
+        new import_obsidian14.Notice("\u56FE\u7247\u5927\u5C0F\u4E0D\u80FD\u8D85\u8FC7 2 MB");
         return;
       }
       const reader = new FileReader();
@@ -27052,7 +27323,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
   displayAccountSetting(containerEl, account) {
     const accountDiv = containerEl.createDiv({ cls: "wechat-account-item" });
     const statusIcon = account.status === "online" ? "\u2705" : account.status === "expired" ? "\u26A0\uFE0F" : "\u274C";
-    new import_obsidian13.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
+    new import_obsidian14.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, account, async (updatedAccount) => {
         const index = this.plugin.settings.accounts.findIndex((a) => a.id === account.id);
         if (index !== -1) {
@@ -27063,14 +27334,14 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
       });
       modal.open();
     })).addButton((button) => button.setButtonText("\u5237\u65B0").onClick(async () => {
-      new import_obsidian13.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
+      new import_obsidian14.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
       await this.plugin.checkAccountStatus(account);
       await this.plugin.saveSettings();
       this.display();
       if (account.status === "online") {
-        new import_obsidian13.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
+        new import_obsidian14.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
       } else {
-        new import_obsidian13.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
+        new import_obsidian14.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
       }
     })).addButton((button) => button.setButtonText("\u5220\u9664").setWarning().onClick(async () => {
       if (confirm(`\u786E\u5B9A\u8981\u5220\u9664\u8D26\u53F7 "${account.name}" \u5417\uFF1F`)) {
@@ -27078,7 +27349,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian13.PluginSettingTab
         this.plugin.settings.accounts = this.plugin.settings.accounts.filter((a) => a.id !== account.id);
         await this.plugin.saveSettings();
         this.display();
-        new import_obsidian13.Notice(`\u8D26\u53F7 "${account.name}" \u5DF2\u5220\u9664`);
+        new import_obsidian14.Notice(`\u8D26\u53F7 "${account.name}" \u5DF2\u5220\u9664`);
       }
     }));
   }

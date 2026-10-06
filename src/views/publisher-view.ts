@@ -1,4 +1,4 @@
-import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, TFile, normalizePath, sanitizeHTMLToDom } from 'obsidian';
+import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, TFile, normalizePath, sanitizeHTMLToDom, setIcon } from 'obsidian';
 import html2canvas from 'html2canvas';
 import WeChatPublisherPlugin from '../main';
 import { WeChatAccount, PublishProgress, DraftMeta } from '../types';
@@ -85,6 +85,9 @@ export class PublisherView extends ItemView {
 
 		this.render();
 		this.plugin.refreshLivePreview();
+		if (!this.plugin.settings.onboardingDone) {
+			this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.plugin.openOnboarding(), 600));
+		}
 		void this.checkRelay();
 		// 内置中转在 Obsidian 布局就绪后才启动，开头几秒多查两次，避免误显示「未运行」
 		for (const ms of [2000, 5000]) {
@@ -148,31 +151,67 @@ export class PublisherView extends ItemView {
 	render() {
 		const container = this.containerEl.children[1] as HTMLElement;
 		container.empty();
+		container.addClass('sp-sidebar');
 
 		// Header
 		const header = container.createDiv({ cls: 'publisher-header' });
 		const brand = header.createDiv({ cls: 'serena-post-brand' });
 		brand.createEl('img', { cls: 'serena-post-avatar', attr: { src: AVATAR_DATA_URI, alt: 'Serena' } });
-		const titles = brand.createDiv();
+		const titles = brand.createDiv({ cls: 'sp-brand-titles' });
 		titles.createEl('h3', { text: 'SerenaPost' });
 		titles.createDiv({ cls: 'serena-post-tagline', text: '一稿双发 · 公众号 + X' });
+		const guide = brand.createEl('button', { cls: 'sp-guide-btn', text: '新手引导' });
+		guide.onclick = () => this.plugin.openOnboarding();
 
-		// Account selection
-		this.renderAccountSelection(container);
+		const body = container.createDiv({ cls: 'sp-cards' });
+		this.card(body, 'target', '发到哪', this.targetSummary(), el => this.renderAccountSelection(el));
+		this.card(body, 'look', '长什么样', this.lookSummary(), el => this.renderThemeSelection(el));
+		this.card(body, 'cover', '封面', this.coverSummary(), el => this.renderCoverUpload(el));
 
-		// Cover upload
-		this.renderCoverUpload(container);
-
-		// Theme selection
-		this.renderThemeSelection(container);
-
-		// Action buttons
-		this.renderActionButtons(container);
-
-		// Progress section (shown when publishing or has summary to display)
+		// 底部固定：预览 / 发布 + 进度
+		const footer = container.createDiv({ cls: 'sp-footer' });
 		if (this.isPublishing || this.publishSummary) {
-			this.renderPublishProgress(container);
+			this.renderPublishProgress(footer);
 		}
+		this.renderActionButtons(footer);
+	}
+
+	/** 可折叠的分组卡片，折叠时标题右边显示当前选择 */
+	private card(parent: HTMLElement, id: string, title: string, summary: string, fill: (el: HTMLElement) => void) {
+		const collapsed = this.plugin.settings.collapsedCards.includes(id);
+		const card = parent.createDiv({ cls: `sp-card${collapsed ? ' is-collapsed' : ''}` });
+		const head = card.createDiv({ cls: 'sp-card-head' });
+		const chev = head.createSpan({ cls: 'sp-card-chev' });
+		setIcon(chev, 'chevron-down');
+		head.createSpan({ cls: 'sp-card-title', text: title });
+		head.createSpan({ cls: 'sp-card-summary', text: summary });
+		head.onclick = async () => {
+			const list = this.plugin.settings.collapsedCards;
+			this.plugin.settings.collapsedCards = collapsed ? list.filter(c => c !== id) : [...list, id];
+			await this.plugin.saveSettings();
+			this.render();
+		};
+		if (!collapsed) fill(card.createDiv({ cls: 'sp-card-body' }));
+	}
+
+	private targetSummary(): string {
+		const parts: string[] = [];
+		if (this.selectedAccountIds.size) parts.push(`公众号 ${this.selectedAccountIds.size} 个`);
+		if (this.xSelected) parts.push('X');
+		return parts.length ? parts.join(' + ') : '未选择';
+	}
+
+	private lookSummary(): string {
+		const style = HEADING_STYLES.find(h => h.id === this.plugin.settings.headingStyle);
+		const styleText = style && style.id !== 'theme' ? ` · ${style.label.split(/\s|　/)[0]}` : '';
+		return `${this.selectedTheme}${styleText}`;
+	}
+
+	private coverSummary(): string {
+		const file = this.currentFile;
+		if (this.coverImage) return '已手动设置';
+		if (this.autoCover && file && this.autoCover.filePath === file.path && !this.autoCoverDismissed.has(file.path)) return '自动：正文第一张图';
+		return '未设置';
 	}
 
 	renderAccountSelection(container: HTMLElement) {
@@ -181,7 +220,10 @@ export class PublisherView extends ItemView {
 
 		if (this.plugin.settings.accounts.length === 0) {
 			this.selectedAccountIds.clear();
-			section.createDiv({ cls: 'account-remark', text: '还没有公众号账号，可在插件设置里添加' });
+			const empty = section.createDiv({ cls: 'account-remark sp-empty-cta' });
+			empty.createSpan({ text: '还没有公众号账号。' });
+			const start = empty.createEl('button', { text: '跟着引导设置', cls: 'mod-cta' });
+			start.onclick = () => this.plugin.openOnboarding();
 			this.renderXItem(section);
 			this.renderSelectedCount(section);
 			return;
@@ -668,22 +710,20 @@ export class PublisherView extends ItemView {
 	}
 
 	renderActionButtons(container: HTMLElement) {
-		const section = container.createDiv({ cls: 'action-buttons' });
-
-		// Preview button
-		const previewBtn = section.createEl('button', { text: '预览', cls: 'preview-btn' });
+		const section = container.createDiv({ cls: 'action-buttons sp-actions' });
+		const row = section.createDiv({ cls: 'sp-actions-row' });
+		const previewBtn = row.createEl('button', { text: '预览', cls: 'preview-btn' });
 		previewBtn.onclick = () => this.handlePreview();
-
-		const xPreviewBtn = section.createEl('button', { text: 'X 预览' });
-		xPreviewBtn.onclick = () => this.handleXPreview();
-
-		const exportBtn = section.createEl('button', { text: '导出长图' });
+		const exportBtn = row.createEl('button', { text: '导出长图' });
 		exportBtn.onclick = () => this.handleExportLongImage();
 
-		// Publish button
-		const publishBtn = section.createEl('button', { text: '发布到草稿箱', cls: 'publish-btn' });
-		publishBtn.disabled = (this.selectedAccountIds.size === 0 && !this.xSelected) || this.isPublishing;
+		const noTarget = this.selectedAccountIds.size === 0 && !this.xSelected;
+		const publishBtn = section.createEl('button', { text: this.isPublishing ? '发布中…' : '发布到草稿箱', cls: 'publish-btn mod-cta' });
+		publishBtn.disabled = noTarget || this.isPublishing;
 		publishBtn.onclick = () => this.handlePublish();
+		if (noTarget && !this.isPublishing) {
+			section.createDiv({ cls: 'sp-actions-hint', text: '先在「发到哪」勾选公众号或 X' });
+		}
 	}
 
 	renderPublishProgress(container: HTMLElement) {
