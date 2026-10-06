@@ -1600,3 +1600,46 @@
 	color: #ffffff !important;
 	padding: 6px 22px !important;
 }
+
+/* ===== 侧栏与预览：统一 Serena 蓝 ===== */
+.sp-sidebar,
+.sp-live {
+	--sp-blue: #0058a3;
+	--sp-blue2: #53a4ea;
+}
+.sp-sidebar input[type="checkbox"]:checked,
+.sp-live input[type="checkbox"]:checked {
+	background-color: var(--sp-blue) !important;
+	border-color: var(--sp-blue) !important;
+}
+.sp-sidebar .sp-actions .publish-btn,
+.sp-sidebar button.mod-cta,
+.sp-live button.mod-cta {
+	background: var(--sp-blue) !important;
+	color: #ffffff !important;
+}
+.sp-sidebar .sp-actions .publish-btn:hover:not(:disabled),
+.sp-sidebar button.mod-cta:hover,
+.sp-live button.mod-cta:hover {
+	background: #004a8a !important;
+}
+.sp-sidebar .sp-card-title {
+	color: var(--sp-blue);
+}
+.theme-dark .sp-sidebar .sp-card-title {
+	color: var(--sp-blue2);
+}
+.sp-sidebar .sp-card:not(.is-collapsed) {
+	border-color: rgba(83, 164, 234, 0.45);
+}
+.sp-sidebar .sp-guide-btn {
+	color: var(--sp-blue);
+	border: 1px solid rgba(83, 164, 234, 0.45) !important;
+	box-shadow: none !important;
+}
+.sp-live .sp-live-tab.is-active {
+	color: var(--sp-blue);
+}
+.sp-live .sp-live-dot {
+	background: var(--sp-blue2);
+}
