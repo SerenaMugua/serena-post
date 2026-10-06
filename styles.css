@@ -1674,3 +1674,107 @@
 .sp-legacy-notice button {
 	flex: none;
 }
+
+/* ===== 发布前检查 ===== */
+.sp-check {
+	margin: 4px 0 14px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid rgba(83, 164, 234, 0.45);
+	border-left: 4px solid #53a4ea;
+	background: rgba(83, 164, 234, 0.08);
+}
+.sp-check.is-pass {
+	border-left-color: #0058a3;
+}
+.sp-check-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-weight: 700;
+	color: #0058a3;
+}
+.theme-dark .sp-check-head {
+	color: #53a4ea;
+}
+.sp-check-head-ic,
+.sp-check-ic {
+	display: inline-flex;
+	flex: none;
+}
+.sp-check-head-ic svg,
+.sp-check-ic svg {
+	width: 16px;
+	height: 16px;
+}
+.sp-check-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px dashed rgba(83, 164, 234, 0.35);
+	font-size: var(--font-ui-small);
+	line-height: 1.55;
+}
+.sp-check-row.is-error .sp-check-ic { color: #dc2626; }
+.sp-check-row.is-warn .sp-check-ic { color: #ea580c; }
+.sp-check-row.is-info .sp-check-ic { color: #53a4ea; }
+.sp-check-text {
+	flex: 1;
+	min-width: 0;
+}
+.sp-check-actions {
+	display: flex;
+	gap: 6px;
+	flex: none;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+.sp-check-actions button {
+	font-size: var(--font-ui-smaller);
+	padding: 3px 10px !important;
+	height: auto !important;
+}
+.wechatpb-draft-modal button.mod-cta,
+.sp-footer button.mod-cta {
+	background: #0058a3 !important;
+	color: #ffffff !important;
+}
+
+/* ===== 推送结果：失败的下一步 / 成功的直达入口 ===== */
+.sp-fail-msg {
+	margin-top: 4px;
+	font-size: var(--font-ui-smaller);
+	color: #c2410c;
+	line-height: 1.5;
+	word-break: break-word;
+}
+.sp-fail-actions,
+.sp-done-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 6px;
+}
+.sp-fail-actions button,
+.sp-done-links button {
+	font-size: var(--font-ui-smaller);
+	padding: 3px 10px !important;
+	height: auto !important;
+}
+.sp-done-tip {
+	flex-basis: 100%;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	line-height: 1.5;
+}
+.sp-progress-close {
+	margin-top: 6px;
+	font-size: var(--font-ui-smaller);
+	padding: 2px 10px !important;
+	height: auto !important;
+}
+.sp-footer .publish-progress-section {
+	max-height: 260px;
+}

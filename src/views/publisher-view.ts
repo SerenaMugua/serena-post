@@ -6,10 +6,16 @@ import { DraftConfirmModal, buildDraftDefaults, detectCover, resolveImageRef } f
 import { MarkedFormatter } from '../utils/formatter';
 import { ThemeManager } from '../utils/theme-manager';
 import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
-import { compressImage } from '../utils/image';
+import { toUploadable } from '../utils/image';
+import { scanImages } from '../modals/precheck';
 import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
 import { KAITOX_STORE_URL } from '../modals/onboarding-modal';
+import { AccountModal } from '../modals/account-modal';
+
+const MP_HOME_URL = 'https://mp.weixin.qq.com/';
+const X_DRAFTS_URL = 'https://x.com/compose/articles';
+const DEV_PLATFORM_URL = 'https://developers.weixin.qq.com/console/product/mp';
 import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
 import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
 import { CUSTOM_THEME_PREFIX, renderSetup, type Theme } from '../utils/theme-manager';
@@ -39,6 +45,9 @@ export class PublisherView extends ItemView {
 	selectedTheme: string = '绿白清简';     // 当前选中的主题
 	themeManager: ThemeManager;
 	publishSummary: { successCount: number; failCount: number } | null = null; // 发布汇总信息
+	/** 最近一次推送的内容（用于失败后重试） */
+	private lastRun: { file: TFile; draft: DraftMeta; html: string; xPrepared: XPrepared | null } | null = null;
+	private retrying = new Set<string>();
 
 	constructor(leaf: WorkspaceLeaf, plugin: WeChatPublisherPlugin) {
 		super(leaf);
@@ -792,7 +801,18 @@ export class PublisherView extends ItemView {
 
 			const header = item.createDiv({ cls: 'progress-item-header' });
 			header.createSpan({ cls: 'account-name', text: account.name });
-			header.createSpan({ cls: `status ${statusClass}`, text: statusText });
+			header.createSpan({ cls: `status ${statusClass}`, text: progress.status === 'failed' ? '失败' : statusText });
+			if (progress.status === 'failed' && progress.error) {
+				item.createDiv({ cls: 'sp-fail-msg', text: progress.error });
+				const actions = item.createDiv({ cls: 'sp-fail-actions' });
+				for (const a of this.errorActions(accountId, progress.error)) {
+					const b = actions.createEl('button', { text: a.label, cls: a.primary ? 'mod-cta' : '' });
+					b.onclick = async () => {
+						b.disabled = true;
+						try { await a.run(); } finally { b.disabled = false; }
+					};
+				}
+			}
 		}
 
 		// 显示发布汇总信息
@@ -816,7 +836,131 @@ export class PublisherView extends ItemView {
 
 			summary.className = `publish-summary ${summaryClass}`;
 			summary.textContent = summaryText;
+
+			// 推送成功后的直达入口
+			const okWechat = Array.from(this.publishProgress.values()).some(p => p.accountId !== X_TARGET_ID && p.status === 'success');
+			const okX = this.publishProgress.get(X_TARGET_ID)?.status === 'success';
+			if (okWechat || okX) {
+				const links = section.createDiv({ cls: 'sp-done-links' });
+				if (okWechat) {
+					const b = links.createEl('button', { text: '打开公众号草稿箱', cls: 'mod-cta' });
+					b.onclick = () => { window.open(MP_HOME_URL); };
+				}
+				if (okX) {
+					const b = links.createEl('button', { text: '打开 X 草稿', cls: 'mod-cta' });
+					b.onclick = () => { window.open(X_DRAFTS_URL); };
+				}
+				const tips: string[] = [];
+				if (okWechat) tips.push('公众号：登录后点左侧「内容管理 → 草稿箱」');
+				if (okX) tips.push('X：Chrome 里的 Kaitox 扩展会在 X 文章编辑器里建好草稿，几秒后在草稿列表里能看到');
+				links.createDiv({ cls: 'sp-done-tip', text: tips.join('；') });
+			}
+			const close = section.createEl('button', { cls: 'sp-progress-close', text: '收起' });
+			close.onclick = () => {
+				this.publishSummary = null;
+				this.publishProgress.clear();
+				this.render();
+			};
 		}
+	}
+
+	/** 根据错误给出能直接点的下一步 */
+	private errorActions(targetId: string, error: string): { label: string; primary?: boolean; run: () => void | Promise<void> }[] {
+		const actions: { label: string; primary?: boolean; run: () => void | Promise<void> }[] = [];
+		const retry = { label: '重新推送', primary: true, run: () => this.retryTarget(targetId) };
+		const openPlatform = { label: '打开开发者平台', run: () => { window.open(DEV_PLATFORM_URL); } };
+		const copyError = {
+			label: '复制错误信息', run: async () => {
+				await navigator.clipboard.writeText(error);
+				new Notice('已复制错误信息');
+			}
+		};
+
+		if (targetId === X_TARGET_ID) {
+			if (/中转/.test(error)) {
+				actions.push({
+					label: '启动内置中转', primary: true, run: async () => {
+						const mode = await this.plugin.relay.takeOver(this.plugin.settings);
+						this.relayOnline = await isRelayUp(this.plugin.settings);
+						new Notice(this.relayOnline ? '中转已启动，可以重新推送了' : `中转启动失败：${this.plugin.relay.error || mode}`);
+						this.render();
+					}
+				});
+				actions.push({ ...retry, primary: false });
+			} else {
+				actions.push(retry);
+			}
+			actions.push({ label: '安装 Kaitox 扩展', run: () => { window.open(KAITOX_STORE_URL); } });
+			actions.push(copyError);
+			return actions;
+		}
+
+		const code = error.match(/errcode:\s*([-\w]+)/)?.[1] ?? '';
+		const account = this.plugin.settings.accounts.find(a => a.id === targetId);
+		const editAccount = {
+			label: '编辑账号', run: () => {
+				if (!account) return;
+				new AccountModal(this.app, this.plugin, account, async updated => {
+					const i = this.plugin.settings.accounts.findIndex(a => a.id === account.id);
+					if (i !== -1) this.plugin.settings.accounts[i] = updated;
+					await this.plugin.saveSettings();
+					new Notice('账号已更新，可以重新推送了');
+					this.render();
+				}).open();
+			}
+		};
+
+		if (code === '40164') {
+			const ip = error.match(/IP\s*([0-9a-fA-F.:]{7,})/)?.[1];
+			if (ip) {
+				actions.push({
+					label: `复制 IP ${ip}`, primary: true, run: async () => {
+						await navigator.clipboard.writeText(ip);
+						new Notice(`已复制 ${ip}，去开发者平台加进 IP 白名单`);
+					}
+				});
+			}
+			actions.push(openPlatform, { ...retry, primary: !ip });
+		} else if (['40001', '40125', '40013'].includes(code) || /AppSecret/.test(error)) {
+			actions.push({ ...editAccount, primary: true } as typeof editAccount & { primary: boolean }, openPlatform, { ...retry, primary: false });
+		} else if (code === '48001') {
+			actions.push({
+				label: '改用「复制到公众号」', primary: true, run: async () => {
+					await this.plugin.openLivePreview('wechat');
+					new Notice('点预览顶部的「复制到公众号」，再到公众号编辑器里粘贴');
+				}
+			}, openPlatform);
+		} else if (code === '45009') {
+			actions.push(copyError);
+		} else if (['40007', '40009', '41005'].includes(code) || /封面/.test(error)) {
+			actions.push({ label: '换封面重新发布', primary: true, run: () => this.handlePublish() }, copyError);
+		} else {
+			actions.push(retry, copyError);
+		}
+		return actions;
+	}
+
+	/** 只重推失败的那一个目标 */
+	private async retryTarget(targetId: string) {
+		const run = this.lastRun;
+		if (!run) { new Notice('找不到上次推送的内容，请重新点「发布到草稿箱」'); return; }
+		if (this.retrying.has(targetId) || this.isPublishing) return;
+		this.retrying.add(targetId);
+		try {
+			if (targetId === X_TARGET_ID) {
+				if (run.xPrepared) await this.publishToX(run.file, run.xPrepared, run.draft);
+			} else {
+				await this.publishToAccount(targetId, run.draft, run.html);
+			}
+		} finally {
+			this.retrying.delete(targetId);
+		}
+		const all = Array.from(this.publishProgress.values());
+		this.publishSummary = {
+			successCount: all.filter(p => p.status === 'success').length,
+			failCount: all.filter(p => p.status === 'failed').length
+		};
+		this.render();
 	}
 
 	/** 当前笔记 → 公众号 HTML。forCopy=true 时图片转成内嵌（复制 / 发布用），否则用本地路径（预览快） */
@@ -917,7 +1061,7 @@ export class PublisherView extends ItemView {
 		const matches = Array.from(content.matchAll(imageRegex));
 
 		for (const match of matches) {
-			const filename = match[1];
+			const filename = match[1].split('|')[0].trim();
 			const file = this.app.metadataCache.getFirstLinkpathDest(filename, activeView.file?.path || '');
 
 			if (file && file.extension.match(/^(png|jpe?g|gif|svg|webp)$/i)) {
@@ -959,8 +1103,8 @@ export class PublisherView extends ItemView {
 		for (const match of matches) {
 			const filename = match[1];
 
-			// Try to find the file in the vault
-			const file = this.app.metadataCache.getFirstLinkpathDest(filename, activeView.file?.path || '');
+			// Try to find the file in the vault（去掉 |300 这类尺寸写法）
+			const file = this.app.metadataCache.getFirstLinkpathDest(filename.split('|')[0].trim(), activeView.file?.path || '');
 
 			if (file && file.extension.match(/^(png|jpe?g|gif|svg|webp)$/i)) {
 				try {
@@ -978,7 +1122,7 @@ export class PublisherView extends ItemView {
 					} else if (file.extension === 'webp') {
 						mimeType = 'image/webp';
 					}
-					const compressed = await compressImage(arrayBuffer, mimeType);
+					const compressed = await toUploadable(arrayBuffer, mimeType);
 					arrayBuffer = compressed.data;
 					mimeType = compressed.mimeType;
 					const base64 = btoa(
@@ -1026,7 +1170,7 @@ export class PublisherView extends ItemView {
 					} else if (file.extension === 'webp') {
 						mimeType = 'image/webp';
 					}
-					const compressed = await compressImage(arrayBuffer, mimeType);
+					const compressed = await toUploadable(arrayBuffer, mimeType);
 					arrayBuffer = compressed.data;
 					mimeType = compressed.mimeType;
 					const base64 = btoa(
@@ -1105,7 +1249,8 @@ export class PublisherView extends ItemView {
 				.map(a => a.name);
 			draft = await new DraftConfirmModal(
 				this.app, meta, coverSource, accountNames,
-				xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : undefined
+				xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : undefined,
+				scanImages(this.app, file, content)
 			).openAndWait();
 		} catch (error) {
 			loading.hide();
@@ -1144,6 +1289,8 @@ export class PublisherView extends ItemView {
 
 		// Convert markdown to WeChat HTML with custom CSS
 		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
+		// 记下这次推送的内容，失败后可以单独「重新推送」
+		this.lastRun = { file, draft, html: htmlContent, xPrepared };
 
 		// Publish with concurrency control
 		const accountIds = Array.from(this.selectedAccountIds);

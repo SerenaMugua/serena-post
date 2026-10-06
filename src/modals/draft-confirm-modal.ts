@@ -1,6 +1,7 @@
-import { App, Modal, Notice, Setting, TFile, requestUrl } from 'obsidian';
+import { App, Modal, Notice, Setting, TFile, requestUrl, setIcon } from 'obsidian';
 import { DraftMeta } from '../types';
-import { compressImage } from '../utils/image';
+import { compressImage, cropToRatio, imageSize } from '../utils/image';
+import type { ImageScan } from './precheck';
 import { renderStyleReport } from '../x/x-preview-modal';
 import type { StyleReport } from '../../vendor/kaitox/relay-protocol/index';
 
@@ -11,6 +12,18 @@ export interface XConfirmInfo {
 }
 
 export const DRAFT_LIMITS = { title: 64, author: 8, digest: 120 };
+
+/** 公众号封面推荐比例 2.35:1（900×383） */
+const COVER_RATIO = 2.35;
+
+interface CheckIssue {
+	id: string;
+	/** error 必须修复才能推送；warn / info 可以忽略 */
+	level: 'error' | 'warn' | 'info';
+	text: string;
+	fixLabel?: string;
+	fix?: () => void | Promise<void>;
+}
 
 /** 封面图上传前压缩到这个大小以内（KB） */
 const COVER_MAX_KB = 1024;
@@ -239,13 +252,124 @@ export class DraftConfirmModal extends Modal {
 	private xInfo?: XConfirmInfo;
 	private resolver: ((meta: DraftMeta | null) => void) | null = null;
 	private submitted = false;
+	private scan?: ImageScan;
+	private ignored = new Set<string>();
+	private coverDims: { w: number; h: number } | null = null;
+	private checkEl: HTMLElement | null = null;
 
-	constructor(app: App, meta: DraftMeta, coverSource: string, accountNames: string[], xInfo?: XConfirmInfo) {
+	constructor(app: App, meta: DraftMeta, coverSource: string, accountNames: string[], xInfo?: XConfirmInfo, scan?: ImageScan) {
 		super(app);
 		this.meta = { ...meta };
 		this.coverSource = coverSource;
 		this.accountNames = accountNames;
 		this.xInfo = xInfo;
+		this.scan = scan;
+	}
+
+	private async measureCover() {
+		this.coverDims = null;
+		if (!this.meta.coverBase64) return;
+		try {
+			this.coverDims = await imageSize(this.meta.coverBase64);
+		} catch { /* 读不出尺寸就不检查比例 */ }
+		this.renderChecks();
+	}
+
+	/** 发布前体检：列出问题，能一键修的给按钮 */
+	private issues(): CheckIssue[] {
+		const m = this.meta;
+		const out: CheckIssue[] = [];
+		const L = DRAFT_LIMITS;
+		if (!m.title.trim()) out.push({ id: 'title-empty', level: 'error', text: '还没有标题' });
+		if (m.title.length > L.title) {
+			out.push({ id: 'title', level: 'error', text: `标题 ${m.title.length} 字，超过 ${L.title} 字上限`, fixLabel: `截成 ${L.title} 字`, fix: () => { m.title = m.title.slice(0, L.title); } });
+		}
+		if (this.hasWechat) {
+			if (m.author.length > L.author) {
+				out.push({ id: 'author', level: 'error', text: `作者「${m.author}」${m.author.length} 个字，公众号最多 ${L.author} 个字`, fixLabel: `只保留前 ${L.author} 个字`, fix: () => { m.author = m.author.slice(0, L.author); } });
+			}
+			if (m.digest.length > L.digest) {
+				out.push({ id: 'digest', level: 'error', text: `摘要 ${m.digest.length} 字，超过 ${L.digest} 字上限`, fixLabel: `截成 ${L.digest} 字`, fix: () => { m.digest = m.digest.slice(0, L.digest - 1) + '…'; } });
+			}
+			if (!m.coverBase64) {
+				out.push({ id: 'cover-missing', level: 'error', text: '公众号草稿必须有封面', fixLabel: '选择封面', fix: () => this.pickCover() });
+			} else if (this.coverDims) {
+				const { w, h } = this.coverDims;
+				const r = w / h;
+				if (Math.abs(r - COVER_RATIO) > 0.3) {
+					out.push({
+						id: 'cover-ratio', level: 'warn',
+						text: `封面是 ${w}×${h}（约 ${r.toFixed(2)}:1），公众号封面推荐 2.35:1，其他比例在列表里会被裁掉一部分`,
+						fixLabel: '居中裁成 2.35:1',
+						fix: async () => {
+							m.coverBase64 = await cropToRatio(m.coverBase64, COVER_RATIO);
+							this.coverSource += '（已裁成 2.35:1）';
+							await this.measureCover();
+						}
+					});
+				}
+			}
+			const sc = this.scan;
+			if (sc?.missing.length) {
+				out.push({ id: 'img-missing', level: 'warn', text: `${sc.missing.length} 张图片在库里找不到（${sc.missing.slice(0, 3).join('、')}${sc.missing.length > 3 ? ' 等' : ''}），草稿里会缺这些图` });
+			}
+			if (sc?.animated.length) {
+				out.push({ id: 'img-gif', level: 'warn', text: `${sc.animated.length} 张 GIF 动图：公众号接口只能上传静态图，发布后会变成第一帧（想保留动图，需要发布后在公众号编辑器里重新插入）` });
+			}
+			if (sc?.large.length) {
+				const max = Math.max(...sc.large.map(i => i.kb));
+				out.push({ id: 'img-large', level: 'info', text: `${sc.large.length} 张图片超过 1MB（最大 ${(max / 1024).toFixed(1)}MB），发布时会自动压缩到 1MB 以内` });
+			}
+			if (sc?.remote.length) {
+				out.push({ id: 'img-remote', level: 'info', text: `${sc.remote.length} 张网络图片，发布时会自动下载再上传到公众号；如果原网站不让下载，草稿里会少这张图` });
+			}
+		}
+		return out.filter(i => i.level === 'error' || !this.ignored.has(i.id));
+	}
+
+	private renderChecks() {
+		const box = this.checkEl;
+		if (!box) return;
+		box.empty();
+		const list = this.issues();
+		const head = box.createDiv({ cls: 'sp-check-head' });
+		const ic = head.createSpan({ cls: 'sp-check-head-ic' });
+		if (list.length === 0) {
+			box.addClass('is-pass');
+			setIcon(ic, 'check-circle-2');
+			head.createSpan({ text: '发布前检查通过' });
+			return;
+		}
+		box.removeClass('is-pass');
+		setIcon(ic, 'stethoscope');
+		const errors = list.filter(i => i.level === 'error').length;
+		head.createSpan({ text: errors ? `发布前检查：${errors} 个问题需要先修复` : `发布前检查：${list.length} 条提醒` });
+		for (const issue of list) {
+			const row = box.createDiv({ cls: `sp-check-row is-${issue.level}` });
+			const ri = row.createSpan({ cls: 'sp-check-ic' });
+			setIcon(ri, issue.level === 'error' ? 'x-circle' : issue.level === 'warn' ? 'alert-triangle' : 'info');
+			row.createDiv({ cls: 'sp-check-text', text: issue.text });
+			const actions = row.createDiv({ cls: 'sp-check-actions' });
+			if (issue.fix) {
+				const b = actions.createEl('button', { text: issue.fixLabel ?? '修复', cls: 'mod-cta' });
+				b.onclick = async () => {
+					b.disabled = true;
+					try {
+						await issue.fix!();
+					} catch (e) {
+						new Notice(`修复失败：${e instanceof Error ? e.message : e}`);
+					}
+					this.render();
+				};
+			}
+			if (issue.level !== 'error') {
+				const b = actions.createEl('button', { text: issue.level === 'info' ? '知道了' : '忽略' });
+				b.onclick = () => {
+					this.ignored.add(issue.id);
+					this.renderChecks();
+				};
+			}
+		}
 	}
 
 	private get hasWechat(): boolean {
@@ -263,6 +387,7 @@ export class DraftConfirmModal extends Modal {
 	onOpen() {
 		this.modalEl.addClass('wechatpb-draft-modal');
 		this.render();
+		void this.measureCover();
 	}
 
 	onClose() {
@@ -280,6 +405,9 @@ export class DraftConfirmModal extends Modal {
 			cls: 'wechatpb-draft-target',
 			text: `将发送到：${targets.join('、')}`
 		});
+
+		this.checkEl = contentEl.createDiv({ cls: 'sp-check' });
+		this.renderChecks();
 
 		if (this.xInfo) {
 			const xBox = contentEl.createDiv({ cls: 'wechatpb-x-confirm' });
@@ -306,6 +434,7 @@ export class DraftConfirmModal extends Modal {
 			text.setValue(this.meta.title).onChange(v => {
 				this.meta.title = v;
 				counter(titleCount, v, DRAFT_LIMITS.title);
+				this.renderChecks();
 			});
 			text.inputEl.addClass('wechatpb-wide-input');
 		});
@@ -321,6 +450,7 @@ export class DraftConfirmModal extends Modal {
 			.onChange(v => {
 				this.meta.author = v;
 				counter(authorCount, v, DRAFT_LIMITS.author);
+				this.renderChecks();
 			}));
 
 		// 摘要
@@ -331,6 +461,7 @@ export class DraftConfirmModal extends Modal {
 			area.setValue(this.meta.digest).onChange(v => {
 				this.meta.digest = v;
 				counter(digestCount, v, DRAFT_LIMITS.digest);
+				this.renderChecks();
 			});
 			area.inputEl.rows = 3;
 			area.inputEl.addClass('wechatpb-wide-input');
@@ -397,6 +528,7 @@ export class DraftConfirmModal extends Modal {
 				this.meta.coverBase64 = await toCoverDataUrl(await file.arrayBuffer(), file.type || 'image/jpeg');
 				this.coverSource = `手动选择（${file.name}）`;
 				this.render();
+				await this.measureCover();
 			} catch (e) {
 				new Notice(`封面读取失败：${e instanceof Error ? e.message : e}`);
 			}
@@ -409,6 +541,12 @@ export class DraftConfirmModal extends Modal {
 		m.title = m.title.trim();
 		m.author = m.author.trim();
 		m.digest = m.digest.trim();
+		const blocking = this.issues().filter(i => i.level === 'error');
+		if (blocking.length) {
+			new Notice(`还有 ${blocking.length} 个问题需要先修复（见弹窗顶部「发布前检查」）`);
+			this.checkEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			return;
+		}
 		if (!m.title) { new Notice('请填写标题'); return; }
 		if (m.title.length > DRAFT_LIMITS.title) { new Notice(`标题最多 ${DRAFT_LIMITS.title} 字`); return; }
 		if (this.hasWechat && m.author.length > DRAFT_LIMITS.author) { new Notice(`作者最多 ${DRAFT_LIMITS.author} 字`); return; }
