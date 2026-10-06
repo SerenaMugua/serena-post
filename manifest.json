@@ -1,10 +1,10 @@
 {
-  "id": "serena-post",
-  "name": "SerenaPost",
-  "version": "1.0.0",
-  "minAppVersion": "1.11.4",
-  "description": "One note, two drafts: format and push to WeChat Official Account drafts and X Article drafts. 一稿双发：公众号 + X 草稿箱。",
-  "author": "Serena 木瓜",
-  "authorUrl": "https://x.com/369Serena",
-  "isDesktopOnly": true
+	"id": "serena-post",
+	"name": "SerenaPost",
+	"version": "1.1.0",
+	"minAppVersion": "1.11.4",
+	"description": "Format notes for WeChat Official Accounts and push them to WeChat drafts and X Article drafts in one click, with live preview, layout themes and pre-publish checks.",
+	"author": "Serena 木瓜",
+	"authorUrl": "https://x.com/369Serena",
+	"isDesktopOnly": true
 }

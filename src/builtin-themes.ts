@@ -12,6 +12,7 @@ import markerBlue from '../themes/荧光马克-蓝.md';
 import neonDark from '../themes/霓虹暗底-青紫.md';
 import blueWhiteCase from '../themes/蓝白案例.md';
 import greenWhiteClean from '../themes/绿白清简.md';
+import serenaBlue from '../themes/Serena蓝白.md';
 
 export const DEFAULT_BUILTIN_THEME = '绿白清简';
 
@@ -20,8 +21,12 @@ export interface BuiltinThemeDocument {
 	content: string;
 	description: string;
 	accent: string;
+	/** 辅助色（章节样式里的符号、下划线等）；不填按主色调浅 */
+	accent2?: string;
 	legacyNames?: string[];
 	headingLabel?: string;
+	headingNumbers?: boolean;
+	codeWindow?: boolean;
 }
 
 /**
@@ -103,6 +108,15 @@ export const BUILTIN_THEME_REFINEMENT = `
 `.trim();
 
 export const BUILTIN_THEME_DOCUMENTS: ReadonlyArray<BuiltinThemeDocument> = [
+	{
+		name: 'Serena 蓝白',
+		content: serenaBlue,
+		description: 'Serena 木瓜 IP 配色：深蓝 + 亮蓝，章节序号标题，引用、代码块、表格统一框线风格',
+		accent: '#0058a3',
+		accent2: '#53a4ea',
+		headingNumbers: true,
+		codeWindow: true
+	},
 	{
 		name: '绿白清简',
 		content: greenWhiteClean,

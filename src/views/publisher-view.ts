@@ -1,4 +1,4 @@
-import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, TFile, normalizePath, sanitizeHTMLToDom } from 'obsidian';
+import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, TFile, normalizePath, sanitizeHTMLToDom, setIcon } from 'obsidian';
 import html2canvas from 'html2canvas';
 import WeChatPublisherPlugin from '../main';
 import { WeChatAccount, PublishProgress, DraftMeta } from '../types';
@@ -6,10 +6,21 @@ import { DraftConfirmModal, buildDraftDefaults, detectCover, resolveImageRef } f
 import { MarkedFormatter } from '../utils/formatter';
 import { ThemeManager } from '../utils/theme-manager';
 import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
-import { compressImage } from '../utils/image';
+import { toUploadable } from '../utils/image';
+import { scanImages } from '../modals/precheck';
 import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
-import { XPreviewModal } from '../x/x-preview-modal';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
+import { KAITOX_STORE_URL } from '../modals/onboarding-modal';
+import { AccountModal } from '../modals/account-modal';
+
+const MP_HOME_URL = 'https://mp.weixin.qq.com/';
+const X_DRAFTS_URL = 'https://x.com/compose/articles';
+const DEV_PLATFORM_URL = 'https://developers.weixin.qq.com/console/product/mp';
+import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
+import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
+import { CUSTOM_THEME_PREFIX, renderSetup, type Theme } from '../utils/theme-manager';
+import { HEADING_STYLES } from '../utils/heading-styles';
+import { squareAvatar } from '../utils/image';
 
 /** 发布进度里 X 渠道使用的伪账号 id */
 const X_TARGET_ID = '__x_article__';
@@ -34,6 +45,13 @@ export class PublisherView extends ItemView {
 	selectedTheme: string = '绿白清简';     // 当前选中的主题
 	themeManager: ThemeManager;
 	publishSummary: { successCount: number; failCount: number } | null = null; // 发布汇总信息
+	/** 当前笔记用的章节样式（笔记属性 sp_heading_style 优先，否则用全局设置） */
+	headingStyle = 'theme';
+	/** 当前笔记属性里记着上次用的排版 */
+	private noteRemembered = false;
+	/** 最近一次推送的内容（用于失败后重试） */
+	private lastRun: { file: TFile; draft: DraftMeta; html: string; xPrepared: XPrepared | null } | null = null;
+	private retrying = new Set<string>();
 
 	constructor(leaf: WorkspaceLeaf, plugin: WeChatPublisherPlugin) {
 		super(leaf);
@@ -62,9 +80,11 @@ export class PublisherView extends ItemView {
 		// 初始化主题管理器
 		this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
 		this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
+		this.themeManager.setCustomDefs(this.plugin.settings.customThemes);
 		await this.themeManager.loadThemes();
 		const initialTheme = this.themeManager.getTheme(this.plugin.settings.defaultTheme) ?? this.themeManager.getDefaultTheme();
 		this.selectedTheme = initialTheme.name;
+		this.headingStyle = this.plugin.settings.headingStyle;
 		if (this.plugin.settings.defaultTheme !== initialTheme.name) {
 			this.plugin.settings.defaultTheme = initialTheme.name;
 			await this.plugin.saveSettings();
@@ -79,7 +99,16 @@ export class PublisherView extends ItemView {
 		}));
 
 		this.render();
+		this.plugin.refreshLivePreview();
+		if (!this.plugin.settings.onboardingDone) {
+			this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.plugin.openOnboarding(), 600));
+		}
 		void this.checkRelay();
+		// 内置中转在 Obsidian 布局就绪后才启动，开头几秒多查两次，避免误显示「未运行」
+		for (const ms of [2000, 5000]) {
+			const t = window.setTimeout(() => void this.checkRelay(), ms);
+			this.register(() => window.clearTimeout(t));
+		}
 		this.registerInterval(window.setInterval(() => void this.checkRelay(), 15000));
 		const initial = this.app.workspace.getActiveFile();
 		if (initial && initial.extension === 'md') void this.setCurrentFile(initial);
@@ -100,9 +129,67 @@ export class PublisherView extends ItemView {
 	async setCurrentFile(file: TFile) {
 		if (this.currentFile?.path === file.path) return;
 		this.currentFile = file;
+		this.applyNoteLook(file);
 		// 手动上传的封面只属于上一篇笔记
 		this.coverImage = null;
 		await this.refreshAutoCover(false);
+	}
+
+	/** 打开笔记时沿用它上次推送用的排版和章节样式（笔记属性 sp_theme / sp_heading_style） */
+	applyNoteLook(file: TFile) {
+		const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+		const st = this.plugin.settings;
+		const noteTheme = typeof fm?.sp_theme === 'string' ? fm.sp_theme : '';
+		const noteStyle = typeof fm?.sp_heading_style === 'string' ? fm.sp_heading_style : '';
+		const themeOk = noteTheme && this.themeManager.getTheme(noteTheme);
+		this.selectedTheme = themeOk ? noteTheme : (this.themeManager.getTheme(st.defaultTheme)?.name ?? this.selectedTheme);
+		this.headingStyle = noteStyle && HEADING_STYLES.some(h => h.id === noteStyle) ? noteStyle : st.headingStyle;
+		this.noteRemembered = Boolean(themeOk || noteStyle);
+		this.plugin.refreshLivePreview();
+	}
+
+	/** 推送成功后，把这次用的封面、摘要、作者、排版写回笔记属性，下次自动沿用 */
+	private async writeBackMeta(file: TFile, draft: DraftMeta) {
+		const st = this.plugin.settings;
+		const fm0 = (this.app.metadataCache.getFileCache(file)?.frontmatter ?? {}) as Record<string, unknown>;
+		const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+		let coverLink = '';
+		const src = draft.coverSource ?? '';
+		// 封面不是直接来自笔记属性 cover / 正文第一张图（例如手动选的、裁剪过的），就存一份进库
+		if (draft.coverBase64 && (!/^(笔记属性 cover|正文第一张图片)$/.test(src))) {
+			try {
+				const m = draft.coverBase64.match(/^data:image\/(png|jpe?g);base64,(.+)$/);
+				if (m) {
+					const bin = atob(m[2]);
+					const bytes = new Uint8Array(bin.length);
+					for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+					const ext = m[1] === 'png' ? 'png' : 'jpg';
+					const path = await this.app.fileManager.getAvailablePathForAttachment(`${file.basename}-封面.${ext}`, file.path);
+					const created = await this.app.vault.createBinary(path, bytes.buffer);
+					coverLink = `[[${created.name}]]`;
+				}
+			} catch (e) {
+				console.error('[SerenaPost] 保存封面失败', e);
+			}
+		}
+		const fmTitle = str(fm0.title) || str(fm0['标题']);
+		const wrote: string[] = [];
+		await this.app.fileManager.processFrontMatter(file, fm => {
+			if (draft.title && draft.title !== (fmTitle || file.basename)) { fm.title = draft.title; wrote.push('标题'); }
+			if (draft.author && draft.author !== (str(fm.wx_author) || st.defaultAuthor)) { fm.wx_author = draft.author; wrote.push('作者'); }
+			if (draft.digest && draft.digest !== str(fm.digest)) { fm.digest = draft.digest; wrote.push('摘要'); }
+			if (draft.contentSourceUrl && draft.contentSourceUrl !== str(fm.source_url)) { fm.source_url = draft.contentSourceUrl; }
+			if (typeof fm.comment === 'boolean' ? fm.comment !== draft.openComment : draft.openComment !== st.defaultOpenComment) { fm.comment = draft.openComment; }
+			if (coverLink) { fm.cover = coverLink; wrote.push('封面'); }
+			if (fm.sp_theme !== this.selectedTheme) { fm.sp_theme = this.selectedTheme; }
+			if (fm.sp_heading_style !== this.headingStyle) { fm.sp_heading_style = this.headingStyle; }
+			wrote.push('排版');
+			const d = new Date();
+			const pad = (n: number) => String(n).padStart(2, '0');
+			fm.sp_published = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+		});
+		this.noteRemembered = true;
+		new Notice(`已把这次的${wrote.join('、')}记到笔记属性里，下次推送这篇会自动沿用`);
 	}
 
 	async refreshAutoCover(silent: boolean) {
@@ -137,31 +224,90 @@ export class PublisherView extends ItemView {
 	render() {
 		const container = this.containerEl.children[1] as HTMLElement;
 		container.empty();
+		container.addClass('sp-sidebar');
 
 		// Header
 		const header = container.createDiv({ cls: 'publisher-header' });
 		const brand = header.createDiv({ cls: 'serena-post-brand' });
 		brand.createEl('img', { cls: 'serena-post-avatar', attr: { src: AVATAR_DATA_URI, alt: 'Serena' } });
-		const titles = brand.createDiv();
+		const titles = brand.createDiv({ cls: 'sp-brand-titles' });
 		titles.createEl('h3', { text: 'SerenaPost' });
 		titles.createDiv({ cls: 'serena-post-tagline', text: '一稿双发 · 公众号 + X' });
+		const guide = brand.createEl('button', { cls: 'sp-guide-btn', text: '新手引导' });
+		guide.onclick = () => this.plugin.openOnboarding();
 
-		// Account selection
-		this.renderAccountSelection(container);
+		this.renderLegacyKaitoxNotice(container);
 
-		// Cover upload
-		this.renderCoverUpload(container);
+		const body = container.createDiv({ cls: 'sp-cards' });
+		this.card(body, 'target', '发到哪', this.targetSummary(), el => this.renderAccountSelection(el));
+		this.card(body, 'look', '长什么样', this.lookSummary(), el => this.renderThemeSelection(el));
+		this.card(body, 'cover', '封面', this.coverSummary(), el => this.renderCoverUpload(el));
 
-		// Theme selection
-		this.renderThemeSelection(container);
-
-		// Action buttons
-		this.renderActionButtons(container);
-
-		// Progress section (shown when publishing or has summary to display)
+		// 底部固定：预览 / 发布 + 进度
+		const footer = container.createDiv({ cls: 'sp-footer' });
 		if (this.isPublishing || this.publishSummary) {
-			this.renderPublishProgress(container);
+			this.renderPublishProgress(footer);
 		}
+		this.renderActionButtons(footer);
+	}
+
+	/** 旧 Kaitox 插件还开着：它会弹「relay 未运行」之类的提示，和 SerenaPost 的内置中转重复 */
+	private renderLegacyKaitoxNotice(container: HTMLElement) {
+		const plugins = (this.app as unknown as { plugins?: { enabledPlugins?: Set<string>; disablePluginAndSave?: (id: string) => Promise<void> } }).plugins;
+		if (!plugins?.enabledPlugins?.has('kaitox')) return;
+		const box = container.createDiv({ cls: 'sp-legacy-notice' });
+		const text = box.createDiv({ cls: 'sp-legacy-text' });
+		text.createEl('strong', { text: '可以关掉旧 Kaitox 插件' });
+		text.createDiv({ text: 'SerenaPost 已经内置了推 X 的功能。旧插件开着会重复弹「relay 未运行」的提示。（Chrome 里的 Kaitox 扩展要保留）' });
+		const btn = box.createEl('button', { text: '一键关闭', cls: 'mod-cta' });
+		btn.onclick = async () => {
+			btn.disabled = true;
+			try {
+				await plugins.disablePluginAndSave?.('kaitox');
+				new Notice('已关闭旧 Kaitox 插件，以后用 SerenaPost 推 X 就行');
+			} catch (e) {
+				new Notice(`关闭失败，可到「设置 → 第三方插件」手动关闭：${e instanceof Error ? e.message : e}`);
+			}
+			this.render();
+		};
+	}
+
+	/** 可折叠的分组卡片，折叠时标题右边显示当前选择 */
+	private card(parent: HTMLElement, id: string, title: string, summary: string, fill: (el: HTMLElement) => void) {
+		const collapsed = this.plugin.settings.collapsedCards.includes(id);
+		const card = parent.createDiv({ cls: `sp-card${collapsed ? ' is-collapsed' : ''}` });
+		const head = card.createDiv({ cls: 'sp-card-head' });
+		const chev = head.createSpan({ cls: 'sp-card-chev' });
+		setIcon(chev, 'chevron-down');
+		head.createSpan({ cls: 'sp-card-title', text: title });
+		head.createSpan({ cls: 'sp-card-summary', text: summary });
+		head.onclick = async () => {
+			const list = this.plugin.settings.collapsedCards;
+			this.plugin.settings.collapsedCards = collapsed ? list.filter(c => c !== id) : [...list, id];
+			await this.plugin.saveSettings();
+			this.render();
+		};
+		if (!collapsed) fill(card.createDiv({ cls: 'sp-card-body' }));
+	}
+
+	private targetSummary(): string {
+		const parts: string[] = [];
+		if (this.selectedAccountIds.size) parts.push(`公众号 ${this.selectedAccountIds.size} 个`);
+		if (this.xSelected) parts.push('X');
+		return parts.length ? parts.join(' + ') : '未选择';
+	}
+
+	private lookSummary(): string {
+		const style = HEADING_STYLES.find(h => h.id === this.headingStyle);
+		const styleText = style && style.id !== 'theme' ? ` · ${style.label.split(/\s|　/)[0]}` : '';
+		return `${this.selectedTheme}${styleText}`;
+	}
+
+	private coverSummary(): string {
+		const file = this.currentFile;
+		if (this.coverImage) return '已手动设置';
+		if (this.autoCover && file && this.autoCover.filePath === file.path && !this.autoCoverDismissed.has(file.path)) return '自动：正文第一张图';
+		return '未设置';
 	}
 
 	renderAccountSelection(container: HTMLElement) {
@@ -170,7 +316,10 @@ export class PublisherView extends ItemView {
 
 		if (this.plugin.settings.accounts.length === 0) {
 			this.selectedAccountIds.clear();
-			section.createDiv({ cls: 'account-remark', text: '还没有公众号账号，可在插件设置里添加' });
+			const empty = section.createDiv({ cls: 'account-remark sp-empty-cta' });
+			empty.createSpan({ text: '还没有公众号账号。' });
+			const start = empty.createEl('button', { text: '跟着引导设置', cls: 'mod-cta' });
+			start.onclick = () => this.plugin.openOnboarding();
 			this.renderXItem(section);
 			this.renderSelectedCount(section);
 			return;
@@ -226,10 +375,14 @@ export class PublisherView extends ItemView {
 		dot.addClass(online === null ? 'is-unknown' : online ? 'is-on' : 'is-off');
 		dot.setAttr('aria-label', online ? '中转已连接' : '中转未连接');
 		label.createSpan({ cls: 'account-name', text: 'X 文章草稿' });
-		label.createDiv({
-			cls: 'account-remark',
-			text: online === null ? '正在检测中转…' : online ? '中转已就绪 · 需要 Chrome 里的 Kaitox 扩展' : '中转未运行：到 SerenaPost 设置打开「内置中转」'
-		});
+		const remark = label.createDiv({ cls: 'account-remark' });
+		if (online === null) remark.setText('正在检测中转…');
+		else if (!online) remark.setText('中转未运行：到 SerenaPost 设置打开「内置中转」');
+		else {
+			remark.appendText('中转已就绪 · 需要 Chrome 里的 ');
+			const a = remark.createEl('a', { text: 'Kaitox 扩展', href: KAITOX_STORE_URL });
+			a.onclick = e => { e.stopPropagation(); };
+		}
 	}
 
 	renderAccountItem(container: HTMLElement, account: WeChatAccount) {
@@ -269,6 +422,106 @@ export class PublisherView extends ItemView {
 		}
 	}
 
+	async reloadThemes() {
+		this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
+		this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
+		this.themeManager.setCustomDefs(this.plugin.settings.customThemes);
+		await this.themeManager.loadThemes();
+		if (!this.themeManager.getTheme(this.selectedTheme)) {
+			this.selectedTheme = this.themeManager.getDefaultTheme().name;
+		}
+		this.plugin.refreshLivePreview();
+	}
+
+	private async selectTheme(name: string) {
+		this.selectedTheme = name;
+		this.plugin.settings.defaultTheme = name;
+		await this.plugin.saveSettings();
+	}
+
+	/** 编辑器预览用：当前笔记正文（去掉属性、图片转成可显示的数据） */
+	private async getPreviewMarkdown(): Promise<string> {
+		const file = this.currentFile ?? this.app.workspace.getActiveFile();
+		if (!file || file.extension !== 'md') return '';
+		let content = this.removeFrontmatter(await this.app.vault.cachedRead(file));
+		const leaf = this.app.workspace.getLeavesOfType('markdown').find(l => (l.view as MarkdownView).file?.path === file.path);
+		if (leaf) {
+			try { content = await this.processImageLinks(content, leaf.view as MarkdownView); } catch { /* 预览不显示图片也无妨 */ }
+		}
+		return content;
+	}
+
+	async openThemeEditor() {
+		const current = this.themeManager.getTheme(this.selectedTheme);
+		const builtins = this.themeManager.getBuiltinThemes();
+		const editing = current?.customDef;
+		const startBase = editing?.base ?? (current?.builtin ? current.name : builtins[0]?.name);
+		new ThemeEditorModal(this.app, {
+			builtins,
+			editing,
+			startBase,
+			existingNames: this.plugin.settings.customThemes.map(t => t.name),
+			previewMarkdown: await this.getPreviewMarkdown(),
+			onSave: async (def, isNew) => {
+				const list = this.plugin.settings.customThemes;
+				if (isNew) list.push(def);
+				else {
+					const i = list.findIndex(t => t.id === def.id);
+					if (i >= 0) list[i] = def; else list.push(def);
+				}
+				await this.plugin.saveSettings();
+				await this.reloadThemes();
+				await this.selectTheme(CUSTOM_THEME_PREFIX + def.name);
+				new Notice(isNew ? `已保存新排版「${def.name}」` : `已更新排版「${def.name}」`);
+				this.render();
+			},
+			onDelete: async def => {
+				this.plugin.settings.customThemes = this.plugin.settings.customThemes.filter(t => t.id !== def.id);
+				await this.plugin.saveSettings();
+				await this.reloadThemes();
+				await this.selectTheme(this.themeManager.getTheme(def.base)?.name ?? this.themeManager.getDefaultTheme().name);
+				new Notice(`已删除排版「${def.name}」`);
+				this.render();
+			},
+			onExport: def => this.exportTheme(def)
+		}).open();
+	}
+
+	async exportTheme(def: CustomThemeDef) {
+		const folder = 'SerenaPost排版';
+		const safe = def.name.replace(/[\\/:*?"<>|]/g, '-');
+		const path = normalizePath(`${folder}/${safe}.serenapost.json`);
+		try {
+			if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
+			const existing = this.app.vault.getAbstractFileByPath(path);
+			if (existing instanceof TFile) await this.app.vault.modify(existing, exportThemeJson(def));
+			else await this.app.vault.create(path, exportThemeJson(def));
+			new Notice(`已导出到仓库：${path}\n把这个文件发给别人，对方点「导入排版」即可使用`, 8000);
+		} catch (e) {
+			new Notice(`导出失败：${e instanceof Error ? e.message : e}`);
+		}
+	}
+
+	async importTheme(raw: string) {
+		try {
+			const builtins = this.themeManager.getBuiltinThemes().map(t => t.name);
+			const def = parseThemeJson(raw, builtins, this.themeManager.getDefaultTheme().name);
+			const names = this.plugin.settings.customThemes.map(t => t.name);
+			let name = def.name;
+			let i = 2;
+			while (names.includes(name)) name = `${def.name} ${i++}`;
+			def.name = name;
+			this.plugin.settings.customThemes.push(def);
+			await this.plugin.saveSettings();
+			await this.reloadThemes();
+			await this.selectTheme(CUSTOM_THEME_PREFIX + def.name);
+			new Notice(`已导入排版「${def.name}」`);
+			this.render();
+		} catch (e) {
+			new Notice(`导入失败：${e instanceof Error ? e.message : e}`);
+		}
+	}
+
 	renderThemeSelection(container: HTMLElement) {
 		const section = container.createDiv({ cls: 'theme-selection-section' });
 
@@ -282,7 +535,7 @@ export class PublisherView extends ItemView {
 		const select = controlRow.createEl('select', { cls: 'theme-select' });
 
 		const themes = this.themeManager.getThemes();
-		const builtinGroup = select.createEl('optgroup', { attr: { label: 'Memoria 内置排版' } });
+		const builtinGroup = select.createEl('optgroup', { attr: { label: '内置排版' } });
 		const customThemes = themes.filter(theme => !theme.builtin);
 		const customGroup = customThemes.length > 0
 			? select.createEl('optgroup', { attr: { label: '自定义排版' } })
@@ -300,7 +553,6 @@ export class PublisherView extends ItemView {
 			this.selectedTheme = select.value;
 			this.plugin.settings.defaultTheme = this.selectedTheme;
 			await this.plugin.saveSettings();
-			new Notice(`已选择样式：${this.selectedTheme}`);
 			this.render();
 		};
 
@@ -312,22 +564,127 @@ export class PublisherView extends ItemView {
 		refreshBtn.onclick = async () => {
 			// Reload themes
 			this.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
-			this.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
-			await this.themeManager.loadThemes();
+			await this.reloadThemes();
 			new Notice('主题列表已刷新');
 			this.render();
 		};
+
+		// 可视化编辑器入口
+		const selectedForEdit = this.themeManager.getTheme(this.selectedTheme);
+		const editRow = section.createDiv({ cls: 'theme-edit-row' });
+		const editBtn = editRow.createEl('button', {
+			text: selectedForEdit?.customDef ? '编辑这套排版' : '基于这套新建排版'
+		});
+		editBtn.onclick = () => void this.openThemeEditor();
+		const importBtn = editRow.createEl('button', { text: '导入排版' });
+		const importInput = editRow.createEl('input', { type: 'file', cls: 'hidden-input' });
+		importInput.accept = '.json,application/json';
+		importInput.onchange = async () => {
+			const f = importInput.files?.[0];
+			importInput.value = '';
+			if (f) await this.importTheme(await f.text());
+		};
+		importBtn.onclick = () => importInput.click();
 
 		const selected = this.themeManager.getTheme(this.selectedTheme);
 		const themeHint = section.createDiv({ cls: 'theme-hint' });
 		themeHint.createSpan({ cls: 'theme-color-dot', attr: { style: `--theme-accent: ${selected?.accent ?? '#64748b'}` } });
 		themeHint.createSpan({
-			text: selected?.description ?? 'Memoria 内置排版已自动加载，无需设置本地文件夹'
+			text: selected?.description ?? '内置排版已自动加载，开箱即用'
 		});
+		this.renderBrandControls(section);
 		section.createDiv({
 			cls: 'theme-library-hint',
-			text: `Memoria 已内置 ${themes.filter(theme => theme.builtin).length} 套排版${customThemes.length > 0 ? `，另加载 ${customThemes.length} 套自定义排版` : '，开箱即用'}`
+			text: `已内置 ${themes.filter(theme => theme.builtin).length} 套排版${customThemes.length > 0 ? `，另加载 ${customThemes.length} 套自定义排版` : '，开箱即用'}`
 		});
+	}
+
+	/** 当前排版 + 侧栏的章节样式 / IP 头像 / END 标记 */
+	renderSetupFor(theme: Theme) {
+		const st = this.plugin.settings;
+		return renderSetup(theme, {
+			headingStyle: this.headingStyle,
+			headingAvatar: st.headingAvatar,
+			avatarDataUrl: st.brandAvatar || AVATAR_DATA_URI,
+			endMark: st.endMark,
+			endMarkText: st.endMarkText
+		});
+	}
+
+	/** 章节样式下拉 + IP 头像 / END 开关 */
+	renderBrandControls(section: HTMLElement) {
+		const st = this.plugin.settings;
+		if (this.noteRemembered) {
+			section.createDiv({ cls: 'sp-remembered', text: '已沿用这篇文章上次推送时的排版和章节样式' });
+		}
+		const box = section.createDiv({ cls: 'sp-brand-controls' });
+		const row = box.createDiv({ cls: 'sp-brand-row' });
+		row.createSpan({ cls: 'sp-brand-label', text: '章节样式' });
+		const select = row.createEl('select', { cls: 'dropdown sp-heading-select' });
+		for (const s of HEADING_STYLES) {
+			const opt = select.createEl('option', { value: s.id, text: s.label });
+			opt.selected = this.headingStyle === s.id;
+		}
+		select.onchange = async () => {
+			st.headingStyle = select.value;
+			this.headingStyle = select.value;
+			await this.plugin.saveSettings();
+		};
+
+		const toggle = (text: string, get: () => boolean, set: (v: boolean) => void) => {
+			const label = box.createEl('label', { cls: 'sp-brand-toggle' });
+			const cb = label.createEl('input', { type: 'checkbox' });
+			cb.checked = get();
+			label.createSpan({ text });
+			cb.onchange = async () => {
+				set(cb.checked);
+				await this.plugin.saveSettings();
+			};
+		};
+		toggle('章节标题前放 IP 头像', () => st.headingAvatar, v => { st.headingAvatar = v; });
+		const avatarRow = box.createDiv({ cls: 'sp-brand-row sp-avatar-row' });
+		const avatarImg = avatarRow.createEl('img', { cls: 'sp-avatar-preview' });
+		avatarImg.src = st.brandAvatar || AVATAR_DATA_URI;
+		avatarRow.createSpan({ cls: 'sp-brand-label', text: st.brandAvatar ? '自己上传的头像' : '内置 Serena 头像' });
+		const upload = avatarRow.createEl('button', { text: '上传头像' });
+		const input = avatarRow.createEl('input', { type: 'file', cls: 'hidden-input' });
+		input.accept = 'image/png,image/jpeg';
+		upload.onclick = () => input.click();
+		input.onchange = async () => {
+			const f = input.files?.[0];
+			input.value = '';
+			if (!f) return;
+			try {
+				st.brandAvatar = await squareAvatar(f);
+				st.headingAvatar = true;
+				await this.plugin.saveSettings();
+				new Notice('IP 头像已更新');
+				this.render();
+			} catch (e) {
+				new Notice(`头像读取失败：${e instanceof Error ? e.message : e}`);
+			}
+		};
+		if (st.brandAvatar) {
+			const reset = avatarRow.createEl('button', { text: '恢复内置' });
+			reset.onclick = async () => {
+				st.brandAvatar = '';
+				await this.plugin.saveSettings();
+				this.render();
+			};
+		}
+		toggle('文末加结束标记', () => st.endMark, v => { st.endMark = v; this.render(); });
+		if (st.endMark) {
+			const endRow = box.createDiv({ cls: 'sp-brand-row sp-end-row' });
+			endRow.createSpan({ cls: 'sp-brand-label', text: '标记文字' });
+			const input = endRow.createEl('input', { type: 'text', cls: 'sp-end-input' });
+			input.placeholder = '例如：你的名字 · END';
+			input.maxLength = 40;
+			input.value = st.endMarkText;
+			input.oninput = async () => {
+				st.endMarkText = input.value.trim();
+				await this.plugin.saveSettings();
+			};
+		}
 	}
 
 	renderCoverUpload(container: HTMLElement) {
@@ -457,22 +814,20 @@ export class PublisherView extends ItemView {
 	}
 
 	renderActionButtons(container: HTMLElement) {
-		const section = container.createDiv({ cls: 'action-buttons' });
-
-		// Preview button
-		const previewBtn = section.createEl('button', { text: '预览', cls: 'preview-btn' });
+		const section = container.createDiv({ cls: 'action-buttons sp-actions' });
+		const row = section.createDiv({ cls: 'sp-actions-row' });
+		const previewBtn = row.createEl('button', { text: '预览', cls: 'preview-btn' });
 		previewBtn.onclick = () => this.handlePreview();
-
-		const xPreviewBtn = section.createEl('button', { text: 'X 预览' });
-		xPreviewBtn.onclick = () => this.handleXPreview();
-
-		const exportBtn = section.createEl('button', { text: '导出长图' });
+		const exportBtn = row.createEl('button', { text: '导出长图' });
 		exportBtn.onclick = () => this.handleExportLongImage();
 
-		// Publish button
-		const publishBtn = section.createEl('button', { text: '发布到草稿箱', cls: 'publish-btn' });
-		publishBtn.disabled = (this.selectedAccountIds.size === 0 && !this.xSelected) || this.isPublishing;
+		const noTarget = this.selectedAccountIds.size === 0 && !this.xSelected;
+		const publishBtn = section.createEl('button', { text: this.isPublishing ? '发布中…' : '发布到草稿箱', cls: 'publish-btn mod-cta' });
+		publishBtn.disabled = noTarget || this.isPublishing;
 		publishBtn.onclick = () => this.handlePublish();
+		if (noTarget && !this.isPublishing) {
+			section.createDiv({ cls: 'sp-actions-hint', text: '先在「发到哪」勾选公众号或 X' });
+		}
 	}
 
 	renderPublishProgress(container: HTMLElement) {
@@ -513,7 +868,18 @@ export class PublisherView extends ItemView {
 
 			const header = item.createDiv({ cls: 'progress-item-header' });
 			header.createSpan({ cls: 'account-name', text: account.name });
-			header.createSpan({ cls: `status ${statusClass}`, text: statusText });
+			header.createSpan({ cls: `status ${statusClass}`, text: progress.status === 'failed' ? '失败' : statusText });
+			if (progress.status === 'failed' && progress.error) {
+				item.createDiv({ cls: 'sp-fail-msg', text: progress.error });
+				const actions = item.createDiv({ cls: 'sp-fail-actions' });
+				for (const a of this.errorActions(accountId, progress.error)) {
+					const b = actions.createEl('button', { text: a.label, cls: a.primary ? 'mod-cta' : '' });
+					b.onclick = async () => {
+						b.disabled = true;
+						try { await a.run(); } finally { b.disabled = false; }
+					};
+				}
+			}
 		}
 
 		// 显示发布汇总信息
@@ -537,10 +903,151 @@ export class PublisherView extends ItemView {
 
 			summary.className = `publish-summary ${summaryClass}`;
 			summary.textContent = summaryText;
+
+			// 推送成功后的直达入口
+			const okWechat = Array.from(this.publishProgress.values()).some(p => p.accountId !== X_TARGET_ID && p.status === 'success');
+			const okX = this.publishProgress.get(X_TARGET_ID)?.status === 'success';
+			if (okWechat || okX) {
+				const links = section.createDiv({ cls: 'sp-done-links' });
+				if (okWechat) {
+					const b = links.createEl('button', { text: '打开公众号草稿箱', cls: 'mod-cta' });
+					b.onclick = () => { window.open(MP_HOME_URL); };
+				}
+				if (okX) {
+					const b = links.createEl('button', { text: '打开 X 草稿', cls: 'mod-cta' });
+					b.onclick = () => { window.open(X_DRAFTS_URL); };
+				}
+				const tips: string[] = [];
+				if (okWechat) tips.push('公众号：登录后点左侧「内容管理 → 草稿箱」');
+				if (okX) tips.push('X：Chrome 里的 Kaitox 扩展会在 X 文章编辑器里建好草稿，几秒后在草稿列表里能看到');
+				links.createDiv({ cls: 'sp-done-tip', text: tips.join('；') });
+			}
+			const close = section.createEl('button', { cls: 'sp-progress-close', text: '收起' });
+			close.onclick = () => {
+				this.publishSummary = null;
+				this.publishProgress.clear();
+				this.render();
+			};
 		}
 	}
 
+	/** 根据错误给出能直接点的下一步 */
+	private errorActions(targetId: string, error: string): { label: string; primary?: boolean; run: () => void | Promise<void> }[] {
+		const actions: { label: string; primary?: boolean; run: () => void | Promise<void> }[] = [];
+		const retry = { label: '重新推送', primary: true, run: () => this.retryTarget(targetId) };
+		const openPlatform = { label: '打开开发者平台', run: () => { window.open(DEV_PLATFORM_URL); } };
+		const copyError = {
+			label: '复制错误信息', run: async () => {
+				await navigator.clipboard.writeText(error);
+				new Notice('已复制错误信息');
+			}
+		};
+
+		if (targetId === X_TARGET_ID) {
+			if (/中转/.test(error)) {
+				actions.push({
+					label: '启动内置中转', primary: true, run: async () => {
+						this.plugin.settings.embeddedRelay = true;
+						await this.plugin.saveSettings();
+						const mode = await this.plugin.relay.takeOver(this.plugin.settings);
+						this.relayOnline = await isRelayUp(this.plugin.settings);
+						new Notice(this.relayOnline ? '中转已启动，可以重新推送了' : `中转启动失败：${this.plugin.relay.error || mode}`);
+						this.render();
+					}
+				});
+				actions.push({ ...retry, primary: false });
+			} else {
+				actions.push(retry);
+			}
+			actions.push({ label: '安装 Kaitox 扩展', run: () => { window.open(KAITOX_STORE_URL); } });
+			actions.push(copyError);
+			return actions;
+		}
+
+		const code = error.match(/errcode:\s*([-\w]+)/)?.[1] ?? '';
+		const account = this.plugin.settings.accounts.find(a => a.id === targetId);
+		const editAccount = {
+			label: '编辑账号', run: () => {
+				if (!account) return;
+				new AccountModal(this.app, this.plugin, account, async updated => {
+					const i = this.plugin.settings.accounts.findIndex(a => a.id === account.id);
+					if (i !== -1) this.plugin.settings.accounts[i] = updated;
+					await this.plugin.saveSettings();
+					new Notice('账号已更新，可以重新推送了');
+					this.render();
+				}).open();
+			}
+		};
+
+		if (code === '40164') {
+			const ip = error.match(/IP\s*([0-9a-fA-F.:]{7,})/)?.[1];
+			if (ip) {
+				actions.push({
+					label: `复制 IP ${ip}`, primary: true, run: async () => {
+						await navigator.clipboard.writeText(ip);
+						new Notice(`已复制 ${ip}，去开发者平台加进 IP 白名单`);
+					}
+				});
+			}
+			actions.push(openPlatform, { ...retry, primary: !ip });
+		} else if (['40001', '40125', '40013'].includes(code) || /AppSecret/.test(error)) {
+			actions.push({ ...editAccount, primary: true } as typeof editAccount & { primary: boolean }, openPlatform, { ...retry, primary: false });
+		} else if (code === '48001') {
+			actions.push({
+				label: '改用「复制到公众号」', primary: true, run: async () => {
+					await this.plugin.openLivePreview('wechat');
+					new Notice('点预览顶部的「复制到公众号」，再到公众号编辑器里粘贴');
+				}
+			}, openPlatform);
+		} else if (code === '45009') {
+			actions.push(copyError);
+		} else if (['40007', '40009', '41005'].includes(code) || /封面/.test(error)) {
+			actions.push({ label: '换封面重新发布', primary: true, run: () => this.handlePublish() }, copyError);
+		} else {
+			actions.push(retry, copyError);
+		}
+		return actions;
+	}
+
+	/** 只重推失败的那一个目标 */
+	private async retryTarget(targetId: string) {
+		const run = this.lastRun;
+		if (!run) { new Notice('找不到上次推送的内容，请重新点「发布到草稿箱」'); return; }
+		if (this.retrying.has(targetId) || this.isPublishing) return;
+		this.retrying.add(targetId);
+		try {
+			if (targetId === X_TARGET_ID) {
+				if (run.xPrepared) await this.publishToX(run.file, run.xPrepared, run.draft);
+			} else {
+				await this.publishToAccount(targetId, run.draft, run.html);
+			}
+		} finally {
+			this.retrying.delete(targetId);
+		}
+		const all = Array.from(this.publishProgress.values());
+		this.publishSummary = {
+			successCount: all.filter(p => p.status === 'success').length,
+			failCount: all.filter(p => p.status === 'failed').length
+		};
+		this.render();
+	}
+
+	/** 当前笔记 → 公众号 HTML。forCopy=true 时图片转成内嵌（复制 / 发布用），否则用本地路径（预览快） */
+	async buildWechatHtml(md: MarkdownView, forCopy: boolean): Promise<string | null> {
+		let content = md.getViewData();
+		if (!content.trim()) return null;
+		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
+		content = forCopy ? await this.processImageLinks(content, md) : await this.processImageLinksForPreview(content, md);
+		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
+		const setup = this.renderSetupFor(theme);
+		return MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
+	}
+
 	async handlePreview() {
+		await this.plugin.openLivePreview('wechat');
+	}
+
+	async handlePreviewModal() {
 		// Try to get active view first, then fall back to any visible markdown view
 		let activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
@@ -569,10 +1076,10 @@ export class PublisherView extends ItemView {
 
 		// Get custom CSS from selected theme
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const customCSS = theme.css;
+		const setup = this.renderSetupFor(theme);
 
 		// Convert markdown to WeChat HTML with custom CSS
-		const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
+		const html = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
 
 		// Show preview modal
 		const title = activeView.file?.basename || '无标题';
@@ -598,7 +1105,8 @@ export class PublisherView extends ItemView {
 		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
 		content = await this.processImageLinks(content, activeView);
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, { headingLabel: theme.headingLabel });
+		const setup = this.renderSetupFor(theme);
+		const html = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
 		const modal = new PreviewModal(
 			this.app,
 			html,
@@ -622,7 +1130,7 @@ export class PublisherView extends ItemView {
 		const matches = Array.from(content.matchAll(imageRegex));
 
 		for (const match of matches) {
-			const filename = match[1];
+			const filename = match[1].split('|')[0].trim();
 			const file = this.app.metadataCache.getFirstLinkpathDest(filename, activeView.file?.path || '');
 
 			if (file && file.extension.match(/^(png|jpe?g|gif|svg|webp)$/i)) {
@@ -664,8 +1172,8 @@ export class PublisherView extends ItemView {
 		for (const match of matches) {
 			const filename = match[1];
 
-			// Try to find the file in the vault
-			const file = this.app.metadataCache.getFirstLinkpathDest(filename, activeView.file?.path || '');
+			// Try to find the file in the vault（去掉 |300 这类尺寸写法）
+			const file = this.app.metadataCache.getFirstLinkpathDest(filename.split('|')[0].trim(), activeView.file?.path || '');
 
 			if (file && file.extension.match(/^(png|jpe?g|gif|svg|webp)$/i)) {
 				try {
@@ -683,7 +1191,7 @@ export class PublisherView extends ItemView {
 					} else if (file.extension === 'webp') {
 						mimeType = 'image/webp';
 					}
-					const compressed = await compressImage(arrayBuffer, mimeType);
+					const compressed = await toUploadable(arrayBuffer, mimeType);
 					arrayBuffer = compressed.data;
 					mimeType = compressed.mimeType;
 					const base64 = btoa(
@@ -731,7 +1239,7 @@ export class PublisherView extends ItemView {
 					} else if (file.extension === 'webp') {
 						mimeType = 'image/webp';
 					}
-					const compressed = await compressImage(arrayBuffer, mimeType);
+					const compressed = await toUploadable(arrayBuffer, mimeType);
 					arrayBuffer = compressed.data;
 					mimeType = compressed.mimeType;
 					const base64 = btoa(
@@ -810,7 +1318,20 @@ export class PublisherView extends ItemView {
 				.map(a => a.name);
 			draft = await new DraftConfirmModal(
 				this.app, meta, coverSource, accountNames,
-				xPrepared ? { report: xPrepared.report, unresolved: xPrepared.resolved.unresolved, relayOnline: !!this.relayOnline } : undefined
+				xPrepared ? {
+					report: xPrepared.report,
+					unresolved: xPrepared.resolved.unresolved,
+					relayOnline: !!this.relayOnline,
+					startRelay: async () => {
+						this.plugin.settings.embeddedRelay = true;
+						await this.plugin.saveSettings();
+						await this.plugin.relay.takeOver(this.plugin.settings);
+						this.relayOnline = await isRelayUp(this.plugin.settings);
+						this.render();
+						return !!this.relayOnline;
+					}
+				} : undefined,
+				scanImages(this.app, file, content)
 			).openAndWait();
 		} catch (error) {
 			loading.hide();
@@ -845,10 +1366,12 @@ export class PublisherView extends ItemView {
 
 		// Get custom CSS from selected theme
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const customCSS = theme.css;
+		const setup = this.renderSetupFor(theme);
 
 		// Convert markdown to WeChat HTML with custom CSS
-		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, { headingLabel: theme.headingLabel });
+		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
+		// 记下这次推送的内容，失败后可以单独「重新推送」
+		this.lastRun = { file, draft, html: htmlContent, xPrepared };
 
 		// Publish with concurrency control
 		const accountIds = Array.from(this.selectedAccountIds);
@@ -880,6 +1403,13 @@ export class PublisherView extends ItemView {
 
 		// 保存汇总信息
 		this.publishSummary = { successCount, failCount };
+		if (successCount > 0 && this.plugin.settings.writeBackMeta) {
+			try {
+				await this.writeBackMeta(file, draft);
+			} catch (e) {
+				console.error('[SerenaPost] 写回笔记属性失败', e);
+			}
+		}
 
 		// Don't clear progress immediately - let user see the final status
 		// Progress will be cleared on next publish or when user closes the view
@@ -914,6 +1444,7 @@ export class PublisherView extends ItemView {
 		const matches = Array.from(htmlContent.matchAll(imgRegex));
 
 		let processedContent = htmlContent;
+		const uploadedB64 = new Map<string, string>();
 
 		for (let i = 0; i < matches.length; i++) {
 			const match = matches[i];
@@ -922,6 +1453,12 @@ export class PublisherView extends ItemView {
 			const base64Data = match[2];
 
 			try {
+				// 同一张图（例如每个章节标题前的 IP 头像）只上传一次
+				const cachedUrl = uploadedB64.get(base64Data);
+				if (cachedUrl) {
+					processedContent = processedContent.replace(fullMatch, fullMatch.replace(`data:image/${imageType};base64,${base64Data}`, cachedUrl));
+					continue;
+				}
 				// Convert base64 to ArrayBuffer
 				const binaryString = atob(base64Data);
 				const bytes = new Uint8Array(binaryString.length);
@@ -939,6 +1476,7 @@ export class PublisherView extends ItemView {
 				);
 
 				if (uploadResult && uploadResult.url) {
+					uploadedB64.set(base64Data, uploadResult.url);
 					// Replace base64 image with WeChat URL
 					const newImg = fullMatch.replace(
 						`data:image/${imageType};base64,${base64Data}`,
@@ -1006,23 +1544,17 @@ export class PublisherView extends ItemView {
 	}
 
 	async handleXPreview() {
-		const file = this.currentFile ?? this.app.workspace.getActiveFile();
-		if (!file || file.extension !== 'md') {
-			new Notice('请先打开一篇 Markdown 笔记');
-			return;
-		}
-		const loading = new Notice('正在生成 X 预览…', 0);
-		try {
-			const prepared = await prepareXDraft(this.app, file);
-			const cover = this.coverImage?.base64
-				?? (this.autoCover?.filePath === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : undefined);
-			loading.hide();
-			new XPreviewModal(this.app, prepared.resolved, prepared.report, prepared.resolved.title, cover).open();
-		} catch (error) {
-			loading.hide();
-			new Notice(`X 预览失败：${error instanceof Error ? error.message : error}`);
-		}
+		await this.plugin.openLivePreview('x');
 	}
+
+	/** X 文章预览所需数据（按 Kaitox 规则解析当前笔记） */
+	async buildXPreview(file: TFile) {
+		const prepared = await prepareXDraft(this.app, file);
+		const cover = this.coverImage?.base64
+			?? (this.autoCover?.filePath === file.path && !this.autoCoverDismissed.has(file.path) ? this.autoCover.base64 : undefined);
+		return { prepared, cover };
+	}
+
 
 	async publishToAccount(accountId: string, draft: DraftMeta, content: string) {
 		const account = this.plugin.settings.accounts.find(a => a.id === accountId);

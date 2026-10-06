@@ -1,3 +1,5 @@
+import type { CustomThemeDef } from '../theme-editor/custom-theme';
+
 export interface ProxyConfig {
 	type: 'socks5' | 'http' | 'https';
 	host: string;
@@ -61,6 +63,16 @@ export interface PluginSettings {
 	openXAfterPush: boolean;
 	xSelected: boolean;           // 侧边栏是否勾选「X 文章草稿」
 	embeddedRelay: boolean;       // 是否在 Obsidian 内运行中转
+	customThemes: CustomThemeDef[]; // 可视化编辑器保存的排版
+	headingStyle: string;         // 章节样式，'theme' = 跟随排版
+	headingAvatar: boolean;       // 二级标题前放 IP 头像
+	brandAvatar: string;          // 自定义 IP 头像（data URL），空 = 内置 Serena 头像
+	endMark: boolean;             // 文末 END 标记
+	endMarkText: string;
+	onboardingDone: boolean;      // 新手引导看过了
+	collapsedCards: string[];     // 侧栏折叠的分组
+	previewSyncScroll: boolean;   // 预览跟着编辑器滚动
+	writeBackMeta: boolean;       // 推送后把封面、摘要、排版写回笔记属性
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -79,7 +91,17 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	relayToken: '',
 	openXAfterPush: true,
 	xSelected: false,
-	embeddedRelay: true
+	embeddedRelay: true,
+	customThemes: [],
+	headingStyle: 'theme',
+	headingAvatar: false,
+	brandAvatar: '',
+	endMark: false,
+	endMarkText: 'END',
+	onboardingDone: false,
+	collapsedCards: [],
+	previewSyncScroll: true,
+	writeBackMeta: true
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */
@@ -91,6 +113,8 @@ export interface DraftMeta {
 	coverBase64: string;
 	openComment: boolean;
 	onlyFansCanComment: boolean;
+	/** 封面来源说明（确认弹窗里显示的那句），用来判断要不要把封面存进库里 */
+	coverSource?: string;
 }
 
 export interface PublishRequest {

@@ -1,6 +1,7 @@
 import { applyInlineCSS } from './css-to-inline';
 import { marked } from 'marked';
 import { sanitizeHTMLToDom } from 'obsidian';
+import { headingStyleDef } from './heading-styles';
 
 /**
  * Convert Markdown to WeChat Official Account HTML format
@@ -172,6 +173,16 @@ ${html}
  */
 export interface FormatterOptions {
 	headingLabel?: string;
+	/** 二级标题只加「01」序号（不带文字前缀） */
+	headingNumbers?: boolean;
+	/** 代码块加 Mac 窗口标题栏（三个圆点 + 语言） */
+	codeWindow?: boolean;
+	/** 章节样式（覆盖排版自带的二级标题样式），见 heading-styles.ts */
+	headingStyle?: string;
+	/** 二级标题前放的 IP 头像（data URL） */
+	headingAvatar?: string;
+	/** 文末标记文字，例如「SERENA · END」 */
+	endMark?: string;
 }
 
 export class MarkedFormatter {
@@ -284,6 +295,23 @@ export class MarkedFormatter {
 
 		marked.use({ renderer });
 
+		// Obsidian 高亮 ==文字==：用 span，避免公众号编辑器过滤 <mark>
+		marked.use({
+			extensions: [{
+				name: 'spMark',
+				level: 'inline',
+				start(src: string) { const i = src.indexOf('=='); return i < 0 ? undefined : i; },
+				tokenizer(this: any, src: string) {
+					const m = /^==(?=\S)([^=\n]*?\S)==/.exec(src);
+					if (m) return { type: 'spMark', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) };
+					return undefined;
+				},
+				renderer(this: any, token: any) {
+					return `<span class="sp-mark">${this.parser.parseInline(token.tokens)}</span>`;
+				}
+			}]
+		});
+
 		return this.markedInstance;
 	}
 
@@ -302,6 +330,7 @@ export class MarkedFormatter {
 ${html}
 </section>`.trim();
 		html = this.decorateHeadings(html, options);
+		if (options.codeWindow) html = this.decorateCodeWindows(html);
 
 		// Apply custom CSS as inline styles if provided
 		if (customCSS) {
@@ -331,6 +360,7 @@ ${html}
 ${html}
 </section>`.trim();
 		html = this.decorateHeadings(html, options);
+		if (options.codeWindow) html = this.decorateCodeWindows(html);
 
 		// Apply custom CSS as inline styles if provided
 		if (customCSS) {
@@ -383,7 +413,10 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 
 	private static decorateHeadings(html: string, options: FormatterOptions): string {
 		const headingLabel = options.headingLabel?.trim();
-		if (!headingLabel) return html;
+		const style = headingStyleDef(options.headingStyle);
+		const avatar = options.headingAvatar;
+		const endMark = options.endMark?.trim();
+		if (!headingLabel && !options.headingNumbers && !style && !avatar && !endMark) return html;
 
 		const container = document.createElement('div');
 		container.append(sanitizeHTMLToDom(html));
@@ -391,8 +424,80 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 		for (const [index, heading] of headings.entries()) {
 			const label = document.createElement('span');
 			label.className = 'wechatpb-heading-label';
-			label.textContent = `${headingLabel} ${String(index + 1).padStart(2, '0')}`;
-			heading.prepend(label);
+			if (style) {
+				heading.classList.add('sp-h', `sp-h-${style.id}`);
+				if (style.numbered) {
+					const own = stripHeadingNumber(heading);
+					label.textContent = String(own ?? index + 1).padStart(2, '0');
+				} else if (style.prefix) {
+					label.textContent = style.prefix;
+					if (style.id === 'dots') {
+						const dot2 = document.createElement('span');
+						dot2.className = 'sp-h-dot2';
+						dot2.textContent = '●';
+						label.prepend(dot2);
+					}
+				}
+				if (style.suffix) {
+					const suffix = document.createElement('span');
+					suffix.className = 'sp-h-suffix';
+					suffix.textContent = style.suffix;
+					heading.append(suffix);
+				}
+				if (label.textContent) heading.prepend(label);
+			} else if (headingLabel || options.headingNumbers) {
+				// 标题自己带了「一、」「1.」「第一章」之类的序号：去掉它，并沿用它的数字，避免出现「01 一、」
+				const own = stripHeadingNumber(heading);
+				const num = String(own ?? index + 1).padStart(2, '0');
+				label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
+				heading.prepend(label);
+			}
+			if (avatar) {
+				const img = document.createElement('img');
+				img.className = 'sp-h-avatar';
+				img.src = avatar;
+				img.alt = '';
+				// 标题文字（含序号）包一层，排版可以只给文字加下划线、不连头像一起划
+				const text = document.createElement('span');
+				text.className = 'sp-h-text';
+				text.append(...Array.from(heading.childNodes));
+				heading.append(img, text);
+				heading.classList.add('sp-has-avatar');
+			}
+		}
+
+		if (endMark) {
+			const root = container.querySelector('section.note-to-mp') ?? container;
+			const end = document.createElement('section');
+			end.className = 'sp-end';
+			const text = document.createElement('span');
+			text.className = 'sp-end-text';
+			text.textContent = endMark;
+			end.append(text);
+			root.append(end);
+		}
+		return container.innerHTML;
+	}
+
+	/** 给每个代码块加 Mac 窗口标题栏 */
+	private static decorateCodeWindows(html: string): string {
+		const container = document.createElement('div');
+		container.append(sanitizeHTMLToDom(html));
+		for (const section of Array.from(container.querySelectorAll('section.code-section'))) {
+			const lang = Array.from(section.classList).find(c => c.startsWith('language-'))?.slice(9) ?? '';
+			const bar = document.createElement('section');
+			bar.className = 'code-window-bar';
+			for (let i = 1; i <= 3; i++) {
+				const dot = document.createElement('span');
+				dot.className = `code-window-dot code-window-dot-${i}`;
+				dot.textContent = '●';
+				bar.append(dot);
+			}
+			const label = document.createElement('span');
+			label.className = 'code-window-label';
+			label.textContent = (lang || 'code').toUpperCase();
+			bar.append(label);
+			section.prepend(bar);
 		}
 		return container.innerHTML;
 	}
@@ -402,4 +507,37 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 		container.append(sanitizeHTMLToDom(html));
 		return container.innerHTML;
 	}
+}
+
+const CN_DIGITS: Record<string, number> = { 零: 0, 〇: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+
+/** 中文数字（一 ~ 九十九）转数字 */
+export function parseCnNumber(s: string): number | null {
+	if (/^\d+$/.test(s)) return parseInt(s, 10);
+	if (!/^[零〇一二两三四五六七八九十]+$/.test(s)) return null;
+	if (!s.includes('十')) return s.length === 1 ? CN_DIGITS[s] : null;
+	const [a, b] = s.split('十');
+	const tens = a === '' ? 1 : CN_DIGITS[a];
+	const ones = b === '' ? 0 : CN_DIGITS[b];
+	if (tens === undefined || ones === undefined || s.split('十').length > 2) return null;
+	return tens * 10 + ones;
+}
+
+// 「一、」「一.」「(一)」「第一章 / 第1部分」「1.」「1、」「1）」「01 」（「5 个技巧」这种不算序号）
+const HEADING_NUM_RE = /^\s*(?:第\s*([零〇一二两三四五六七八九十\d]+)\s*[章节部分篇步讲课回]+[、.．:：\s]*|[（(]\s*([零〇一二两三四五六七八九十\d]+)\s*[)）]\s*|([零〇一二两三四五六七八九十]+)\s*[、.．:：]\s*|(\d{1,2})\s*[、.．:：)）](?!\d)\s*|(0\d)\s+)/;
+
+/** 去掉标题开头自带的序号，返回该序号；没有则返回 null（不改动标题） */
+export function stripHeadingNumber(heading: Element): number | null {
+	const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+	let node = walker.nextNode() as Text | null;
+	while (node && !node.data.trim()) node = walker.nextNode() as Text | null;
+	if (!node) return null;
+	const m = node.data.match(HEADING_NUM_RE);
+	if (!m) return null;
+	const n = parseCnNumber(m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5]);
+	if (n === null || n <= 0) return null;
+	const rest = node.data.slice(m[0].length);
+	if (!rest.trim() && node === heading.lastChild) return null; // 标题只有序号本身就不动
+	node.data = rest;
+	return n;
 }

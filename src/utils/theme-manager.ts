@@ -1,5 +1,8 @@
 import { App, TFile, TFolder, Notice, normalizePath } from 'obsidian';
 import { BUILTIN_THEME_DOCUMENTS, BUILTIN_THEME_REFINEMENT, DEFAULT_BUILTIN_THEME } from '../builtin-themes';
+import { buildCustomCss, type CustomThemeDef } from '../theme-editor/custom-theme';
+import type { FormatterOptions } from './formatter';
+import { brandingCss, headingStyleCss, headingStyleDef, markCss } from './heading-styles';
 
 export interface Theme {
 	name: string;           // 显示名称
@@ -9,15 +12,23 @@ export interface Theme {
 	builtin?: boolean;
 	description?: string;
 	accent?: string;
+	accent2?: string;
 	aliases?: string[];
 	headingLabel?: string;
+	headingNumbers?: boolean;
+	codeWindow?: boolean;
+	/** SerenaPost 可视化编辑器做的排版 */
+	customDef?: CustomThemeDef;
 }
+
+export const CUSTOM_THEME_PREFIX = '★ ';
 
 export class ThemeManager {
 	app: App;
 	themes: Theme[] = [];
 	themesFolder: string = '';
 	customThemesEnabled: boolean = false;
+	customDefs: CustomThemeDef[] = [];
 
 	constructor(app: App) {
 		this.app = app;
@@ -34,11 +45,40 @@ export class ThemeManager {
 		this.customThemesEnabled = enabled;
 	}
 
+	setCustomDefs(defs: CustomThemeDef[]) {
+		this.customDefs = defs;
+	}
+
+	/** 内置排版（作为自定义排版的底） */
+	getBuiltinThemes(): Theme[] {
+		return this.themes.filter(t => t.builtin);
+	}
+
+	/** 把一条自定义排版定义变成可用的 Theme */
+	buildFromDef(def: CustomThemeDef): Theme {
+		const base = this.themes.find(t => t.builtin && (t.name === def.base || t.aliases?.includes(def.base)))
+			?? this.themes.find(t => t.builtin)!;
+		return {
+			name: CUSTOM_THEME_PREFIX + def.name,
+			filename: def.id,
+			css: buildCustomCss(base.css, base.accent ?? '', def),
+			path: `custom:${def.id}`,
+			builtin: false,
+			description: `基于「${base.name}」的自定义排版`,
+			accent: def.accent || base.accent,
+			accent2: def.accent && def.accent.toLowerCase() !== (base.accent ?? '').toLowerCase() ? undefined : base.accent2,
+			headingLabel: def.h2Style === 'theme' ? base.headingLabel : undefined,
+			headingNumbers: def.h2Style === 'theme' ? base.headingNumbers : undefined,
+			codeWindow: base.codeWindow,
+			customDef: def
+		};
+	}
+
 	/**
 	 * 加载所有CSS主题
 	 */
 	async loadThemes(): Promise<Theme[]> {
-		this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel }) => ({
+		this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, accent2, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
 			name,
 			filename: name,
 			css: `${this.extractCss(content)}\n\n${BUILTIN_THEME_REFINEMENT}`,
@@ -46,9 +86,20 @@ export class ThemeManager {
 			builtin: true,
 			description,
 			accent,
+			accent2,
 			aliases: legacyNames,
-			headingLabel
+			headingLabel,
+			headingNumbers,
+			codeWindow
 		})).filter(theme => theme.css.length > 0);
+
+		for (const def of this.customDefs) {
+			try {
+				this.themes.push(this.buildFromDef(def));
+			} catch (e) {
+				console.error('[SerenaPost] 自定义排版加载失败', def.name, e);
+			}
+		}
 
 		if (!this.customThemesEnabled || !this.themesFolder) {
 			return this.themes;
@@ -112,7 +163,7 @@ export class ThemeManager {
 				}
 			}
 
-			const customThemeCount = this.themes.filter(theme => !theme.builtin).length;
+			const customThemeCount = this.themes.filter(theme => !theme.builtin && !theme.customDef).length;
 			if (customThemeCount > 0) {
 				new Notice(`已加载 ${customThemeCount} 个自定义主题`, 3000);
 			} else {
@@ -155,4 +206,34 @@ export class ThemeManager {
 	getDefaultTheme(): Theme {
 		return this.getTheme(DEFAULT_BUILTIN_THEME) ?? this.themes[0];
 	}
+}
+
+/** 主题 → 渲染选项（标题序号、代码窗口） */
+export function formatterOptionsFor(theme: Theme): FormatterOptions {
+	return { headingLabel: theme.headingLabel, headingNumbers: theme.headingNumbers, codeWindow: theme.codeWindow };
+}
+
+/** 侧栏里的章节样式 / IP 头像 / END 标记，可叠加在任意排版上 */
+export interface RenderPrefs {
+	headingStyle: string;
+	headingAvatar: boolean;
+	avatarDataUrl: string;
+	endMark: boolean;
+	endMarkText: string;
+}
+
+/** 主题 + 侧栏设置 → 最终的 CSS 和渲染选项（预览、长图、发布都走这里，保证一致） */
+export function renderSetup(theme: Theme, prefs: RenderPrefs): { css: string; options: FormatterOptions } {
+	const options = formatterOptionsFor(theme);
+	let css = theme.css + markCss(theme.accent2 || theme.accent || '');
+	if (headingStyleDef(prefs.headingStyle)) {
+		options.headingStyle = prefs.headingStyle;
+		css += headingStyleCss(prefs.headingStyle, theme.accent ?? '', theme.accent2);
+	}
+	const avatar = prefs.headingAvatar && prefs.avatarDataUrl ? prefs.avatarDataUrl : '';
+	const endMark = prefs.endMark ? prefs.endMarkText.trim() : '';
+	if (avatar) options.headingAvatar = avatar;
+	if (endMark) options.endMark = endMark;
+	if (avatar || endMark) css += brandingCss(theme.accent ?? '', theme.accent2);
+	return { css, options };
 }

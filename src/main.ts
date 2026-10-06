@@ -1,9 +1,13 @@
 import { App, Plugin, PluginSettingTab, Setting, Notice, WorkspaceLeaf, FuzzySuggestModal, Modal, normalizePath, addIcon } from 'obsidian';
-import { ICON_ID, ICON_SVG, PLUGIN_NAME } from './brand';
+import { AVATAR_DATA_URI, ICON_ID, ICON_SVG, PLUGIN_NAME } from './brand';
+import { squareAvatar } from './utils/image';
 import { EmbeddedRelay } from './x/embedded-relay';
 import { PluginSettings, DEFAULT_SETTINGS, WeChatAccount, ResolvedWeChatAccount, ResolvedProxyConfig } from './types';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
+import { LivePreviewView, VIEW_TYPE_LIVE_PREVIEW, type PreviewMode } from './views/live-preview-view';
+import { QUICK_FORMATS } from './utils/quick-format';
 import { AccountModal } from './modals/account-modal';
+import { KAITOX_STORE_URL, OnboardingModal } from './modals/onboarding-modal';
 import { getAccessToken } from './services/weixin-api';
 import { DEFAULT_BUILTIN_THEME } from './builtin-themes';
 import { CUSTOM_THEME_AI_GUIDE } from './custom-theme-guide';
@@ -86,6 +90,28 @@ export default class WeChatPublisherPlugin extends Plugin {
 			(leaf) => new PublisherView(leaf, this)
 		);
 
+		this.registerView(VIEW_TYPE_LIVE_PREVIEW, leaf => new LivePreviewView(leaf, this));
+		this.addCommand({
+			id: 'open-live-preview',
+			name: '打开公众号实时预览',
+			callback: () => void this.openLivePreview()
+		});
+
+		// 快捷格式：命令（可绑快捷键）+ 编辑器右键菜单
+		for (const f of QUICK_FORMATS) {
+			this.addCommand({ id: `format-${f.id}`, name: `格式：${f.label}`, icon: f.icon, editorCallback: (editor, ctx) => void f.run(editor, { app: this.app, file: ctx.file }) });
+		}
+		this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor, info) => {
+			menu.addItem(item => {
+				item.setTitle('SerenaPost 快捷格式').setIcon(ICON_ID).setSection('selection');
+				const sub = (item as unknown as { setSubmenu?: () => import('obsidian').Menu }).setSubmenu?.();
+				const target = sub ?? menu;
+				for (const f of QUICK_FORMATS) {
+					target.addItem(i => i.setTitle(f.label).setIcon(f.icon).onClick(() => void f.run(editor, { app: this.app, file: info.file })));
+				}
+			});
+		}));
+
 		// Add ribbon icon
 		this.addRibbonIcon(ICON_ID, PLUGIN_NAME, () => {
 			void this.activateView();
@@ -145,6 +171,7 @@ export default class WeChatPublisherPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.refreshLivePreview();
 	}
 
 	private secretId(accountId: string, kind: 'app-secret' | 'access-token' | 'proxy-password'): string {
@@ -260,6 +287,44 @@ export default class WeChatPublisherPlugin extends Plugin {
 		if (leaf) {
 				await workspace.revealLeaf(leaf);
 		}
+
+	}
+
+	openOnboarding() {
+		new OnboardingModal(this.app, this).open();
+	}
+
+	/** 引导里改了账号 / 头像后刷新侧栏 */
+	refreshPublisherSidebar() {
+		this.getPublisherView()?.render();
+	}
+
+	getPublisherView(): PublisherView | null {
+		const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER)[0];
+		return (leaf?.view as PublisherView | undefined) ?? null;
+	}
+
+	/** 在笔记右边打开（或显示）实时预览 */
+	async openLivePreview(mode?: PreviewMode) {
+		const { workspace } = this.app;
+		let leaf = workspace.getLeavesOfType(VIEW_TYPE_LIVE_PREVIEW)[0];
+		if (!leaf) {
+			const md = workspace.getMostRecentLeaf();
+			if (md && md.view.getViewType() === 'markdown') workspace.setActiveLeaf(md, { focus: false });
+			leaf = workspace.getLeaf('split', 'vertical');
+			await leaf.setViewState({ type: VIEW_TYPE_LIVE_PREVIEW, active: false });
+		}
+		await workspace.revealLeaf(leaf);
+		if (mode && leaf.view instanceof LivePreviewView) leaf.view.setMode(mode);
+		else this.refreshLivePreview();
+	}
+
+	/** 排版 / 章节样式 / 头像 / END 改了以后刷新预览 */
+	refreshLivePreview() {
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_LIVE_PREVIEW)) {
+			const view = leaf.view;
+			if (view instanceof LivePreviewView) view.schedule(50);
+		}
 	}
 
 	startAutoCheck() {
@@ -346,10 +411,10 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl).setName('X 推送').setHeading();
-		containerEl.createEl('p', {
-			cls: 'setting-item-description',
-			text: '推送到 X 需要在 Chrome 安装 Kaitox 扩展并登录 X。中转程序已内置，Obsidian 开着就自动运行。'
-		});
+		const xDesc = containerEl.createEl('p', { cls: 'setting-item-description' });
+		xDesc.appendText('推送到 X 需要在 Chrome 安装 ');
+		xDesc.createEl('a', { text: 'Kaitox 扩展（Chrome 应用商店）', href: KAITOX_STORE_URL });
+		xDesc.appendText(' 并登录 X。中转程序已内置，Obsidian 开着就自动运行。');
 
 		const relayStatus = () => {
 			const r = this.plugin.relay;
@@ -420,6 +485,14 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName('草稿默认信息').setHeading();
 
 		new Setting(containerEl)
+			.setName('推送后记住这篇文章的设置')
+			.setDesc('推送成功后，把标题、作者、摘要、封面和排版写回笔记属性（title、wx_author、digest、cover、sp_theme 等），下次推送同一篇会自动沿用。')
+			.addToggle(t => t.setValue(this.plugin.settings.writeBackMeta).onChange(async v => {
+				this.plugin.settings.writeBackMeta = v;
+				await this.plugin.saveSettings();
+			}));
+
+		new Setting(containerEl)
 			.setName('默认作者')
 			.setDesc('发布确认弹窗中作者栏的默认值；笔记属性 wx_author（公众号作者）优先。最多 8 个字')
 			.addText(text => text
@@ -479,15 +552,15 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName('排版样式').setHeading();
 
 		new Setting(containerEl)
-			.setName('Memoria 内置排版')
-			.setDesc('已内置 14 套优化排版，新用户无需选择文件夹或保存应用，默认使用“绿白清简”。')
+			.setName('内置排版')
+			.setDesc('已内置 15 套排版，开箱即用；也可以在侧栏用可视化编辑器做自己的排版。')
 			.addButton(button => button
 				.setButtonText('查看 AI 排版规范')
 				.onClick(() => new CustomThemeGuideModal(this.app).open()));
 
 		new Setting(containerEl)
 			.setName('启用自定义排版')
-			.setDesc('仅在你要导入或让 AI 设计自己的 CSS 排版时开启。关闭时只显示 Memoria 内置排版。')
+			.setDesc('仅在你要导入或让 AI 设计自己的 CSS 排版时开启。关闭时只显示内置排版和你在编辑器里做的排版。')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.customThemesEnabled)
 				.onChange(async enabled => {
@@ -530,6 +603,54 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					}));
 		}
 
+		new Setting(containerEl)
+			.setName('IP 头像')
+			.setDesc('「章节标题前放 IP 头像」用的图片，建议正方形 PNG/JPG。不设置就用内置的 Serena 头像。')
+			.then(setting => {
+				const img = setting.controlEl.createEl('img', { cls: 'sp-avatar-preview' });
+				img.src = this.plugin.settings.brandAvatar || AVATAR_DATA_URI;
+			})
+			.addButton(button => button
+				.setButtonText('换一张')
+				.onClick(() => {
+					const input = document.createElement('input');
+					input.type = 'file';
+					input.accept = 'image/png,image/jpeg';
+					input.onchange = async () => {
+						const f = input.files?.[0];
+						if (!f) return;
+						try {
+							this.plugin.settings.brandAvatar = await squareAvatar(f);
+							await this.plugin.saveSettings();
+							await this.refreshPublisherViews();
+							this.display();
+						} catch (e) {
+							new Notice(`头像读取失败：${e instanceof Error ? e.message : e}`);
+						}
+					};
+					input.click();
+				}))
+			.addExtraButton(button => button
+				.setIcon('rotate-ccw')
+				.setTooltip('恢复内置头像')
+				.onClick(async () => {
+					this.plugin.settings.brandAvatar = '';
+					await this.plugin.saveSettings();
+					await this.refreshPublisherViews();
+					this.display();
+				}));
+
+		new Setting(containerEl)
+			.setName('文末标记文字')
+			.setDesc('侧栏勾选「文末加结束标记」后显示在文章最后，例如「你的名字 · END」。侧栏里也能直接改。')
+			.addText(text => text
+				.setPlaceholder('你的名字 · END')
+				.setValue(this.plugin.settings.endMarkText)
+				.onChange(async value => {
+					this.plugin.settings.endMarkText = value.slice(0, 40);
+					await this.plugin.saveSettings();
+				}));
+
 		// Account management section
 		new Setting(containerEl).setName('公众号账号').setHeading();
 
@@ -562,11 +683,13 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 			const view = leaf.view as PublisherView;
 			view.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
 			view.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
+			view.themeManager.setCustomDefs(this.plugin.settings.customThemes);
 			await view.themeManager.loadThemes();
 			const selected = view.themeManager.getTheme(view.selectedTheme) ?? view.themeManager.getDefaultTheme();
 			view.selectedTheme = selected.name;
 			view.render();
 		}
+		this.plugin.refreshLivePreview();
 	}
 
 	private chooseDefaultCover(): void {
@@ -655,3 +778,4 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		return folders;
 	}
 }
+
