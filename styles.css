@@ -946,7 +946,7 @@
 }
 
 /* ===== SerenaPost 品牌头部 ===== */
-.serena-post-brand { display: flex; align-items: center; gap: 10px; }
+.serena-post-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .serena-post-brand h3 { margin: 0; }
 .serena-post-avatar {
 	width: 40px; height: 40px; border-radius: 50%;
