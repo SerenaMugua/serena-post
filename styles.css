@@ -1158,3 +1158,16 @@
 .sp-live.is-x .sp-live-phone {
 	padding: 0 0 16px;
 }
+.sp-live .wechatpb-x-preview-frame {
+	max-height: none;
+	overflow: visible;
+	margin-top: 0;
+	border: none;
+	border-radius: 0;
+}
+.sp-live .wechatpb-x-report {
+	margin: 0;
+	padding: 10px 14px;
+	border-bottom: 1px solid #eef1f4;
+	color: #333333;
+}
