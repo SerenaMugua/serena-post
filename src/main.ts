@@ -7,7 +7,7 @@ import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
 import { LivePreviewView, VIEW_TYPE_LIVE_PREVIEW, type PreviewMode } from './views/live-preview-view';
 import { QUICK_FORMATS } from './utils/quick-format';
 import { AccountModal } from './modals/account-modal';
-import { OnboardingModal } from './modals/onboarding-modal';
+import { KAITOX_STORE_URL, OnboardingModal } from './modals/onboarding-modal';
 import { getAccessToken } from './services/weixin-api';
 import { DEFAULT_BUILTIN_THEME } from './builtin-themes';
 import { CUSTOM_THEME_AI_GUIDE } from './custom-theme-guide';
@@ -411,10 +411,10 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl).setName('X 推送').setHeading();
-		containerEl.createEl('p', {
-			cls: 'setting-item-description',
-			text: '推送到 X 需要在 Chrome 安装 Kaitox 扩展并登录 X。中转程序已内置，Obsidian 开着就自动运行。'
-		});
+		const xDesc = containerEl.createEl('p', { cls: 'setting-item-description' });
+		xDesc.appendText('推送到 X 需要在 Chrome 安装 ');
+		xDesc.createEl('a', { text: 'Kaitox 扩展（Chrome 应用商店）', href: KAITOX_STORE_URL });
+		xDesc.appendText(' 并登录 X。中转程序已内置，Obsidian 开着就自动运行。');
 
 		const relayStatus = () => {
 			const r = this.plugin.relay;

@@ -38,7 +38,7 @@ AppSecret 保存在 Obsidian 的 SecretStorage，不会写进 `data.json`。
 
 ## 推送到 X：准备
 
-只需要在 Chrome 里装好 **Kaitox 扩展** 并登录 X。
+只需要在 Chrome 里装好 **[Kaitox 扩展](https://chromewebstore.google.com/detail/kaitox/ljefnciiojdefgpnphihcijfdmbdomll)**（Chrome 应用商店）并登录 X。
 
 - 中转程序已内置在插件里，不需要再装 npm、敲命令。
 - 如果你本来就在运行 Kaitox 的中转（`kaitox relay`），SerenaPost 会自动复用它。

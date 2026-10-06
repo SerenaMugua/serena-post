@@ -5,19 +5,21 @@
 import { App, Modal, Notice, setIcon } from 'obsidian';
 import type WeChatPublisherPlugin from '../main';
 import { AccountModal } from './account-modal';
-import { checkProxyIP, getAccessToken } from '../services/weixin-api';
+import { checkDraftPermission, checkProxyIP, getAccessToken } from '../services/weixin-api';
 import { isRelayUp } from '../x/xpush';
 import { AVATAR_DATA_URI } from '../brand';
 import { squareAvatar } from '../utils/image';
 
 const MP_URL = 'https://developers.weixin.qq.com/console/product/mp';
-const KAITOX_URL = 'https://github.com/kuangjiajia/kaitox-toolkit';
+export const KAITOX_STORE_URL = 'https://chromewebstore.google.com/detail/kaitox/ljefnciiojdefgpnphihcijfdmbdomll';
 
 type StepState = 'done' | 'todo' | 'warn' | 'optional';
 
 export class OnboardingModal extends Modal {
 	private ip = '';
 	private accountCheck: { ok: boolean; message: string } | null = null;
+	/** 草稿箱接口权限：null = 还没检测 */
+	private draftPerm: { ok: boolean; message: string } | null = null;
 	private relayOnline: boolean | null = null;
 
 	constructor(app: App, private plugin: WeChatPublisherPlugin) {
@@ -62,9 +64,20 @@ export class OnboardingModal extends Modal {
 			this.plugin.setAccessToken(account, token);
 			account.status = 'online';
 			await this.plugin.saveSettings();
-			this.accountCheck = { ok: true, message: `「${account.name}」连接成功，可以推送草稿了` };
+			this.accountCheck = { ok: true, message: `「${account.name}」连接成功` };
+			try {
+				const perm = await checkDraftPermission(token, resolved.proxyConfig);
+				this.draftPerm = perm.ok
+					? { ok: true, message: '有草稿箱权限，可以一键推送草稿' }
+					: perm.errcode === '48001'
+						? { ok: false, message: '这个号没有草稿箱接口权限（未认证的个人号常见），不能自动推草稿。但可以先用预览里的「复制到公众号」，再到公众号编辑器里粘贴，排版会保留。' }
+						: { ok: false, message: perm.message ?? '检查草稿箱权限失败' };
+			} catch (e) {
+				this.draftPerm = null;
+			}
 		} catch (e) {
 			this.accountCheck = { ok: false, message: e instanceof Error ? e.message : String(e) };
+			this.draftPerm = null;
 		}
 		if (rerender) this.render();
 	}
@@ -102,7 +115,7 @@ export class OnboardingModal extends Modal {
 
 		// 2. IP 白名单
 		const check = this.accountCheck;
-		const s2state: StepState = !hasAccount ? 'todo' : check?.ok ? 'done' : check ? 'warn' : 'todo';
+		const s2state: StepState = !hasAccount ? 'todo' : check?.ok ? (this.draftPerm && !this.draftPerm.ok ? 'warn' : 'done') : check ? 'warn' : 'todo';
 		const s2 = this.step(2, '把本机 IP 加进公众号白名单', s2state,
 			'微信只接受**白名单里的电脑**推送。在微信开发者平台同一个「**基础信息**」页的开发信息里找到「**IP 白名单**」，把下面这个 IP 加进去，等几分钟再点「**检测连接**」。');
 		const ipRow = s2.createDiv({ cls: 'sp-ob-ip' });
@@ -122,18 +135,30 @@ export class OnboardingModal extends Modal {
 			});
 		}
 		if (check) s2.createDiv({ cls: `sp-ob-result ${check.ok ? 'is-ok' : 'is-bad'}`, text: check.message });
+		const perm = this.draftPerm;
+		if (check?.ok && perm) {
+			const box = s2.createDiv({ cls: `sp-ob-result ${perm.ok ? 'is-ok' : 'is-bad'}` });
+			box.setText(perm.message);
+			if (!perm.ok) {
+				const b = s2.createDiv({ cls: 'sp-ob-actions' });
+				this.button(b, '打开预览（复制到公众号）', true, async () => {
+					this.close();
+					await this.plugin.openLivePreview('wechat');
+				});
+			}
+		}
 		s2.createDiv({ cls: 'sp-ob-tip', text: '家里的网络 IP 可能会变；开了代理的话，以这里显示的 IP 为准。' });
 
 		// 3. X（可选）
 		const relay = this.relayOnline;
 		const s3 = this.step(3, '推到 X 文章（可选）', relay ? 'done' : 'optional',
-			'在 Chrome 里装好 **Kaitox 扩展**并登录 X 就行。本地中转已经**内置**在插件里，Obsidian 开着就会自动运行。');
+			'在 Chrome 应用商店安装 **Kaitox 扩展**（点下面的按钮，再点「添加至 Chrome」），然后在 Chrome 里登录 X 就行。本地中转已经**内置**在插件里，Obsidian 开着就会自动运行。');
 		s3.createDiv({
 			cls: `sp-ob-result ${relay ? 'is-ok' : 'is-muted'}`,
 			text: relay === null ? '正在检测中转…' : relay ? '中转已就绪' : '中转还没运行：可以到「设置 → SerenaPost → X 推送」打开「内置中转」'
 		});
 		const b3 = s3.createDiv({ cls: 'sp-ob-actions' });
-		this.button(b3, '获取 Kaitox 扩展', false, () => { window.open(KAITOX_URL); });
+		this.button(b3, '去 Chrome 应用商店安装 Kaitox', false, () => { window.open(KAITOX_STORE_URL); });
 
 		// 4. 品牌
 		const branded = Boolean(st.brandAvatar) || st.headingAvatar || st.endMark;

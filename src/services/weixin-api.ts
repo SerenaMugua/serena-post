@@ -284,6 +284,27 @@ export async function addDraft(
 }
 
 /**
+ * 检查草稿箱接口权限（只读：取草稿列表第一条，不会创建任何东西）。
+ * 未认证的个人号常见 48001：没有草稿箱 / 素材管理权限。
+ */
+export async function checkDraftPermission(
+	accessToken: string,
+	proxyConfig?: ResolvedProxyConfig
+): Promise<{ ok: boolean; errcode?: string; message?: string }> {
+	const url = `https://api.weixin.qq.com/cgi-bin/draft/batchget?access_token=${accessToken}`;
+	const response = await requestWithProxy(url, {
+		url,
+		method: 'POST',
+		contentType: 'application/json',
+		body: JSON.stringify({ offset: 0, count: 1, no_content: 1 })
+	}, proxyConfig);
+	const json = response?.json;
+	const code = json?.errcode;
+	if (code === undefined || code === 0) return { ok: true };
+	return { ok: false, errcode: String(code), message: toWeixinError(json, '检查接口权限失败').message };
+}
+
+/**
  * 测试代理连接并返回实际出口IP
  */
 export async function testProxy(proxyConfig: ResolvedProxyConfig): Promise<{ success: boolean; latency?: number; error?: string; actualIP?: string }> {

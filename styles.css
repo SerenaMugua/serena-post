@@ -1643,3 +1643,34 @@
 .sp-live .sp-live-dot {
 	background: var(--sp-blue2);
 }
+
+/* 旧 Kaitox 插件提示 */
+.sp-legacy-notice {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 0 0 10px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	border: 1px solid rgba(83, 164, 234, 0.45);
+	border-left: 4px solid #0058a3;
+	background: rgba(83, 164, 234, 0.1);
+	font-size: var(--font-ui-small);
+	line-height: 1.5;
+}
+.sp-legacy-text {
+	flex: 1;
+	min-width: 0;
+	color: var(--text-muted);
+}
+.sp-legacy-text strong {
+	display: block;
+	color: #0058a3;
+	margin-bottom: 2px;
+}
+.theme-dark .sp-legacy-text strong {
+	color: #53a4ea;
+}
+.sp-legacy-notice button {
+	flex: none;
+}

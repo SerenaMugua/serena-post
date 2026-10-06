@@ -9,6 +9,7 @@ import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../servic
 import { compressImage } from '../utils/image';
 import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
+import { KAITOX_STORE_URL } from '../modals/onboarding-modal';
 import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
 import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
 import { CUSTOM_THEME_PREFIX, renderSetup, type Theme } from '../utils/theme-manager';
@@ -163,6 +164,8 @@ export class PublisherView extends ItemView {
 		const guide = brand.createEl('button', { cls: 'sp-guide-btn', text: '新手引导' });
 		guide.onclick = () => this.plugin.openOnboarding();
 
+		this.renderLegacyKaitoxNotice(container);
+
 		const body = container.createDiv({ cls: 'sp-cards' });
 		this.card(body, 'target', '发到哪', this.targetSummary(), el => this.renderAccountSelection(el));
 		this.card(body, 'look', '长什么样', this.lookSummary(), el => this.renderThemeSelection(el));
@@ -174,6 +177,27 @@ export class PublisherView extends ItemView {
 			this.renderPublishProgress(footer);
 		}
 		this.renderActionButtons(footer);
+	}
+
+	/** 旧 Kaitox 插件还开着：它会弹「relay 未运行」之类的提示，和 SerenaPost 的内置中转重复 */
+	private renderLegacyKaitoxNotice(container: HTMLElement) {
+		const plugins = (this.app as unknown as { plugins?: { enabledPlugins?: Set<string>; disablePluginAndSave?: (id: string) => Promise<void> } }).plugins;
+		if (!plugins?.enabledPlugins?.has('kaitox')) return;
+		const box = container.createDiv({ cls: 'sp-legacy-notice' });
+		const text = box.createDiv({ cls: 'sp-legacy-text' });
+		text.createEl('strong', { text: '可以关掉旧 Kaitox 插件' });
+		text.createDiv({ text: 'SerenaPost 已经内置了推 X 的功能。旧插件开着会重复弹「relay 未运行」的提示。（Chrome 里的 Kaitox 扩展要保留）' });
+		const btn = box.createEl('button', { text: '一键关闭', cls: 'mod-cta' });
+		btn.onclick = async () => {
+			btn.disabled = true;
+			try {
+				await plugins.disablePluginAndSave?.('kaitox');
+				new Notice('已关闭旧 Kaitox 插件，以后用 SerenaPost 推 X 就行');
+			} catch (e) {
+				new Notice(`关闭失败，可到「设置 → 第三方插件」手动关闭：${e instanceof Error ? e.message : e}`);
+			}
+			this.render();
+		};
 	}
 
 	/** 可折叠的分组卡片，折叠时标题右边显示当前选择 */
@@ -279,10 +303,14 @@ export class PublisherView extends ItemView {
 		dot.addClass(online === null ? 'is-unknown' : online ? 'is-on' : 'is-off');
 		dot.setAttr('aria-label', online ? '中转已连接' : '中转未连接');
 		label.createSpan({ cls: 'account-name', text: 'X 文章草稿' });
-		label.createDiv({
-			cls: 'account-remark',
-			text: online === null ? '正在检测中转…' : online ? '中转已就绪 · 需要 Chrome 里的 Kaitox 扩展' : '中转未运行：到 SerenaPost 设置打开「内置中转」'
-		});
+		const remark = label.createDiv({ cls: 'account-remark' });
+		if (online === null) remark.setText('正在检测中转…');
+		else if (!online) remark.setText('中转未运行：到 SerenaPost 设置打开「内置中转」');
+		else {
+			remark.appendText('中转已就绪 · 需要 Chrome 里的 ');
+			const a = remark.createEl('a', { text: 'Kaitox 扩展', href: KAITOX_STORE_URL });
+			a.onclick = e => { e.stopPropagation(); };
+		}
 	}
 
 	renderAccountItem(container: HTMLElement, account: WeChatAccount) {
