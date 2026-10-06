@@ -4,6 +4,7 @@ import { squareAvatar } from './utils/image';
 import { EmbeddedRelay } from './x/embedded-relay';
 import { PluginSettings, DEFAULT_SETTINGS, WeChatAccount, ResolvedWeChatAccount, ResolvedProxyConfig } from './types';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
+import { LivePreviewView, VIEW_TYPE_LIVE_PREVIEW } from './views/live-preview-view';
 import { AccountModal } from './modals/account-modal';
 import { getAccessToken } from './services/weixin-api';
 import { DEFAULT_BUILTIN_THEME } from './builtin-themes';
@@ -87,6 +88,13 @@ export default class WeChatPublisherPlugin extends Plugin {
 			(leaf) => new PublisherView(leaf, this)
 		);
 
+		this.registerView(VIEW_TYPE_LIVE_PREVIEW, leaf => new LivePreviewView(leaf, this));
+		this.addCommand({
+			id: 'open-live-preview',
+			name: '打开公众号实时预览',
+			callback: () => void this.openLivePreview()
+		});
+
 		// Add ribbon icon
 		this.addRibbonIcon(ICON_ID, PLUGIN_NAME, () => {
 			void this.activateView();
@@ -146,6 +154,7 @@ export default class WeChatPublisherPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.refreshLivePreview();
 	}
 
 	private secretId(accountId: string, kind: 'app-secret' | 'access-token' | 'proxy-password'): string {
@@ -260,6 +269,33 @@ export default class WeChatPublisherPlugin extends Plugin {
 
 		if (leaf) {
 				await workspace.revealLeaf(leaf);
+		}
+	}
+
+	getPublisherView(): PublisherView | null {
+		const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER)[0];
+		return (leaf?.view as PublisherView | undefined) ?? null;
+	}
+
+	/** 在笔记右边打开（或显示）实时预览 */
+	async openLivePreview() {
+		const { workspace } = this.app;
+		let leaf = workspace.getLeavesOfType(VIEW_TYPE_LIVE_PREVIEW)[0];
+		if (!leaf) {
+			const md = workspace.getMostRecentLeaf();
+			if (md && md.view.getViewType() === 'markdown') workspace.setActiveLeaf(md, { focus: false });
+			leaf = workspace.getLeaf('split', 'vertical');
+			await leaf.setViewState({ type: VIEW_TYPE_LIVE_PREVIEW, active: false });
+		}
+		await workspace.revealLeaf(leaf);
+		this.refreshLivePreview();
+	}
+
+	/** 排版 / 章节样式 / 头像 / END 改了以后刷新预览 */
+	refreshLivePreview() {
+		for (const leaf of this.app.workspace.getLeavesOfType(VIEW_TYPE_LIVE_PREVIEW)) {
+			const view = leaf.view;
+			if (view instanceof LivePreviewView) view.schedule(50);
 		}
 	}
 
@@ -617,6 +653,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 			view.selectedTheme = selected.name;
 			view.render();
 		}
+		this.plugin.refreshLivePreview();
 	}
 
 	private chooseDefaultCover(): void {

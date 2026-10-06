@@ -1032,3 +1032,71 @@
 	flex: 1;
 	min-width: 0;
 }
+
+/* SerenaPost：公众号实时预览 */
+.sp-live {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 0 !important;
+	overflow: hidden !important;
+}
+.sp-live-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	flex: none;
+}
+.sp-live-info {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	font-size: var(--font-ui-small);
+}
+.sp-live-dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #22c55e;
+	flex: none;
+}
+.sp-live-title {
+	font-weight: 600;
+	flex: none;
+}
+.sp-live-name {
+	color: var(--text-muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.sp-live-scroll {
+	flex: 1;
+	overflow-y: auto;
+	background: var(--background-secondary);
+	padding: 16px 12px 40px;
+}
+.sp-live-phone {
+	max-width: 420px;
+	margin: 0 auto;
+	background: #ffffff;
+	color: #333333;
+	border-radius: 14px;
+	box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+	padding: 12px 0 20px;
+	overflow: hidden;
+}
+.sp-live-content img {
+	max-width: 100%;
+}
+.sp-live-empty {
+	padding: 40px 24px;
+	text-align: center;
+	color: #888888;
+	font-size: 14px;
+	line-height: 1.7;
+}

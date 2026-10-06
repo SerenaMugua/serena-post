@@ -85,6 +85,7 @@ export class PublisherView extends ItemView {
 		}));
 
 		this.render();
+		this.plugin.refreshLivePreview();
 		void this.checkRelay();
 		// 内置中转在 Obsidian 布局就绪后才启动，开头几秒多查两次，避免误显示「未运行」
 		for (const ms of [2000, 5000]) {
@@ -288,6 +289,7 @@ export class PublisherView extends ItemView {
 		if (!this.themeManager.getTheme(this.selectedTheme)) {
 			this.selectedTheme = this.themeManager.getDefaultTheme().name;
 		}
+		this.plugin.refreshLivePreview();
 	}
 
 	private async selectTheme(name: string) {
@@ -410,7 +412,6 @@ export class PublisherView extends ItemView {
 			this.selectedTheme = select.value;
 			this.plugin.settings.defaultTheme = this.selectedTheme;
 			await this.plugin.saveSettings();
-			new Notice(`已选择样式：${this.selectedTheme}`);
 			this.render();
 		};
 
@@ -534,7 +535,7 @@ export class PublisherView extends ItemView {
 			input.placeholder = '例如：你的名字 · END';
 			input.maxLength = 40;
 			input.value = st.endMarkText;
-			input.onchange = async () => {
+			input.oninput = async () => {
 				st.endMarkText = input.value.trim();
 				await this.plugin.saveSettings();
 			};
@@ -751,7 +752,22 @@ export class PublisherView extends ItemView {
 		}
 	}
 
+	/** 当前笔记 → 公众号 HTML。forCopy=true 时图片转成内嵌（复制 / 发布用），否则用本地路径（预览快） */
+	async buildWechatHtml(md: MarkdownView, forCopy: boolean): Promise<string | null> {
+		let content = md.getViewData();
+		if (!content.trim()) return null;
+		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
+		content = forCopy ? await this.processImageLinks(content, md) : await this.processImageLinksForPreview(content, md);
+		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
+		const setup = this.renderSetupFor(theme);
+		return MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
+	}
+
 	async handlePreview() {
+		await this.plugin.openLivePreview();
+	}
+
+	async handlePreviewModal() {
 		// Try to get active view first, then fall back to any visible markdown view
 		let activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 
