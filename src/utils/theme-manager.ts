@@ -1,6 +1,8 @@
 import { App, TFile, TFolder, Notice, normalizePath } from 'obsidian';
 import { BUILTIN_THEME_DOCUMENTS, BUILTIN_THEME_REFINEMENT, DEFAULT_BUILTIN_THEME } from '../builtin-themes';
 import { buildCustomCss, type CustomThemeDef } from '../theme-editor/custom-theme';
+import type { FormatterOptions } from './formatter';
+import { brandingCss, headingStyleCss, headingStyleDef } from './heading-styles';
 
 export interface Theme {
 	name: string;           // 显示名称
@@ -10,6 +12,7 @@ export interface Theme {
 	builtin?: boolean;
 	description?: string;
 	accent?: string;
+	accent2?: string;
 	aliases?: string[];
 	headingLabel?: string;
 	headingNumbers?: boolean;
@@ -63,6 +66,7 @@ export class ThemeManager {
 			builtin: false,
 			description: `基于「${base.name}」的自定义排版`,
 			accent: def.accent || base.accent,
+			accent2: def.accent && def.accent.toLowerCase() !== (base.accent ?? '').toLowerCase() ? undefined : base.accent2,
 			headingLabel: def.h2Style === 'theme' ? base.headingLabel : undefined,
 			headingNumbers: def.h2Style === 'theme' ? base.headingNumbers : undefined,
 			codeWindow: base.codeWindow,
@@ -74,7 +78,7 @@ export class ThemeManager {
 	 * 加载所有CSS主题
 	 */
 	async loadThemes(): Promise<Theme[]> {
-		this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
+		this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, accent2, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
 			name,
 			filename: name,
 			css: `${this.extractCss(content)}\n\n${BUILTIN_THEME_REFINEMENT}`,
@@ -82,6 +86,7 @@ export class ThemeManager {
 			builtin: true,
 			description,
 			accent,
+			accent2,
 			aliases: legacyNames,
 			headingLabel,
 			headingNumbers,
@@ -204,6 +209,31 @@ export class ThemeManager {
 }
 
 /** 主题 → 渲染选项（标题序号、代码窗口） */
-export function formatterOptionsFor(theme: Theme) {
+export function formatterOptionsFor(theme: Theme): FormatterOptions {
 	return { headingLabel: theme.headingLabel, headingNumbers: theme.headingNumbers, codeWindow: theme.codeWindow };
+}
+
+/** 侧栏里的章节样式 / IP 头像 / END 标记，可叠加在任意排版上 */
+export interface RenderPrefs {
+	headingStyle: string;
+	headingAvatar: boolean;
+	avatarDataUrl: string;
+	endMark: boolean;
+	endMarkText: string;
+}
+
+/** 主题 + 侧栏设置 → 最终的 CSS 和渲染选项（预览、长图、发布都走这里，保证一致） */
+export function renderSetup(theme: Theme, prefs: RenderPrefs): { css: string; options: FormatterOptions } {
+	const options = formatterOptionsFor(theme);
+	let css = theme.css;
+	if (headingStyleDef(prefs.headingStyle)) {
+		options.headingStyle = prefs.headingStyle;
+		css += headingStyleCss(prefs.headingStyle, theme.accent ?? '', theme.accent2);
+	}
+	const avatar = prefs.headingAvatar && prefs.avatarDataUrl ? prefs.avatarDataUrl : '';
+	const endMark = prefs.endMark ? prefs.endMarkText.trim() : '';
+	if (avatar) options.headingAvatar = avatar;
+	if (endMark) options.endMark = endMark;
+	if (avatar || endMark) css += brandingCss(theme.accent ?? '', theme.accent2);
+	return { css, options };
 }

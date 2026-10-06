@@ -20695,7 +20695,12 @@ var DEFAULT_SETTINGS = {
   openXAfterPush: true,
   xSelected: false,
   embeddedRelay: true,
-  customThemes: []
+  customThemes: [],
+  headingStyle: "theme",
+  headingAvatar: false,
+  brandAvatar: "",
+  endMark: false,
+  endMarkText: "SERENA \xB7 END"
 };
 
 // src/views/publisher-view.ts
@@ -23261,6 +23266,264 @@ var lexer = _Lexer.lex;
 
 // src/utils/formatter.ts
 var import_obsidian6 = require("obsidian");
+
+// src/theme-editor/custom-theme.ts
+var EXPORT_FORMAT = "serenapost-theme";
+var EXPORT_VERSION = 1;
+var FONT_STACKS = {
+  theme: { label: "\u8DDF\u968F\u5E95\u7248", stack: "" },
+  sans: { label: "\u9ED1\u4F53\uFF08\u9ED8\u8BA4\u65E0\u886C\u7EBF\uFF09", stack: '-apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' },
+  serif: { label: "\u5B8B\u4F53\uFF08\u886C\u7EBF\uFF09", stack: '"Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif' },
+  kai: { label: "\u6977\u4F53", stack: '"Kaiti SC", STKaiti, KaiTi, "BiauKai", serif' },
+  rounded: { label: "\u5706\u4F53", stack: '"Yuanti SC", "PingFang SC", "Microsoft YaHei", sans-serif' }
+};
+function newThemeId() {
+  return "ct-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+function defaultDef(base, baseAccent) {
+  return {
+    id: newThemeId(),
+    name: "",
+    base,
+    accent: baseAccent || "#07c160",
+    fontFamily: "theme",
+    fontSize: 16,
+    lineHeight: 1.8,
+    letterSpacing: 0.03,
+    paragraphSpacing: 20,
+    textColor: "",
+    textAlign: "theme",
+    headingAlign: "theme",
+    h2Style: "theme",
+    quoteStyle: "theme",
+    boldColor: "theme",
+    imageRadius: -1,
+    imageShadow: false,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+}
+function hexToRgb(hex) {
+  const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!m) return null;
+  let h2 = m[1];
+  if (h2.length === 3) h2 = h2.split("").map((c) => c + c).join("");
+  const n = parseInt(h2, 16);
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+function tint(hex, amount) {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const mix = rgb.map((v) => Math.round(v + (255 - v) * amount));
+  return "#" + mix.map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function recolor(css, from, to) {
+  if (!from || !to || from.toLowerCase() === to.toLowerCase()) return css;
+  let out = css.replace(new RegExp(escapeRe(from), "gi"), to);
+  const a = hexToRgb(from);
+  const b = hexToRgb(to);
+  if (a && b) {
+    out = out.replace(new RegExp(`rgba?\\(\\s*${a[0]}\\s*,\\s*${a[1]}\\s*,\\s*${a[2]}`, "g"), (m) => m.replace(/\(\s*\d+\s*,\s*\d+\s*,\s*\d+/, `(${b[0]}, ${b[1]}, ${b[2]}`));
+  }
+  return out;
+}
+function generateOverrideCss(d, baseAccent) {
+  var _a2;
+  const accent = d.accent || baseAccent || "#07c160";
+  const r = [];
+  const root2 = ".note-to-mp";
+  const text = [];
+  const font = (_a2 = FONT_STACKS[d.fontFamily]) == null ? void 0 : _a2.stack;
+  if (font) text.push(`font-family: ${font} !important;`);
+  text.push(`font-size: ${d.fontSize}px !important;`);
+  text.push(`line-height: ${d.lineHeight} !important;`);
+  text.push(`letter-spacing: ${d.letterSpacing}em !important;`);
+  if (d.textColor) text.push(`color: ${d.textColor} !important;`);
+  r.push(`${root2} { ${text.join(" ")} }`);
+  const p = [
+    `font-size: ${d.fontSize}px !important;`,
+    `line-height: ${d.lineHeight} !important;`,
+    `letter-spacing: ${d.letterSpacing}em !important;`,
+    `margin: 0 0 ${d.paragraphSpacing}px !important;`
+  ];
+  if (font) p.push(`font-family: ${font} !important;`);
+  if (d.textColor) p.push(`color: ${d.textColor} !important;`);
+  if (d.textAlign !== "theme") p.push(`text-align: ${d.textAlign} !important;`);
+  r.push(`${root2} p, ${root2} li { ${p.join(" ")} }`);
+  if (font) r.push(`${root2} h1, ${root2} h2, ${root2} h3, ${root2} h4 { font-family: ${font} !important; }`);
+  if (d.headingAlign !== "theme") {
+    r.push(`${root2} h1, ${root2} h2, ${root2} h3 { text-align: ${d.headingAlign} !important; }`);
+  }
+  switch (d.h2Style) {
+    case "bar":
+      r.push(`${root2} h2 { border: none !important; border-left: 4px solid ${accent} !important; background: none !important; border-radius: 0 !important; padding: 2px 0 2px 12px !important; color: ${accent} !important; display: block !important; }`);
+      break;
+    case "underline":
+      r.push(`${root2} h2 { border: none !important; border-bottom: 2px solid ${accent} !important; background: none !important; border-radius: 0 !important; padding: 0 0 8px !important; color: ${accent} !important; display: block !important; }`);
+      break;
+    case "pill":
+      r.push(`${root2} h2 { border: none !important; background: ${accent} !important; color: #ffffff !important; border-radius: 999px !important; padding: 6px 18px !important; display: table !important; ${d.headingAlign === "center" ? "margin-left: auto !important; margin-right: auto !important;" : ""} }`);
+      break;
+    case "plain":
+      r.push(`${root2} h2 { border: none !important; background: none !important; border-radius: 0 !important; padding: 0 !important; color: inherit !important; display: block !important; }`);
+      break;
+  }
+  switch (d.quoteStyle) {
+    case "bar":
+      r.push(`${root2} blockquote { border: none !important; border-left: 3px solid ${accent} !important; background: none !important; border-radius: 0 !important; padding: 4px 0 4px 14px !important; color: #6b7280 !important; }`);
+      break;
+    case "card":
+      r.push(`${root2} blockquote { border: none !important; background: ${tint(accent, 0.9)} !important; border-radius: 10px !important; padding: 14px 16px !important; color: #374151 !important; }`);
+      break;
+    case "plain":
+      r.push(`${root2} blockquote { border: none !important; background: none !important; padding: 0 !important; color: #6b7280 !important; font-style: italic; }`);
+      break;
+  }
+  if (d.boldColor === "accent") r.push(`${root2} strong { color: ${accent} !important; }`);
+  if (d.boldColor === "text") r.push(`${root2} strong { color: inherit !important; }`);
+  const img = [];
+  if (d.imageRadius >= 0) img.push(`border-radius: ${d.imageRadius}px !important;`);
+  if (d.imageShadow) img.push("box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;");
+  if (img.length) r.push(`${root2} img { ${img.join(" ")} }`);
+  return `
+/* SerenaPost \u81EA\u5B9A\u4E49\u6392\u7248\uFF1A${d.name || "\u672A\u547D\u540D"} */
+${r.join("\n")}
+`;
+}
+function buildCustomCss(baseCss, baseAccent, d) {
+  const accent = d.accent || baseAccent;
+  return recolor(baseCss, baseAccent, accent) + generateOverrideCss(d, baseAccent);
+}
+function exportThemeJson(d) {
+  const { id: _id, ...rest } = d;
+  return JSON.stringify({ format: EXPORT_FORMAT, version: EXPORT_VERSION, theme: rest }, null, 2);
+}
+var ENUMS = {
+  fontFamily: Object.keys(FONT_STACKS),
+  textAlign: ["theme", "justify", "left"],
+  headingAlign: ["theme", "left", "center"],
+  h2Style: ["theme", "bar", "underline", "pill", "plain"],
+  quoteStyle: ["theme", "bar", "card", "plain"],
+  boldColor: ["theme", "accent", "text"]
+};
+var COLOR_RE = /^(#[0-9a-f]{3}|#[0-9a-f]{6})?$/i;
+function clamp(n, min, max, fallback) {
+  const v = typeof n === "number" ? n : parseFloat(String(n));
+  return Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
+}
+function parseThemeJson(raw, knownBases, fallbackBase) {
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    throw new Error("\u4E0D\u662F\u6709\u6548\u7684\u6392\u7248\u6587\u4EF6\uFF08JSON \u683C\u5F0F\u9519\u8BEF\uFF09");
+  }
+  if (!data || data.format !== EXPORT_FORMAT || typeof data.theme !== "object") {
+    throw new Error("\u4E0D\u662F SerenaPost \u6392\u7248\u6587\u4EF6");
+  }
+  const t = data.theme;
+  const base = knownBases.includes(t.base) ? t.base : fallbackBase;
+  const d = defaultDef(base, "");
+  d.name = String(t.name || "\u5BFC\u5165\u7684\u6392\u7248").slice(0, 30);
+  d.accent = typeof t.accent === "string" && COLOR_RE.test(t.accent) ? t.accent : "";
+  d.textColor = typeof t.textColor === "string" && COLOR_RE.test(t.textColor) ? t.textColor : "";
+  for (const [key, values] of Object.entries(ENUMS)) {
+    const v = t[key];
+    if (typeof v === "string" && values.includes(v)) d[key] = v;
+  }
+  d.fontSize = clamp(t.fontSize, 12, 22, 16);
+  d.lineHeight = clamp(t.lineHeight, 1.2, 2.6, 1.8);
+  d.letterSpacing = clamp(t.letterSpacing, 0, 0.2, 0.03);
+  d.paragraphSpacing = clamp(t.paragraphSpacing, 0, 48, 20);
+  d.imageRadius = clamp(t.imageRadius, -1, 32, -1);
+  d.imageShadow = Boolean(t.imageShadow);
+  return d;
+}
+
+// src/utils/heading-styles.ts
+var HEADING_STYLES = [
+  { id: "theme", label: "\u8DDF\u968F\u6392\u7248", numbered: false },
+  { id: "underline", label: "\u7C97\u4E0B\u5212\u7EBF\u300001 \u6807\u9898", numbered: true },
+  { id: "slash", label: "\u659C\u7EBF\u3000\uFF0F \u6807\u9898", numbered: false, prefix: "\uFF0F" },
+  { id: "leftbar", label: "\u5DE6\u7AD6\u7EBF\u3000\u258C\u6807\u9898", numbered: false },
+  { id: "box", label: "\u65B9\u6846\u3000\u25A1 \u6807\u9898", numbered: false },
+  { id: "bracket", label: "\u65B9\u62EC\u53F7\u3000\uFF3B\u6807\u9898\uFF3D", numbered: false, prefix: "\uFF3B", suffix: "\uFF3D" },
+  { id: "dots", label: "\u53CC\u5706\u3000\u25CF \u6807\u9898", numbered: false, prefix: "\u25CF" },
+  { id: "matrix", label: "\u70B9\u9635\u3000\u2237 \u6807\u9898 \u2237", numbered: false, prefix: "\u2237", suffix: "\u2237" },
+  { id: "superscript", label: "\u4E0A\u7F6E\u5E8F\u53F7\u3000\u2070\xB9 \u6807\u9898", numbered: true },
+  { id: "quote", label: "\u5F15\u53F7\u3000\u300C \u6807\u9898", numbered: false, prefix: "\u300C" }
+];
+function headingStyleDef(id) {
+  if (!id || id === "theme") return void 0;
+  return HEADING_STYLES.find((s) => s.id === id);
+}
+var ROOT = ".note-to-mp";
+var MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+function headingStyleCss(id, accent, accent2) {
+  const def = headingStyleDef(id);
+  if (!def) return "";
+  const a = accent || "#0058a3";
+  const b = accent2 || tint(a, 0.35);
+  const h2 = `${ROOT} h2.sp-h`;
+  const lab = `${h2} .wechatpb-heading-label`;
+  const suf = `${h2} .sp-h-suffix`;
+  const r = [];
+  r.push(`${h2} { display: block !important; margin: 40px 0 20px !important; padding: 0 !important; border: none !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; text-align: left !important; color: ${a} !important; font-size: 19px !important; font-weight: 900 !important; line-height: 1.5 !important; letter-spacing: 0.5px !important; }`);
+  r.push(`${lab} { display: inline !important; margin: 0 8px 0 0 !important; padding: 0 !important; border: none !important; background: none !important; color: ${b} !important; font-size: inherit !important; font-weight: 900 !important; font-family: inherit !important; }`);
+  r.push(`${suf} { display: inline !important; margin: 0 0 0 8px !important; color: ${b} !important; font-weight: 900 !important; }`);
+  switch (def.id) {
+    case "underline":
+      r.push(`${h2} { display: table !important; margin: 44px auto 24px !important; padding: 0 4px 6px !important; border-bottom: 4px solid ${b} !important; text-align: center !important; }`);
+      r.push(`${lab} { color: ${a} !important; font-family: ${MONO} !important; margin-right: 10px !important; }`);
+      break;
+    case "slash":
+      r.push(`${lab} { font-size: 22px !important; font-weight: 400 !important; margin-right: 4px !important; }`);
+      break;
+    case "leftbar":
+      r.push(`${h2} { padding: 2px 0 2px 12px !important; border-left: 6px solid ${a} !important; }`);
+      break;
+    case "box":
+      r.push(`${h2} { display: table !important; padding: 6px 16px !important; border: 2px solid ${a} !important; }`);
+      break;
+    case "bracket":
+      r.push(`${lab} { margin-right: 2px !important; }`);
+      r.push(`${suf} { margin-left: 2px !important; }`);
+      break;
+    case "dots":
+      r.push(`${lab} { font-size: 14px !important; vertical-align: 2px !important; margin-right: 8px !important; }`);
+      r.push(`${h2} .sp-h-dot2 { color: ${a} !important; margin-right: 4px !important; }`);
+      break;
+    case "matrix":
+      r.push(`${h2} { text-align: center !important; margin: 44px 0 24px !important; }`);
+      r.push(`${lab} { margin-right: 10px !important; }`);
+      r.push(`${suf} { margin-left: 10px !important; }`);
+      break;
+    case "superscript":
+      r.push(`${lab} { display: block !important; margin: 0 0 2px !important; font-family: ${MONO} !important; font-size: 13px !important; letter-spacing: 3px !important; line-height: 1.4 !important; }`);
+      break;
+    case "quote":
+      r.push(`${lab} { font-size: 26px !important; line-height: 1 !important; margin-right: 2px !important; vertical-align: -2px !important; }`);
+      break;
+  }
+  return `
+/* SerenaPost \u7AE0\u8282\u6837\u5F0F\uFF1A${def.label} */
+${r.join("\n")}
+`;
+}
+function brandingCss(accent, accent2) {
+  const a = accent || "#0058a3";
+  const b = accent2 || tint(a, 0.35);
+  return `
+/* SerenaPost \u54C1\u724C\u5143\u7D20 */
+${ROOT} img.sp-h-avatar { display: inline-block !important; width: 30px !important; height: 30px !important; max-width: 30px !important; margin: 0 8px 0 0 !important; padding: 0 !important; border: 2px solid ${b} !important; border-radius: 50% !important; box-shadow: none !important; vertical-align: middle !important; background: #ffffff !important; }
+${ROOT} .sp-end { display: block !important; margin: 48px 0 8px !important; padding: 14px 0 0 !important; border-top: 1px solid ${tint(a, 0.75)} !important; text-align: center !important; }
+${ROOT} .sp-end-text { display: inline-block !important; color: ${a} !important; font-size: 13px !important; font-style: italic !important; font-weight: 700 !important; letter-spacing: 3px !important; line-height: 1.6 !important; }
+`;
+}
+
+// src/utils/formatter.ts
 var MarkedFormatter = class {
   /**
    * Initialize marked with WeChat-friendly renderer
@@ -23408,19 +23671,63 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
     }
   }
   static decorateHeadings(html, options2) {
-    var _a2;
+    var _a2, _b, _c;
     const headingLabel = (_a2 = options2.headingLabel) == null ? void 0 : _a2.trim();
-    if (!headingLabel && !options2.headingNumbers) return html;
+    const style = headingStyleDef(options2.headingStyle);
+    const avatar = options2.headingAvatar;
+    const endMark = (_b = options2.endMark) == null ? void 0 : _b.trim();
+    if (!headingLabel && !options2.headingNumbers && !style && !avatar && !endMark) return html;
     const container = document.createElement("div");
     container.append((0, import_obsidian6.sanitizeHTMLToDom)(html));
     const headings = Array.from(container.querySelectorAll("h2"));
     for (const [index, heading] of headings.entries()) {
       const label = document.createElement("span");
       label.className = "wechatpb-heading-label";
-      const own = stripHeadingNumber(heading);
-      const num = String(own != null ? own : index + 1).padStart(2, "0");
-      label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
-      heading.prepend(label);
+      if (style) {
+        heading.classList.add("sp-h", `sp-h-${style.id}`);
+        if (style.numbered) {
+          const own = stripHeadingNumber(heading);
+          label.textContent = String(own != null ? own : index + 1).padStart(2, "0");
+        } else if (style.prefix) {
+          label.textContent = style.prefix;
+          if (style.id === "dots") {
+            const dot2 = document.createElement("span");
+            dot2.className = "sp-h-dot2";
+            dot2.textContent = "\u25CF";
+            label.prepend(dot2);
+          }
+        }
+        if (style.suffix) {
+          const suffix = document.createElement("span");
+          suffix.className = "sp-h-suffix";
+          suffix.textContent = style.suffix;
+          heading.append(suffix);
+        }
+        if (label.textContent) heading.prepend(label);
+      } else if (headingLabel || options2.headingNumbers) {
+        const own = stripHeadingNumber(heading);
+        const num = String(own != null ? own : index + 1).padStart(2, "0");
+        label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
+        heading.prepend(label);
+      }
+      if (avatar) {
+        const img = document.createElement("img");
+        img.className = "sp-h-avatar";
+        img.src = avatar;
+        img.alt = "";
+        if ((style == null ? void 0 : style.id) === "superscript" && label.parentElement === heading) label.after(img);
+        else heading.prepend(img);
+      }
+    }
+    if (endMark) {
+      const root2 = (_c = container.querySelector("section.note-to-mp")) != null ? _c : container;
+      const end = document.createElement("section");
+      end.className = "sp-end";
+      const text = document.createElement("span");
+      text.className = "sp-end-text";
+      text.textContent = endMark;
+      end.append(text);
+      root2.append(end);
     }
     return container.innerHTML;
   }
@@ -23610,6 +23917,7 @@ var BUILTIN_THEME_DOCUMENTS = [
     content: Serena_default,
     description: "Serena \u6728\u74DC IP \u914D\u8272\uFF1A\u6DF1\u84DD + \u4EAE\u84DD\uFF0C\u7AE0\u8282\u5E8F\u53F7\u6807\u9898\uFF0C\u5F15\u7528\u3001\u4EE3\u7801\u5757\u3001\u8868\u683C\u7EDF\u4E00\u6846\u7EBF\u98CE\u683C",
     accent: "#0058a3",
+    accent2: "#53a4ea",
     headingNumbers: true,
     codeWindow: true
   },
@@ -23715,181 +24023,6 @@ var BUILTIN_THEME_DOCUMENTS = [
   }
 ];
 
-// src/theme-editor/custom-theme.ts
-var EXPORT_FORMAT = "serenapost-theme";
-var EXPORT_VERSION = 1;
-var FONT_STACKS = {
-  theme: { label: "\u8DDF\u968F\u5E95\u7248", stack: "" },
-  sans: { label: "\u9ED1\u4F53\uFF08\u9ED8\u8BA4\u65E0\u886C\u7EBF\uFF09", stack: '-apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' },
-  serif: { label: "\u5B8B\u4F53\uFF08\u886C\u7EBF\uFF09", stack: '"Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif' },
-  kai: { label: "\u6977\u4F53", stack: '"Kaiti SC", STKaiti, KaiTi, "BiauKai", serif' },
-  rounded: { label: "\u5706\u4F53", stack: '"Yuanti SC", "PingFang SC", "Microsoft YaHei", sans-serif' }
-};
-function newThemeId() {
-  return "ct-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
-function defaultDef(base, baseAccent) {
-  return {
-    id: newThemeId(),
-    name: "",
-    base,
-    accent: baseAccent || "#07c160",
-    fontFamily: "theme",
-    fontSize: 16,
-    lineHeight: 1.8,
-    letterSpacing: 0.03,
-    paragraphSpacing: 20,
-    textColor: "",
-    textAlign: "theme",
-    headingAlign: "theme",
-    h2Style: "theme",
-    quoteStyle: "theme",
-    boldColor: "theme",
-    imageRadius: -1,
-    imageShadow: false,
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
-  };
-}
-function hexToRgb(hex) {
-  const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
-  if (!m) return null;
-  let h2 = m[1];
-  if (h2.length === 3) h2 = h2.split("").map((c) => c + c).join("");
-  const n = parseInt(h2, 16);
-  return [n >> 16 & 255, n >> 8 & 255, n & 255];
-}
-function tint(hex, amount) {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  const mix = rgb.map((v) => Math.round(v + (255 - v) * amount));
-  return "#" + mix.map((v) => v.toString(16).padStart(2, "0")).join("");
-}
-function escapeRe(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-function recolor(css, from, to) {
-  if (!from || !to || from.toLowerCase() === to.toLowerCase()) return css;
-  let out = css.replace(new RegExp(escapeRe(from), "gi"), to);
-  const a = hexToRgb(from);
-  const b = hexToRgb(to);
-  if (a && b) {
-    out = out.replace(new RegExp(`rgba?\\(\\s*${a[0]}\\s*,\\s*${a[1]}\\s*,\\s*${a[2]}`, "g"), (m) => m.replace(/\(\s*\d+\s*,\s*\d+\s*,\s*\d+/, `(${b[0]}, ${b[1]}, ${b[2]}`));
-  }
-  return out;
-}
-function generateOverrideCss(d, baseAccent) {
-  var _a2;
-  const accent = d.accent || baseAccent || "#07c160";
-  const r = [];
-  const root2 = ".note-to-mp";
-  const text = [];
-  const font = (_a2 = FONT_STACKS[d.fontFamily]) == null ? void 0 : _a2.stack;
-  if (font) text.push(`font-family: ${font} !important;`);
-  text.push(`font-size: ${d.fontSize}px !important;`);
-  text.push(`line-height: ${d.lineHeight} !important;`);
-  text.push(`letter-spacing: ${d.letterSpacing}em !important;`);
-  if (d.textColor) text.push(`color: ${d.textColor} !important;`);
-  r.push(`${root2} { ${text.join(" ")} }`);
-  const p = [
-    `font-size: ${d.fontSize}px !important;`,
-    `line-height: ${d.lineHeight} !important;`,
-    `letter-spacing: ${d.letterSpacing}em !important;`,
-    `margin: 0 0 ${d.paragraphSpacing}px !important;`
-  ];
-  if (font) p.push(`font-family: ${font} !important;`);
-  if (d.textColor) p.push(`color: ${d.textColor} !important;`);
-  if (d.textAlign !== "theme") p.push(`text-align: ${d.textAlign} !important;`);
-  r.push(`${root2} p, ${root2} li { ${p.join(" ")} }`);
-  if (font) r.push(`${root2} h1, ${root2} h2, ${root2} h3, ${root2} h4 { font-family: ${font} !important; }`);
-  if (d.headingAlign !== "theme") {
-    r.push(`${root2} h1, ${root2} h2, ${root2} h3 { text-align: ${d.headingAlign} !important; }`);
-  }
-  switch (d.h2Style) {
-    case "bar":
-      r.push(`${root2} h2 { border: none !important; border-left: 4px solid ${accent} !important; background: none !important; border-radius: 0 !important; padding: 2px 0 2px 12px !important; color: ${accent} !important; display: block !important; }`);
-      break;
-    case "underline":
-      r.push(`${root2} h2 { border: none !important; border-bottom: 2px solid ${accent} !important; background: none !important; border-radius: 0 !important; padding: 0 0 8px !important; color: ${accent} !important; display: block !important; }`);
-      break;
-    case "pill":
-      r.push(`${root2} h2 { border: none !important; background: ${accent} !important; color: #ffffff !important; border-radius: 999px !important; padding: 6px 18px !important; display: table !important; ${d.headingAlign === "center" ? "margin-left: auto !important; margin-right: auto !important;" : ""} }`);
-      break;
-    case "plain":
-      r.push(`${root2} h2 { border: none !important; background: none !important; border-radius: 0 !important; padding: 0 !important; color: inherit !important; display: block !important; }`);
-      break;
-  }
-  switch (d.quoteStyle) {
-    case "bar":
-      r.push(`${root2} blockquote { border: none !important; border-left: 3px solid ${accent} !important; background: none !important; border-radius: 0 !important; padding: 4px 0 4px 14px !important; color: #6b7280 !important; }`);
-      break;
-    case "card":
-      r.push(`${root2} blockquote { border: none !important; background: ${tint(accent, 0.9)} !important; border-radius: 10px !important; padding: 14px 16px !important; color: #374151 !important; }`);
-      break;
-    case "plain":
-      r.push(`${root2} blockquote { border: none !important; background: none !important; padding: 0 !important; color: #6b7280 !important; font-style: italic; }`);
-      break;
-  }
-  if (d.boldColor === "accent") r.push(`${root2} strong { color: ${accent} !important; }`);
-  if (d.boldColor === "text") r.push(`${root2} strong { color: inherit !important; }`);
-  const img = [];
-  if (d.imageRadius >= 0) img.push(`border-radius: ${d.imageRadius}px !important;`);
-  if (d.imageShadow) img.push("box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12) !important;");
-  if (img.length) r.push(`${root2} img { ${img.join(" ")} }`);
-  return `
-/* SerenaPost \u81EA\u5B9A\u4E49\u6392\u7248\uFF1A${d.name || "\u672A\u547D\u540D"} */
-${r.join("\n")}
-`;
-}
-function buildCustomCss(baseCss, baseAccent, d) {
-  const accent = d.accent || baseAccent;
-  return recolor(baseCss, baseAccent, accent) + generateOverrideCss(d, baseAccent);
-}
-function exportThemeJson(d) {
-  const { id: _id, ...rest } = d;
-  return JSON.stringify({ format: EXPORT_FORMAT, version: EXPORT_VERSION, theme: rest }, null, 2);
-}
-var ENUMS = {
-  fontFamily: Object.keys(FONT_STACKS),
-  textAlign: ["theme", "justify", "left"],
-  headingAlign: ["theme", "left", "center"],
-  h2Style: ["theme", "bar", "underline", "pill", "plain"],
-  quoteStyle: ["theme", "bar", "card", "plain"],
-  boldColor: ["theme", "accent", "text"]
-};
-var COLOR_RE = /^(#[0-9a-f]{3}|#[0-9a-f]{6})?$/i;
-function clamp(n, min, max, fallback) {
-  const v = typeof n === "number" ? n : parseFloat(String(n));
-  return Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
-}
-function parseThemeJson(raw, knownBases, fallbackBase) {
-  let data;
-  try {
-    data = JSON.parse(raw);
-  } catch (e) {
-    throw new Error("\u4E0D\u662F\u6709\u6548\u7684\u6392\u7248\u6587\u4EF6\uFF08JSON \u683C\u5F0F\u9519\u8BEF\uFF09");
-  }
-  if (!data || data.format !== EXPORT_FORMAT || typeof data.theme !== "object") {
-    throw new Error("\u4E0D\u662F SerenaPost \u6392\u7248\u6587\u4EF6");
-  }
-  const t = data.theme;
-  const base = knownBases.includes(t.base) ? t.base : fallbackBase;
-  const d = defaultDef(base, "");
-  d.name = String(t.name || "\u5BFC\u5165\u7684\u6392\u7248").slice(0, 30);
-  d.accent = typeof t.accent === "string" && COLOR_RE.test(t.accent) ? t.accent : "";
-  d.textColor = typeof t.textColor === "string" && COLOR_RE.test(t.textColor) ? t.textColor : "";
-  for (const [key, values] of Object.entries(ENUMS)) {
-    const v = t[key];
-    if (typeof v === "string" && values.includes(v)) d[key] = v;
-  }
-  d.fontSize = clamp(t.fontSize, 12, 22, 16);
-  d.lineHeight = clamp(t.lineHeight, 1.2, 2.6, 1.8);
-  d.letterSpacing = clamp(t.letterSpacing, 0, 0.2, 0.03);
-  d.paragraphSpacing = clamp(t.paragraphSpacing, 0, 48, 20);
-  d.imageRadius = clamp(t.imageRadius, -1, 32, -1);
-  d.imageShadow = Boolean(t.imageShadow);
-  return d;
-}
-
 // src/utils/theme-manager.ts
 var CUSTOM_THEME_PREFIX = "\u2605 ";
 var ThemeManager = class {
@@ -23918,7 +24051,7 @@ var ThemeManager = class {
   }
   /** 把一条自定义排版定义变成可用的 Theme */
   buildFromDef(def) {
-    var _a2, _b;
+    var _a2, _b, _c;
     const base = (_a2 = this.themes.find((t) => {
       var _a3;
       return t.builtin && (t.name === def.base || ((_a3 = t.aliases) == null ? void 0 : _a3.includes(def.base)));
@@ -23931,6 +24064,7 @@ var ThemeManager = class {
       builtin: false,
       description: `\u57FA\u4E8E\u300C${base.name}\u300D\u7684\u81EA\u5B9A\u4E49\u6392\u7248`,
       accent: def.accent || base.accent,
+      accent2: def.accent && def.accent.toLowerCase() !== ((_c = base.accent) != null ? _c : "").toLowerCase() ? void 0 : base.accent2,
       headingLabel: def.h2Style === "theme" ? base.headingLabel : void 0,
       headingNumbers: def.h2Style === "theme" ? base.headingNumbers : void 0,
       codeWindow: base.codeWindow,
@@ -23941,7 +24075,7 @@ var ThemeManager = class {
    * 加载所有CSS主题
    */
   async loadThemes() {
-    this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
+    this.themes = BUILTIN_THEME_DOCUMENTS.map(({ name, content, description, accent, accent2, legacyNames, headingLabel, headingNumbers, codeWindow }) => ({
       name,
       filename: name,
       css: `${this.extractCss(content)}
@@ -23951,6 +24085,7 @@ ${BUILTIN_THEME_REFINEMENT}`,
       builtin: true,
       description,
       accent,
+      accent2,
       aliases: legacyNames,
       headingLabel,
       headingNumbers,
@@ -24054,6 +24189,21 @@ ${BUILTIN_THEME_REFINEMENT}`,
 };
 function formatterOptionsFor(theme) {
   return { headingLabel: theme.headingLabel, headingNumbers: theme.headingNumbers, codeWindow: theme.codeWindow };
+}
+function renderSetup(theme, prefs) {
+  var _a2, _b;
+  const options2 = formatterOptionsFor(theme);
+  let css = theme.css;
+  if (headingStyleDef(prefs.headingStyle)) {
+    options2.headingStyle = prefs.headingStyle;
+    css += headingStyleCss(prefs.headingStyle, (_a2 = theme.accent) != null ? _a2 : "", theme.accent2);
+  }
+  const avatar = prefs.headingAvatar && prefs.avatarDataUrl ? prefs.avatarDataUrl : "";
+  const endMark = prefs.endMark ? prefs.endMarkText.trim() : "";
+  if (avatar) options2.headingAvatar = avatar;
+  if (endMark) options2.endMark = endMark;
+  if (avatar || endMark) css += brandingCss((_b = theme.accent) != null ? _b : "", theme.accent2);
+  return { css, options: options2 };
 }
 
 // src/services/weixin-api.ts
@@ -24882,9 +25032,53 @@ var PublisherView = class extends import_obsidian10.ItemView {
     themeHint.createSpan({
       text: (_b = selected == null ? void 0 : selected.description) != null ? _b : "\u5185\u7F6E\u6392\u7248\u5DF2\u81EA\u52A8\u52A0\u8F7D\uFF0C\u5F00\u7BB1\u5373\u7528"
     });
+    this.renderBrandControls(section);
     section.createDiv({
       cls: "theme-library-hint",
       text: `\u5DF2\u5185\u7F6E ${themes.filter((theme) => theme.builtin).length} \u5957\u6392\u7248${customThemes.length > 0 ? `\uFF0C\u53E6\u52A0\u8F7D ${customThemes.length} \u5957\u81EA\u5B9A\u4E49\u6392\u7248` : "\uFF0C\u5F00\u7BB1\u5373\u7528"}`
+    });
+  }
+  /** 当前排版 + 侧栏的章节样式 / IP 头像 / END 标记 */
+  renderSetupFor(theme) {
+    const st2 = this.plugin.settings;
+    return renderSetup(theme, {
+      headingStyle: st2.headingStyle,
+      headingAvatar: st2.headingAvatar,
+      avatarDataUrl: st2.brandAvatar || AVATAR_DATA_URI,
+      endMark: st2.endMark,
+      endMarkText: st2.endMarkText
+    });
+  }
+  /** 章节样式下拉 + IP 头像 / END 开关 */
+  renderBrandControls(section) {
+    const st2 = this.plugin.settings;
+    const box = section.createDiv({ cls: "sp-brand-controls" });
+    const row = box.createDiv({ cls: "sp-brand-row" });
+    row.createSpan({ cls: "sp-brand-label", text: "\u7AE0\u8282\u6837\u5F0F" });
+    const select = row.createEl("select", { cls: "dropdown sp-heading-select" });
+    for (const s of HEADING_STYLES) {
+      const opt = select.createEl("option", { value: s.id, text: s.label });
+      opt.selected = st2.headingStyle === s.id;
+    }
+    select.onchange = async () => {
+      st2.headingStyle = select.value;
+      await this.plugin.saveSettings();
+    };
+    const toggle = (text, get, set) => {
+      const label = box.createEl("label", { cls: "sp-brand-toggle" });
+      const cb = label.createEl("input", { type: "checkbox" });
+      cb.checked = get();
+      label.createSpan({ text });
+      cb.onchange = async () => {
+        set(cb.checked);
+        await this.plugin.saveSettings();
+      };
+    };
+    toggle("\u7AE0\u8282\u6807\u9898\u524D\u653E IP \u5934\u50CF", () => st2.headingAvatar, (v) => {
+      st2.headingAvatar = v;
+    });
+    toggle(`\u6587\u672B\u52A0\u300C${st2.endMarkText || "END"}\u300D\u6807\u8BB0`, () => st2.endMark, (v) => {
+      st2.endMark = v;
     });
   }
   renderCoverUpload(container) {
@@ -25078,8 +25272,8 @@ var PublisherView = class extends import_obsidian10.ItemView {
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
     content = await this.processImageLinks(content, activeView);
     const theme = (_a2 = this.themeManager.getTheme(this.selectedTheme)) != null ? _a2 : this.themeManager.getDefaultTheme();
-    const customCSS = theme.css;
-    const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
+    const setup = this.renderSetupFor(theme);
+    const html = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
     const title = ((_b = activeView.file) == null ? void 0 : _b.basename) || "\u65E0\u6807\u9898";
     const exportDir = ((_d = (_c = activeView.file) == null ? void 0 : _c.parent) == null ? void 0 : _d.path) || "";
     const previewModal = new PreviewModal(this.app, html, title, exportDir);
@@ -25103,7 +25297,8 @@ var PublisherView = class extends import_obsidian10.ItemView {
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
     content = await this.processImageLinks(content, activeView);
     const theme = (_c = this.themeManager.getTheme(this.selectedTheme)) != null ? _c : this.themeManager.getDefaultTheme();
-    const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, formatterOptionsFor(theme));
+    const setup = this.renderSetupFor(theme);
+    const html = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
     const modal = new PreviewModal(
       this.app,
       html,
@@ -25298,8 +25493,8 @@ var PublisherView = class extends import_obsidian10.ItemView {
     this.render();
     const xPromise = xPrepared ? this.publishToX(file, xPrepared, draft) : Promise.resolve(null);
     const theme = (_d = this.themeManager.getTheme(this.selectedTheme)) != null ? _d : this.themeManager.getDefaultTheme();
-    const customCSS = theme.css;
-    const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
+    const setup = this.renderSetupFor(theme);
+    const htmlContent = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
     const accountIds = Array.from(this.selectedAccountIds);
     const maxConcurrent = this.plugin.settings.maxConcurrent;
     let successCount = 0;
@@ -25344,12 +25539,18 @@ var PublisherView = class extends import_obsidian10.ItemView {
     const imgRegex = /<img[^>]+src="data:image\/(jpeg|jpg|png);base64,([^"]+)"[^>]*>/g;
     const matches = Array.from(htmlContent.matchAll(imgRegex));
     let processedContent = htmlContent;
+    const uploadedB64 = /* @__PURE__ */ new Map();
     for (let i = 0; i < matches.length; i++) {
       const match = matches[i];
       const fullMatch = match[0];
       const imageType = match[1];
       const base64Data = match[2];
       try {
+        const cachedUrl = uploadedB64.get(base64Data);
+        if (cachedUrl) {
+          processedContent = processedContent.replace(fullMatch, fullMatch.replace(`data:image/${imageType};base64,${base64Data}`, cachedUrl));
+          continue;
+        }
         const binaryString = atob(base64Data);
         const bytes = new Uint8Array(binaryString.length);
         for (let j2 = 0; j2 < binaryString.length; j2++) {
@@ -25363,6 +25564,7 @@ var PublisherView = class extends import_obsidian10.ItemView {
           proxyConfig
         );
         if (uploadResult && uploadResult.url) {
+          uploadedB64.set(base64Data, uploadResult.url);
           const newImg = fullMatch.replace(
             `data:image/${imageType};base64,${base64Data}`,
             uploadResult.url
@@ -26307,7 +26509,7 @@ var WeChatPublisherSettingTab = class extends import_obsidian12.PluginSettingTab
       this.plugin.startAutoCheck();
     }));
     new import_obsidian12.Setting(containerEl).setName("\u6392\u7248\u6837\u5F0F").setHeading();
-    new import_obsidian12.Setting(containerEl).setName("\u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 14 \u5957\u4F18\u5316\u6392\u7248\uFF0C\u65B0\u7528\u6237\u65E0\u9700\u9009\u62E9\u6587\u4EF6\u5939\u6216\u4FDD\u5B58\u5E94\u7528\uFF0C\u9ED8\u8BA4\u4F7F\u7528\u201C\u7EFF\u767D\u6E05\u7B80\u201D\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
+    new import_obsidian12.Setting(containerEl).setName("\u5185\u7F6E\u6392\u7248").setDesc("\u5DF2\u5185\u7F6E 15 \u5957\u6392\u7248\uFF0C\u5F00\u7BB1\u5373\u7528\uFF1B\u4E5F\u53EF\u4EE5\u5728\u4FA7\u680F\u7528\u53EF\u89C6\u5316\u7F16\u8F91\u5668\u505A\u81EA\u5DF1\u7684\u6392\u7248\u3002").addButton((button) => button.setButtonText("\u67E5\u770B AI \u6392\u7248\u89C4\u8303").onClick(() => new CustomThemeGuideModal(this.app).open()));
     new import_obsidian12.Setting(containerEl).setName("\u542F\u7528\u81EA\u5B9A\u4E49\u6392\u7248").setDesc("\u4EC5\u5728\u4F60\u8981\u5BFC\u5165\u6216\u8BA9 AI \u8BBE\u8BA1\u81EA\u5DF1\u7684 CSS \u6392\u7248\u65F6\u5F00\u542F\u3002\u5173\u95ED\u65F6\u53EA\u663E\u793A\u5185\u7F6E\u6392\u7248\u548C\u4F60\u5728\u7F16\u8F91\u5668\u91CC\u505A\u7684\u6392\u7248\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.customThemesEnabled).onChange(async (enabled) => {
       this.plugin.settings.customThemesEnabled = enabled;
       await this.plugin.saveSettings();
@@ -26333,6 +26535,37 @@ var WeChatPublisherSettingTab = class extends import_obsidian12.PluginSettingTab
         new import_obsidian12.Notice("\u81EA\u5B9A\u4E49\u6392\u7248\u5DF2\u5E94\u7528");
       }));
     }
+    new import_obsidian12.Setting(containerEl).setName("IP \u5934\u50CF").setDesc("\u300C\u7AE0\u8282\u6807\u9898\u524D\u653E IP \u5934\u50CF\u300D\u7528\u7684\u56FE\u7247\uFF0C\u5EFA\u8BAE\u6B63\u65B9\u5F62 PNG/JPG\u3002\u4E0D\u8BBE\u7F6E\u5C31\u7528\u5185\u7F6E\u7684 Serena \u5934\u50CF\u3002").then((setting) => {
+      const img = setting.controlEl.createEl("img", { cls: "sp-avatar-preview" });
+      img.src = this.plugin.settings.brandAvatar || AVATAR_DATA_URI;
+    }).addButton((button) => button.setButtonText("\u6362\u4E00\u5F20").onClick(() => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/png,image/jpeg";
+      input.onchange = async () => {
+        var _a2;
+        const f = (_a2 = input.files) == null ? void 0 : _a2[0];
+        if (!f) return;
+        try {
+          this.plugin.settings.brandAvatar = await squareAvatar(f);
+          await this.plugin.saveSettings();
+          await this.refreshPublisherViews();
+          this.display();
+        } catch (e) {
+          new import_obsidian12.Notice(`\u5934\u50CF\u8BFB\u53D6\u5931\u8D25\uFF1A${e instanceof Error ? e.message : e}`);
+        }
+      };
+      input.click();
+    })).addExtraButton((button) => button.setIcon("rotate-ccw").setTooltip("\u6062\u590D\u5185\u7F6E\u5934\u50CF").onClick(async () => {
+      this.plugin.settings.brandAvatar = "";
+      await this.plugin.saveSettings();
+      await this.refreshPublisherViews();
+      this.display();
+    }));
+    new import_obsidian12.Setting(containerEl).setName("\u6587\u672B\u6807\u8BB0\u6587\u5B57").setDesc("\u4FA7\u680F\u52FE\u9009\u300C\u6587\u672B\u52A0 END \u6807\u8BB0\u300D\u540E\uFF0C\u663E\u793A\u5728\u6587\u7AE0\u6700\u540E\u3002").addText((text) => text.setPlaceholder("SERENA \xB7 END").setValue(this.plugin.settings.endMarkText).onChange(async (value) => {
+      this.plugin.settings.endMarkText = value.slice(0, 40);
+      await this.plugin.saveSettings();
+    }));
     new import_obsidian12.Setting(containerEl).setName("\u516C\u4F17\u53F7\u8D26\u53F7").setHeading();
     new import_obsidian12.Setting(containerEl).setName("\u6DFB\u52A0\u65B0\u8D26\u53F7").setDesc("\u6DFB\u52A0\u4E00\u4E2A\u65B0\u7684\u5FAE\u4FE1\u516C\u4F17\u53F7").addButton((button) => button.setButtonText("\u6DFB\u52A0\u8D26\u53F7").setCta().onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, null, async (account) => {
@@ -26429,6 +26662,26 @@ var WeChatPublisherSettingTab = class extends import_obsidian12.PluginSettingTab
     return folders;
   }
 };
+async function squareAvatar(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("\u4E0D\u662F\u6709\u6548\u7684\u56FE\u7247"));
+      el.src = url;
+    });
+    const side = Math.min(img.naturalWidth, img.naturalHeight);
+    const size = Math.min(160, side);
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 /*! Bundled license information:
 
 html2canvas/dist/html2canvas.js:

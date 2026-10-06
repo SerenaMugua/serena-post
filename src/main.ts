@@ -1,5 +1,5 @@
 import { App, Plugin, PluginSettingTab, Setting, Notice, WorkspaceLeaf, FuzzySuggestModal, Modal, normalizePath, addIcon } from 'obsidian';
-import { ICON_ID, ICON_SVG, PLUGIN_NAME } from './brand';
+import { AVATAR_DATA_URI, ICON_ID, ICON_SVG, PLUGIN_NAME } from './brand';
 import { EmbeddedRelay } from './x/embedded-relay';
 import { PluginSettings, DEFAULT_SETTINGS, WeChatAccount, ResolvedWeChatAccount, ResolvedProxyConfig } from './types';
 import { PublisherView, VIEW_TYPE_PUBLISHER } from './views/publisher-view';
@@ -480,7 +480,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('内置排版')
-			.setDesc('已内置 14 套优化排版，新用户无需选择文件夹或保存应用，默认使用“绿白清简”。')
+			.setDesc('已内置 15 套排版，开箱即用；也可以在侧栏用可视化编辑器做自己的排版。')
 			.addButton(button => button
 				.setButtonText('查看 AI 排版规范')
 				.onClick(() => new CustomThemeGuideModal(this.app).open()));
@@ -529,6 +529,54 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 						new Notice('自定义排版已应用');
 					}));
 		}
+
+		new Setting(containerEl)
+			.setName('IP 头像')
+			.setDesc('「章节标题前放 IP 头像」用的图片，建议正方形 PNG/JPG。不设置就用内置的 Serena 头像。')
+			.then(setting => {
+				const img = setting.controlEl.createEl('img', { cls: 'sp-avatar-preview' });
+				img.src = this.plugin.settings.brandAvatar || AVATAR_DATA_URI;
+			})
+			.addButton(button => button
+				.setButtonText('换一张')
+				.onClick(() => {
+					const input = document.createElement('input');
+					input.type = 'file';
+					input.accept = 'image/png,image/jpeg';
+					input.onchange = async () => {
+						const f = input.files?.[0];
+						if (!f) return;
+						try {
+							this.plugin.settings.brandAvatar = await squareAvatar(f);
+							await this.plugin.saveSettings();
+							await this.refreshPublisherViews();
+							this.display();
+						} catch (e) {
+							new Notice(`头像读取失败：${e instanceof Error ? e.message : e}`);
+						}
+					};
+					input.click();
+				}))
+			.addExtraButton(button => button
+				.setIcon('rotate-ccw')
+				.setTooltip('恢复内置头像')
+				.onClick(async () => {
+					this.plugin.settings.brandAvatar = '';
+					await this.plugin.saveSettings();
+					await this.refreshPublisherViews();
+					this.display();
+				}));
+
+		new Setting(containerEl)
+			.setName('文末标记文字')
+			.setDesc('侧栏勾选「文末加 END 标记」后，显示在文章最后。')
+			.addText(text => text
+				.setPlaceholder('SERENA · END')
+				.setValue(this.plugin.settings.endMarkText)
+				.onChange(async value => {
+					this.plugin.settings.endMarkText = value.slice(0, 40);
+					await this.plugin.saveSettings();
+				}));
 
 		// Account management section
 		new Setting(containerEl).setName('公众号账号').setHeading();
@@ -654,5 +702,27 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		}
 
 		return folders;
+	}
+}
+
+/** 把头像裁成居中正方形并缩到 160px，PNG data URL（体积小，发布时只上传一次） */
+async function squareAvatar(file: File): Promise<string> {
+	const url = URL.createObjectURL(file);
+	try {
+		const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+			const el = new Image();
+			el.onload = () => resolve(el);
+			el.onerror = () => reject(new Error('不是有效的图片'));
+			el.src = url;
+		});
+		const side = Math.min(img.naturalWidth, img.naturalHeight);
+		const size = Math.min(160, side);
+		const canvas = document.createElement('canvas');
+		canvas.width = canvas.height = size;
+		const ctx = canvas.getContext('2d')!;
+		ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size);
+		return canvas.toDataURL('image/png');
+	} finally {
+		URL.revokeObjectURL(url);
 	}
 }

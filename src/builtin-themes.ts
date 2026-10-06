@@ -21,6 +21,8 @@ export interface BuiltinThemeDocument {
 	content: string;
 	description: string;
 	accent: string;
+	/** 辅助色（章节样式里的符号、下划线等）；不填按主色调浅 */
+	accent2?: string;
 	legacyNames?: string[];
 	headingLabel?: string;
 	headingNumbers?: boolean;
@@ -111,6 +113,7 @@ export const BUILTIN_THEME_DOCUMENTS: ReadonlyArray<BuiltinThemeDocument> = [
 		content: serenaBlue,
 		description: 'Serena 木瓜 IP 配色：深蓝 + 亮蓝，章节序号标题，引用、代码块、表格统一框线风格',
 		accent: '#0058a3',
+		accent2: '#53a4ea',
 		headingNumbers: true,
 		codeWindow: true
 	},

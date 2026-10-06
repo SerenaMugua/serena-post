@@ -1,6 +1,7 @@
 import { applyInlineCSS } from './css-to-inline';
 import { marked } from 'marked';
 import { sanitizeHTMLToDom } from 'obsidian';
+import { headingStyleDef } from './heading-styles';
 
 /**
  * Convert Markdown to WeChat Official Account HTML format
@@ -176,6 +177,12 @@ export interface FormatterOptions {
 	headingNumbers?: boolean;
 	/** 代码块加 Mac 窗口标题栏（三个圆点 + 语言） */
 	codeWindow?: boolean;
+	/** 章节样式（覆盖排版自带的二级标题样式），见 heading-styles.ts */
+	headingStyle?: string;
+	/** 二级标题前放的 IP 头像（data URL） */
+	headingAvatar?: string;
+	/** 文末标记文字，例如「SERENA · END」 */
+	endMark?: string;
 }
 
 export class MarkedFormatter {
@@ -389,7 +396,10 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 
 	private static decorateHeadings(html: string, options: FormatterOptions): string {
 		const headingLabel = options.headingLabel?.trim();
-		if (!headingLabel && !options.headingNumbers) return html;
+		const style = headingStyleDef(options.headingStyle);
+		const avatar = options.headingAvatar;
+		const endMark = options.endMark?.trim();
+		if (!headingLabel && !options.headingNumbers && !style && !avatar && !endMark) return html;
 
 		const container = document.createElement('div');
 		container.append(sanitizeHTMLToDom(html));
@@ -397,11 +407,54 @@ hr { border: none; border-top: 1px solid #e0e0e0; margin: 2em 0; }
 		for (const [index, heading] of headings.entries()) {
 			const label = document.createElement('span');
 			label.className = 'wechatpb-heading-label';
-			// 标题自己带了「一、」「1.」「第一章」之类的序号：去掉它，并沿用它的数字，避免出现「01 一、」
-			const own = stripHeadingNumber(heading);
-			const num = String(own ?? index + 1).padStart(2, '0');
-			label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
-			heading.prepend(label);
+			if (style) {
+				heading.classList.add('sp-h', `sp-h-${style.id}`);
+				if (style.numbered) {
+					const own = stripHeadingNumber(heading);
+					label.textContent = String(own ?? index + 1).padStart(2, '0');
+				} else if (style.prefix) {
+					label.textContent = style.prefix;
+					if (style.id === 'dots') {
+						const dot2 = document.createElement('span');
+						dot2.className = 'sp-h-dot2';
+						dot2.textContent = '●';
+						label.prepend(dot2);
+					}
+				}
+				if (style.suffix) {
+					const suffix = document.createElement('span');
+					suffix.className = 'sp-h-suffix';
+					suffix.textContent = style.suffix;
+					heading.append(suffix);
+				}
+				if (label.textContent) heading.prepend(label);
+			} else if (headingLabel || options.headingNumbers) {
+				// 标题自己带了「一、」「1.」「第一章」之类的序号：去掉它，并沿用它的数字，避免出现「01 一、」
+				const own = stripHeadingNumber(heading);
+				const num = String(own ?? index + 1).padStart(2, '0');
+				label.textContent = headingLabel ? `${headingLabel} ${num}` : num;
+				heading.prepend(label);
+			}
+			if (avatar) {
+				const img = document.createElement('img');
+				img.className = 'sp-h-avatar';
+				img.src = avatar;
+				img.alt = '';
+				// 上置序号：序号单独一行，头像跟标题文字在同一行
+				if (style?.id === 'superscript' && label.parentElement === heading) label.after(img);
+				else heading.prepend(img);
+			}
+		}
+
+		if (endMark) {
+			const root = container.querySelector('section.note-to-mp') ?? container;
+			const end = document.createElement('section');
+			end.className = 'sp-end';
+			const text = document.createElement('span');
+			text.className = 'sp-end-text';
+			text.textContent = endMark;
+			end.append(text);
+			root.append(end);
 		}
 		return container.innerHTML;
 	}

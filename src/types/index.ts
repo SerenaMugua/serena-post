@@ -64,6 +64,11 @@ export interface PluginSettings {
 	xSelected: boolean;           // 侧边栏是否勾选「X 文章草稿」
 	embeddedRelay: boolean;       // 是否在 Obsidian 内运行中转
 	customThemes: CustomThemeDef[]; // 可视化编辑器保存的排版
+	headingStyle: string;         // 章节样式，'theme' = 跟随排版
+	headingAvatar: boolean;       // 二级标题前放 IP 头像
+	brandAvatar: string;          // 自定义 IP 头像（data URL），空 = 内置 Serena 头像
+	endMark: boolean;             // 文末 END 标记
+	endMarkText: string;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -83,7 +88,12 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	openXAfterPush: true,
 	xSelected: false,
 	embeddedRelay: true,
-	customThemes: []
+	customThemes: [],
+	headingStyle: 'theme',
+	headingAvatar: false,
+	brandAvatar: '',
+	endMark: false,
+	endMarkText: 'SERENA · END'
 };
 
 /** 发布前确认弹窗里填写的草稿信息 */

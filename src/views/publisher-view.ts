@@ -12,7 +12,8 @@ import { XPreviewModal } from '../x/x-preview-modal';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
 import { ThemeEditorModal } from '../theme-editor/theme-editor-modal';
 import { exportThemeJson, parseThemeJson, type CustomThemeDef } from '../theme-editor/custom-theme';
-import { CUSTOM_THEME_PREFIX, formatterOptionsFor } from '../utils/theme-manager';
+import { CUSTOM_THEME_PREFIX, renderSetup, type Theme } from '../utils/theme-manager';
+import { HEADING_STYLES } from '../utils/heading-styles';
 
 /** 发布进度里 X 渠道使用的伪账号 id */
 const X_TARGET_ID = '__x_article__';
@@ -448,10 +449,53 @@ export class PublisherView extends ItemView {
 		themeHint.createSpan({
 			text: selected?.description ?? '内置排版已自动加载，开箱即用'
 		});
+		this.renderBrandControls(section);
 		section.createDiv({
 			cls: 'theme-library-hint',
 			text: `已内置 ${themes.filter(theme => theme.builtin).length} 套排版${customThemes.length > 0 ? `，另加载 ${customThemes.length} 套自定义排版` : '，开箱即用'}`
 		});
+	}
+
+	/** 当前排版 + 侧栏的章节样式 / IP 头像 / END 标记 */
+	renderSetupFor(theme: Theme) {
+		const st = this.plugin.settings;
+		return renderSetup(theme, {
+			headingStyle: st.headingStyle,
+			headingAvatar: st.headingAvatar,
+			avatarDataUrl: st.brandAvatar || AVATAR_DATA_URI,
+			endMark: st.endMark,
+			endMarkText: st.endMarkText
+		});
+	}
+
+	/** 章节样式下拉 + IP 头像 / END 开关 */
+	renderBrandControls(section: HTMLElement) {
+		const st = this.plugin.settings;
+		const box = section.createDiv({ cls: 'sp-brand-controls' });
+		const row = box.createDiv({ cls: 'sp-brand-row' });
+		row.createSpan({ cls: 'sp-brand-label', text: '章节样式' });
+		const select = row.createEl('select', { cls: 'dropdown sp-heading-select' });
+		for (const s of HEADING_STYLES) {
+			const opt = select.createEl('option', { value: s.id, text: s.label });
+			opt.selected = st.headingStyle === s.id;
+		}
+		select.onchange = async () => {
+			st.headingStyle = select.value;
+			await this.plugin.saveSettings();
+		};
+
+		const toggle = (text: string, get: () => boolean, set: (v: boolean) => void) => {
+			const label = box.createEl('label', { cls: 'sp-brand-toggle' });
+			const cb = label.createEl('input', { type: 'checkbox' });
+			cb.checked = get();
+			label.createSpan({ text });
+			cb.onchange = async () => {
+				set(cb.checked);
+				await this.plugin.saveSettings();
+			};
+		};
+		toggle('章节标题前放 IP 头像', () => st.headingAvatar, v => { st.headingAvatar = v; });
+		toggle(`文末加「${st.endMarkText || 'END'}」标记`, () => st.endMark, v => { st.endMark = v; });
 	}
 
 	renderCoverUpload(container: HTMLElement) {
@@ -693,10 +737,10 @@ export class PublisherView extends ItemView {
 
 		// Get custom CSS from selected theme
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const customCSS = theme.css;
+		const setup = this.renderSetupFor(theme);
 
 		// Convert markdown to WeChat HTML with custom CSS
-		const html = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
+		const html = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
 
 		// Show preview modal
 		const title = activeView.file?.basename || '无标题';
@@ -722,7 +766,8 @@ export class PublisherView extends ItemView {
 		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
 		content = await this.processImageLinks(content, activeView);
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const html = MarkedFormatter.markdownToHtmlSync(content, theme.css, formatterOptionsFor(theme));
+		const setup = this.renderSetupFor(theme);
+		const html = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
 		const modal = new PreviewModal(
 			this.app,
 			html,
@@ -969,10 +1014,10 @@ export class PublisherView extends ItemView {
 
 		// Get custom CSS from selected theme
 		const theme = this.themeManager.getTheme(this.selectedTheme) ?? this.themeManager.getDefaultTheme();
-		const customCSS = theme.css;
+		const setup = this.renderSetupFor(theme);
 
 		// Convert markdown to WeChat HTML with custom CSS
-		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, customCSS, formatterOptionsFor(theme));
+		const htmlContent = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
 
 		// Publish with concurrency control
 		const accountIds = Array.from(this.selectedAccountIds);
@@ -1038,6 +1083,7 @@ export class PublisherView extends ItemView {
 		const matches = Array.from(htmlContent.matchAll(imgRegex));
 
 		let processedContent = htmlContent;
+		const uploadedB64 = new Map<string, string>();
 
 		for (let i = 0; i < matches.length; i++) {
 			const match = matches[i];
@@ -1046,6 +1092,12 @@ export class PublisherView extends ItemView {
 			const base64Data = match[2];
 
 			try {
+				// 同一张图（例如每个章节标题前的 IP 头像）只上传一次
+				const cachedUrl = uploadedB64.get(base64Data);
+				if (cachedUrl) {
+					processedContent = processedContent.replace(fullMatch, fullMatch.replace(`data:image/${imageType};base64,${base64Data}`, cachedUrl));
+					continue;
+				}
 				// Convert base64 to ArrayBuffer
 				const binaryString = atob(base64Data);
 				const bytes = new Uint8Array(binaryString.length);
@@ -1063,6 +1115,7 @@ export class PublisherView extends ItemView {
 				);
 
 				if (uploadResult && uploadResult.url) {
+					uploadedB64.set(base64Data, uploadResult.url);
 					// Replace base64 image with WeChat URL
 					const newImg = fullMatch.replace(
 						`data:image/${imageType};base64,${base64Data}`,

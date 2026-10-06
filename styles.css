@@ -979,3 +979,42 @@
 	.ste-wrap { flex-direction: column; }
 	.ste-controls { flex: none; max-height: 45%; }
 }
+
+/* SerenaPost：章节样式 / IP 头像 / END 标记 */
+.sp-brand-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 10px 0 6px;
+	padding: 10px 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+}
+.sp-brand-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.sp-brand-label {
+	flex: none;
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+}
+.sp-heading-select {
+	flex: 1;
+	min-width: 0;
+}
+.sp-brand-toggle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--font-ui-small);
+	cursor: pointer;
+}
+.sp-avatar-preview {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 1px solid var(--background-modifier-border);
+}
