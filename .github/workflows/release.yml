@@ -22,6 +22,8 @@ jobs:
           cache: npm
       - name: 安装依赖
         run: npm ci
+      - name: 自动测试（没通过就不发布）
+        run: npm test
       - name: 构建插件
         run: npm run build
       - name: 检查标签与插件版本一致（社区市场要求标签不带 v）

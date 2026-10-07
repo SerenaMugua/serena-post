@@ -3,3 +3,4 @@ node_modules/
 main.js.backup-*
 *.bak
 .DS_Store
+tests/.out/

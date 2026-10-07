@@ -1,0 +1,24 @@
+name: 自动测试
+
+# 每次推到 main、或有人提 Pull Request 时，自动跑一遍测试和构建。
+# 在 GitHub 仓库的 Actions 页面看结果：绿色 = 老功能没被改坏。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: 自动测试
+        run: npm test
+      - name: 构建（类型检查 + 打包）
+        run: npm run build
