@@ -144,4 +144,6 @@ export interface PublishProgress {
 	status: AccountStatus;
 	duration?: number;
 	error?: string;
+	/** 进行中的补充说明（例如 X：等 Kaitox 扩展确认） */
+	note?: string;
 }

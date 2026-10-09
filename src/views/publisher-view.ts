@@ -8,7 +8,9 @@ import { ThemeManager } from '../utils/theme-manager';
 import { getAccessToken, uploadImage, addDraft, WeixinApiError } from '../services/weixin-api';
 import { toUploadable } from '../utils/image';
 import { scanImages } from '../modals/precheck';
-import { isRelayUp, prepareXDraft, pushXDraft, type XPrepared } from '../x/xpush';
+import { isRelayUp, prepareXDraft, pushXDraft, watchXDraft, type XPrepared } from '../x/xpush';
+import { XAlertModal, xAlertMessage } from '../modals/x-alert-modal';
+import { markMedia } from '../utils/media';
 import { AVATAR_DATA_URI, ICON_ID } from '../brand';
 import { KAITOX_STORE_URL } from '../modals/onboarding-modal';
 import { AccountModal } from '../modals/account-modal';
@@ -51,6 +53,10 @@ export class PublisherView extends ItemView {
 	private noteRemembered = false;
 	/** 最近一次推送的内容（用于失败后重试） */
 	private lastRun: { file: TFile; draft: DraftMeta; html: string; xPrepared: XPrepared | null } | null = null;
+	/** 每次推 X 加一，旧的「等 X 确认」自动作废 */
+	private xWatchToken = 0;
+	/** 这次推送里需要手动补的动图 / 视频 */
+	private lastMedia: { gifs: string[]; videos: string[] } = { gifs: [], videos: [] };
 	private retrying = new Set<string>();
 
 	constructor(leaf: WorkspaceLeaf, plugin: WeChatPublisherPlugin) {
@@ -869,6 +875,9 @@ export class PublisherView extends ItemView {
 			const header = item.createDiv({ cls: 'progress-item-header' });
 			header.createSpan({ cls: 'account-name', text: account.name });
 			header.createSpan({ cls: `status ${statusClass}`, text: progress.status === 'failed' ? '失败' : statusText });
+			if (progress.note && progress.status !== 'failed') {
+				item.createDiv({ cls: 'sp-progress-note', text: progress.note });
+			}
 			if (progress.status === 'failed' && progress.error) {
 				item.createDiv({ cls: 'sp-fail-msg', text: progress.error });
 				const actions = item.createDiv({ cls: 'sp-fail-actions' });
@@ -921,6 +930,16 @@ export class PublisherView extends ItemView {
 				if (okWechat) tips.push('公众号：登录后点左侧「内容管理 → 草稿箱」');
 				if (okX) tips.push('X：Chrome 里的 Kaitox 扩展会在 X 文章编辑器里建好草稿，几秒后在草稿列表里能看到');
 				links.createDiv({ cls: 'sp-done-tip', text: tips.join('；') });
+				const { gifs, videos } = this.lastMedia;
+				if (gifs.length || videos.length) {
+					const parts: string[] = [];
+					if (gifs.length) parts.push(`${gifs.length} 张动图`);
+					if (videos.length) parts.push(`${videos.length} 个视频`);
+					links.createDiv({
+						cls: 'sp-done-media',
+						text: `别忘了：这篇有 ${parts.join(' 和 ')} 要手动补。到编辑器里找「【这里换成动图…】」「【这里插入视频…】」那几行，插入动图 / 视频后删掉提示`
+					});
+				}
 			}
 			const close = section.createEl('button', { cls: 'sp-progress-close', text: '收起' });
 			close.onclick = () => {
@@ -1343,6 +1362,14 @@ export class PublisherView extends ItemView {
 
 		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
 
+		// 动图后面留「【这里换成动图】」，视频换成「【这里插入视频】」（公众号接口只收静态图，也不能传视频）
+		const media = markMedia(content);
+		if (this.selectedAccountIds.size) content = media.text;
+		this.lastMedia = {
+			gifs: [...new Set([...media.gifs, ...(xPrepared?.resolved.gifs ?? [])])],
+			videos: [...new Set([...media.videos, ...(xPrepared?.resolved.videos ?? [])])],
+		};
+
 		// Process Obsidian image links to base64
 		content = await this.processImageLinks(content, activeView);
 
@@ -1526,13 +1553,14 @@ export class PublisherView extends ItemView {
 		this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'publishing' });
 		this.render();
 		try {
-			await pushXDraft(this.app, this.plugin.settings, file, prepared, {
+			const id = await pushXDraft(this.app, this.plugin.settings, file, prepared, {
 				title: draft.title,
 				coverDataUrl: draft.coverBase64 || undefined
 			});
 			const duration = Date.now() - start;
-			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'success', duration });
+			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'success', duration, note: '已交给 Chrome 里的 Kaitox 扩展，正在等 X 确认草稿建好…' });
 			this.render();
+			void this.watchX(id, file, prepared, draft, duration);
 			return { success: true };
 		} catch (error) {
 			const duration = Date.now() - start;
@@ -1541,6 +1569,55 @@ export class PublisherView extends ItemView {
 			this.render();
 			return { success: false };
 		}
+	}
+
+	/** 推 X 后盯着 Kaitox 扩展的回报：没建成就在侧栏标红并弹窗报警 */
+	private async watchX(id: string, file: TFile, prepared: XPrepared, draft: DraftMeta, duration: number) {
+		const token = ++this.xWatchToken;
+		const result = await watchXDraft(this.plugin.settings, id, { cancelled: () => token !== this.xWatchToken });
+		if (token !== this.xWatchToken) return;
+		const cur = this.publishProgress.get(X_TARGET_ID);
+		if (result.kind === 'lost') {
+			if (cur?.status === 'success') { cur.note = undefined; this.render(); }
+			return;
+		}
+		if (result.kind === 'ok') {
+			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'success', duration, note: 'X 已确认：草稿建好了' });
+			this.render();
+			new Notice(`X 草稿已建好：《${draft.title}》`, 6000);
+			return;
+		}
+		if (result.kind === 'timeout' && !this.plugin.settings.openXAfterPush) {
+			// 没设置自动打开 X 编辑器：扩展要等用户自己打开才会建草稿，不算出错
+			if (cur?.status === 'success') { cur.note = '等你在 Chrome 里打开 X 文章编辑器，Kaitox 扩展会在那里建草稿'; this.render(); }
+			return;
+		}
+		const message = xAlertMessage(result);
+		this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'failed', duration, error: message });
+		const all = Array.from(this.publishProgress.values());
+		if (this.publishSummary) {
+			this.publishSummary = {
+				successCount: all.filter(p => p.status === 'success').length,
+				failCount: all.filter(p => p.status === 'failed').length
+			};
+		}
+		this.render();
+		new XAlertModal(this.app, {
+			title: draft.title,
+			result,
+			gifs: prepared.resolved.gifs,
+			videos: prepared.resolved.videos,
+			actions: [
+				{ label: '重新推送', primary: true, run: () => this.retryTarget(X_TARGET_ID) },
+				{ label: '打开 X 草稿箱', run: () => { window.open(X_DRAFTS_URL); } },
+				{
+					label: '复制错误信息', run: async () => {
+						await navigator.clipboard.writeText(`${message}（SerenaPost 草稿 ID ${id}）`);
+						new Notice('已复制错误信息');
+					}
+				},
+			],
+		}).open();
 	}
 
 	async handleXPreview() {

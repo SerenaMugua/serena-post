@@ -12,5 +12,14 @@ export class TFile {}
 export class TFolder {}
 export class Modal {}
 export class Plugin {}
-export async function requestUrl(): Promise<never> { throw new Error('测试里不联网'); }
+// 只允许访问本机（测试里的中转），不联网
+export async function requestUrl(o: { url: string; method?: string; headers?: Record<string, string>; body?: any }) {
+	if (!/^http:\/\/127\.0\.0\.1[:/]/.test(o.url)) throw new Error('测试里不联网');
+	const r = await fetch(o.url, { method: o.method ?? 'GET', headers: o.headers, body: o.body });
+	const buf = await r.arrayBuffer();
+	const text = new TextDecoder().decode(buf);
+	let json: any;
+	try { json = JSON.parse(text); } catch { json = undefined; }
+	return { status: r.status, text, json, arrayBuffer: buf, headers: Object.fromEntries(r.headers) };
+}
 export function setIcon() {}

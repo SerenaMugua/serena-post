@@ -3,6 +3,7 @@
  * 标题 / 作者 / 摘要 / 封面在确认弹窗里实时检查。
  */
 import { App, TFile } from 'obsidian';
+import { GIF_EXT, VIDEO_EXT, mediaName } from '../utils/media';
 
 export interface ImageScan {
 	/** 超过 1MB 的本地图片（发布时会自动压缩） */
@@ -13,12 +14,14 @@ export interface ImageScan {
 	remote: string[];
 	/** 笔记里引用了但库里找不到的图片 */
 	missing: string[];
+	/** 视频（两个平台都不能自动上传） */
+	videos: string[];
 }
 
 const IMG_EXT = /\.(png|jpe?g|gif|webp|svg|bmp)$/i;
 
 export function scanImages(app: App, file: TFile, markdown: string): ImageScan {
-	const scan: ImageScan = { large: [], animated: [], remote: [], missing: [] };
+	const scan: ImageScan = { large: [], animated: [], remote: [], missing: [], videos: [] };
 	const seen = new Set<string>();
 	const body = markdown.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').replace(/```[\s\S]*?```/g, '');
 	const re = /!\[\[([^\]]+)\]\]|!\[[^\]]*\]\(<?([^)\s>]+)>?[^)]*\)/g;
@@ -28,6 +31,9 @@ export function scanImages(app: App, file: TFile, markdown: string): ImageScan {
 		if (!raw || seen.has(raw)) continue;
 		seen.add(raw);
 		if (/^data:/i.test(raw)) continue;
+		const name = mediaName(raw);
+		if (VIDEO_EXT.test(name)) { scan.videos.push(name); continue; }
+		if (/^https?:\/\//i.test(raw) && GIF_EXT.test(name)) scan.animated.push(name);
 		if (/^https?:\/\//i.test(raw)) {
 			scan.remote.push(raw);
 			continue;

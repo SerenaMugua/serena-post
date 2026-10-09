@@ -17,6 +17,7 @@ import {
 } from '../../vendor/kaitox/x-article/index';
 import type { AssetMeta } from '../../vendor/kaitox/x-article/index';
 import type { DraftAssetInput } from '../../vendor/kaitox/relay-protocol/index';
+import { markMedia } from '../utils/media';
 
 export interface Resolved {
   title: string;
@@ -28,12 +29,20 @@ export interface Resolved {
   unresolved: string[];
   /** frontmatter cover: 解析出的封面（可选，不进正文）。 */
   cover?: DraftAssetInput;
+  /** 正文里的 GIF 动图（文件名），推送时转成静态图并留提示 */
+  gifs: string[];
+  /** 正文里的视频（文件名），已换成提示文字 */
+  videos: string[];
 }
 
 /** 读笔记、把嵌入/图片解析成字节、改写成标准 ![alt](fileName)。 */
 export async function resolveActiveNote(app: App, file: TFile): Promise<Resolved> {
   const raw = await app.vault.cachedRead(file);
-  const { fields, body } = parseFrontmatter(raw);
+  const parsed = parseFrontmatter(raw);
+  const { fields } = parsed;
+  // 动图后面留「【这里换成动图】」，视频换成「【这里插入视频】」（X 不收动图和视频）
+  const media = markMedia(parsed.body);
+  const body = media.text;
   const fmTitle = fields.title;
   const fmCover = fields.cover;
 
@@ -102,7 +111,7 @@ export async function resolveActiveNote(app: App, file: TFile): Promise<Resolved
   }
 
   const title = fmTitle || deriveTitle(work) || file.basename;
-  return { title, body: work, assets, assetMap, unresolved, cover };
+  return { title, body: work, assets, assetMap, unresolved, cover, gifs: media.gifs, videos: media.videos };
 }
 
 /** 把一张图片文件读成封面资产（'__cover__' 哨兵）。支持 [[wiki]]、相对路径、http(s)。 */

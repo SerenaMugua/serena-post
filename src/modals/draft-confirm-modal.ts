@@ -315,15 +315,31 @@ export class DraftConfirmModal extends Modal {
 			if (sc?.missing.length) {
 				out.push({ id: 'img-missing', level: 'warn', text: `${sc.missing.length} 张图片在库里找不到（${sc.missing.slice(0, 3).join('、')}${sc.missing.length > 3 ? ' 等' : ''}），草稿里会缺这些图` });
 			}
-			if (sc?.animated.length) {
-				out.push({ id: 'img-gif', level: 'warn', text: `${sc.animated.length} 张 GIF 动图：公众号接口只能上传静态图，发布后会变成第一帧（想保留动图，需要发布后在公众号编辑器里重新插入）` });
-			}
 			if (sc?.large.length) {
 				const max = Math.max(...sc.large.map(i => i.kb));
 				out.push({ id: 'img-large', level: 'info', text: `${sc.large.length} 张图片超过 1MB（最大 ${(max / 1024).toFixed(1)}MB），发布时会自动压缩到 1MB 以内` });
 			}
 			if (sc?.remote.length) {
 				out.push({ id: 'img-remote', level: 'info', text: `${sc.remote.length} 张网络图片，发布时会自动下载再上传到公众号；如果原网站不让下载，草稿里会少这张图` });
+			}
+		}
+		// 动图和视频：两个平台都不能自动传，推送时自动处理并留提示
+		const ms = this.scan;
+		if (ms && (this.hasWechat || this.xInfo)) {
+			const both = this.hasWechat && !!this.xInfo;
+			const where = both ? '公众号和 X 都' : this.xInfo ? 'X ' : '公众号';
+			const list = (a: string[]) => `${a.slice(0, 3).join('、')}${a.length > 3 ? ' 等' : ''}`;
+			if (ms.animated.length) {
+				out.push({
+					id: 'img-gif', level: 'warn',
+					text: `${ms.animated.length} 张动图（${list(ms.animated)}）：${where}不能直接上传动图${this.xInfo ? '（X 收到动图会整篇草稿建不成）' : ''}。推送时会自动变成第一帧静态图，并在后面留一行「【这里换成动图：文件名】」，推完到编辑器里把动图插回去、删掉这行`
+				});
+			}
+			if (ms.videos.length) {
+				out.push({
+					id: 'video', level: 'warn',
+					text: `${ms.videos.length} 个视频（${list(ms.videos)}）：${where}不能自动上传视频。推送时会换成一行「【这里插入视频：文件名】」，推完到编辑器里插入视频、删掉这行`
+				});
 			}
 		}
 		const x = this.xInfo;
