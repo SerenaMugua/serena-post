@@ -1,9 +1,9 @@
 {
 	"id": "serena-post",
 	"name": "SerenaPost",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"minAppVersion": "1.11.4",
-	"description": "Format notes for WeChat Official Accounts and push them to WeChat drafts and X Article drafts in one click, with live preview, layout themes and pre-publish checks.",
+	"description": "Format notes for WeChat Official Accounts (微信公众号) and push them to WeChat drafts and X (Twitter) Article drafts in one click, with live preview, layout themes and pre-publish checks. 公众号排版 · 一键推送草稿箱 · X 文章",
 	"author": "Serena 木瓜",
 	"authorUrl": "https://x.com/369Serena",
 	"isDesktopOnly": true
