@@ -10,11 +10,7 @@
 
 </div>
 
-<p align="center">
-  <a href="https://github.com/SerenaMugua/serena-post/raw/main/assets/serena-post-promo.mp4"><img src="assets/promo-poster.jpg" width="760" alt="SerenaPost 宣传片"></a>
-  <br>
-  <sub>▶ 点击图片观看 36 秒宣传片</sub>
-</p>
+https://github.com/user-attachments/assets/20107383-c3de-4da1-875f-4deedc727b90
 
 ---
 
