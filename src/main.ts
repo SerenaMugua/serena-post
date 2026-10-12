@@ -132,6 +132,8 @@ export default class WeChatPublisherPlugin extends Plugin {
 
 		// Start auto-check for token status
 		this.startAutoCheck();
+		// 启动时马上检测一次账号能不能连通，侧栏显示的状态才是准的（以前要等 1 小时）
+		this.app.workspace.onLayoutReady(() => { void this.checkAllAccountsStatus(); });
 	}
 
 	onunload() {
@@ -356,6 +358,12 @@ export default class WeChatPublisherPlugin extends Plugin {
 			await this.checkAccountStatus(account);
 		}
 		await this.saveSettings();
+		this.refreshPublisherSidebar();
+	}
+
+	/** 这个账号的 AppSecret 有没有保存在本机钥匙串里 */
+	hasAppSecret(account: WeChatAccount): boolean {
+		return Boolean(this.getAppSecret(account));
 	}
 
 	async checkAccountStatus(account: WeChatAccount) {
@@ -364,18 +372,21 @@ export default class WeChatPublisherPlugin extends Plugin {
 		if (!resolved.accessToken || !account.tokenExpireTime || Date.now() >= account.tokenExpireTime) {
 			// Try to refresh token
 			try {
-				if (!resolved.appsecret) throw new Error('缺少 AppSecret');
+				if (!resolved.appsecret) throw new Error('还没填 AppSecret：点「编辑」填进去');
 				const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
 				this.setAccessToken(account, token);
 				account.status = 'online';
+				delete account.lastError;
 				account.lastCheckTime = new Date().toISOString();
 			} catch (error) {
 				account.status = 'expired';
+				account.lastError = error instanceof Error ? error.message : String(error);
 				account.lastCheckTime = new Date().toISOString();
 			}
 		} else {
 			// Token is still valid
 			account.status = 'online';
+			delete account.lastError;
 			account.lastCheckTime = new Date().toISOString();
 		}
 	}
@@ -742,9 +753,24 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		const statusIcon = account.status === 'online' ? '✅' :
 						  account.status === 'expired' ? '⚠️' : '❌';
 
+		const hasSecret = this.plugin.hasAppSecret(account);
+		const desc = createFragment(f => {
+			const line = (label: string, ok: boolean, text: string) => {
+				const row = f.createDiv({ cls: 'sp-account-status' });
+				row.createSpan({ text: `${label}：` });
+				row.createSpan({ cls: ok ? 'sp-status-ok' : 'sp-status-bad', text });
+			};
+			line('AppID', Boolean(account.appid), account.appid ? '已填' : '还没填');
+			line('AppSecret', hasSecret, hasSecret ? '已保存在本机钥匙串（为了安全不显示）' : '还没填，点「编辑」填进去');
+			line('连接', account.status === 'online',
+				account.status === 'online' ? '已连通，可以推送'
+					: `连不上${account.lastError ? `：${account.lastError}` : '，点「检测连接」看原因'}`);
+			if (account.remark) f.createDiv({ cls: 'sp-account-status', text: account.remark });
+		});
+
 		new Setting(accountDiv)
 			.setName(`${statusIcon} ${account.name}`)
-			.setDesc(account.remark || '暂无备注')
+			.setDesc(desc)
 			.addButton(button => button
 				.setButtonText('编辑')
 				.onClick(() => {
@@ -759,17 +785,19 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					modal.open();
 				}))
 			.addButton(button => button
-				.setButtonText('刷新')
+				.setButtonText('检测连接')
 				.onClick(async () => {
-					new Notice('正在刷新 Access Token...');
+					new Notice('正在检测连接…');
+					account.tokenExpireTime = 0; // 强制重新连一次微信
 					await this.plugin.checkAccountStatus(account);
 					await this.plugin.saveSettings();
+					this.plugin.refreshPublisherSidebar();
 					this.display();
 
 					if (account.status === 'online') {
-						new Notice('✅ Access Token 刷新成功');
+						new Notice('✅ 连接成功，可以推送');
 					} else {
-						new Notice('❌ Access Token 刷新失败，请检查 AppID 和 AppSecret');
+						new Notice(`❌ 连不上：${account.lastError ?? '请检查 AppID、AppSecret 和 IP 白名单'}`, 8000);
 					}
 				}))
 			.addButton(button => button

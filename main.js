@@ -25040,8 +25040,21 @@ var AccountModal = class extends import_obsidian12.Modal {
     new import_obsidian12.Setting(contentEl).setName(required("AppID")).setDesc("\u300C\u57FA\u7840\u4FE1\u606F\u300D\u9875\u91CC\u7684 AppID\uFF0C\u4EE5 wx \u5F00\u5934\uFF0C\u65C1\u8FB9\u6709\u590D\u5236\u6309\u94AE").addText((text) => text.setPlaceholder("\u8BF7\u8F93\u5165\u516C\u4F17\u53F7 AppID").setValue(this.appidInput).onChange((value) => {
       this.appidInput = value;
     }));
-    new import_obsidian12.Setting(contentEl).setName(required("AppSecret")).setDesc(this.isEdit ? "\u7559\u7A7A\u8868\u793A\u4FDD\u7559\u73B0\u6709 AppSecret" : "\u540C\u4E00\u9875\u300C\u5F00\u53D1\u5BC6\u94A5\u300D\u91CC\u70B9\u300C\u91CD\u7F6E\u300D\u83B7\u53D6\uFF08\u91CD\u7F6E\u540E\u65E7\u7684 AppSecret \u4F1A\u5931\u6548\uFF09\u3002\u53EA\u4FDD\u5B58\u5728\u4F60\u7684\u7535\u8111\u4E0A").addText((text) => {
-      text.setPlaceholder("\u8BF7\u8F93\u5165 AppSecret").setValue(this.appsecretInput).onChange((value) => {
+    const savedSecret = this.isEdit && this.account ? this.plugin.hasAppSecret(this.account) : false;
+    const secretDesc = createFragment((f) => {
+      if (this.isEdit) {
+        if (savedSecret) {
+          f.createSpan({ cls: "sp-status-ok", text: "\u2705 \u5DF2\u4FDD\u5B58\u5728\u672C\u673A\uFF08Obsidian \u94A5\u5319\u4E32\uFF09\u3002" });
+          f.appendText("\u4E3A\u4E86\u5B89\u5168\u4E0D\u4F1A\u663E\u793A\u51FA\u6765\uFF0C\u8FD9\u91CC\u7A7A\u7740\u662F\u6B63\u5E38\u7684\uFF0C\u4E0D\u7528\u91CD\u586B\u3002\u53EA\u6709\u5728\u5FAE\u4FE1\u90A3\u8FB9\u70B9\u8FC7\u300C\u91CD\u7F6E\u300D\uFF0C\u624D\u9700\u8981\u586B\u65B0\u7684\u3002");
+        } else {
+          f.createSpan({ cls: "sp-status-bad", text: "\u8FD8\u6CA1\u4FDD\u5B58 AppSecret\uFF0C\u8BF7\u586B\u5199\u3002" });
+        }
+      } else {
+        f.appendText("\u540C\u4E00\u9875\u300C\u5F00\u53D1\u5BC6\u94A5\u300D\u91CC\u70B9\u300C\u91CD\u7F6E\u300D\u83B7\u53D6\u3002\u5FAE\u4FE1\u540E\u53F0\u4E0D\u4F1A\u518D\u663E\u793A AppSecret\uFF0C\u91CD\u7F6E\u540E\u65E7\u7684\u4F1A\u9A6C\u4E0A\u5931\u6548\uFF0C\u6240\u4EE5\u62FF\u5230\u540E\u76F4\u63A5\u586B\u8FDB\u6765\u3002\u53EA\u4FDD\u5B58\u5728\u4F60\u7684\u7535\u8111\u4E0A\uFF08Obsidian \u94A5\u5319\u4E32\uFF09\u3002");
+      }
+    });
+    new import_obsidian12.Setting(contentEl).setName(required("AppSecret")).setDesc(secretDesc).addText((text) => {
+      text.setPlaceholder(savedSecret ? "\u5DF2\u4FDD\u5B58\uFF0C\u4E0D\u7528\u91CD\u586B" : "\u8BF7\u8F93\u5165 AppSecret").setValue(this.appsecretInput).onChange((value) => {
         this.appsecretInput = value;
       });
       text.inputEl.type = "password";
@@ -25300,11 +25313,12 @@ var OnboardingModal = class extends import_obsidian13.Modal {
       "\u8BBE\u7F6E\u4E00\u6B21\uFF0C\u5199\u5B8C\u7B14\u8BB0\u5C31\u80FD\u63A8\u5230**\u516C\u4F17\u53F7\u8349\u7A3F\u7BB1**\u548C **X \u6587\u7AE0\u8349\u7A3F**\u3002\u53EA\u7528\u4E00\u4E2A\u5E73\u53F0\u4E5F\u53EF\u4EE5\uFF0C\u8DF3\u8FC7\u53E6\u4E00\u4E2A\u5C31\u597D\u3002"
     );
     const hasAccount = st2.accounts.length > 0;
+    const missingSecret = st2.accounts.filter((a) => !this.plugin.hasAppSecret(a));
     const s1 = this.step(
       1,
       "\u6DFB\u52A0\u516C\u4F17\u53F7",
-      hasAccount ? "done" : "todo",
-      hasAccount ? `\u5DF2\u6DFB\u52A0\uFF1A${st2.accounts.map((a) => a.name).join("\u3001")}` : "\u9700\u8981\u516C\u4F17\u53F7\u7684 **AppID** \u548C **AppSecret**\uFF08\u5FC5\u586B\uFF09\uFF1A\u767B\u5F55**\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0**\uFF0C\u70B9\u9876\u90E8\u300C**\u6211\u7684\u4E1A\u52A1\u4E0E\u670D\u52A1 \u2192 \u516C\u4F17\u53F7**\u300D\uFF0CAppID \u5728\u300C**\u57FA\u7840\u4FE1\u606F**\u300D\u91CC\uFF0CAppSecret \u5728\u540C\u4E00\u9875\u300C**\u5F00\u53D1\u5BC6\u94A5**\u300D\u91CC\u70B9\u300C\u91CD\u7F6E\u300D\u83B7\u53D6\u3002AppSecret \u53EA\u4FDD\u5B58\u5728\u4F60\u7684\u7535\u8111\u4E0A\u3002"
+      !hasAccount ? "todo" : missingSecret.length ? "warn" : "done",
+      hasAccount ? missingSecret.length ? `\u5DF2\u6DFB\u52A0\uFF0C\u4F46\u300C${missingSecret.map((a) => a.name).join("\u3001")}\u300D\u8FD8\u6CA1\u586B **AppSecret**\uFF1A\u70B9\u4E0B\u9762\u300C\u7F16\u8F91\u8D26\u53F7\u300D\u586B\u8FDB\u53BB\u3002` : `\u5DF2\u6DFB\u52A0\uFF1A${st2.accounts.map((a) => a.name).join("\u3001")}\uFF08AppSecret \u5DF2\u4FDD\u5B58\u5728\u672C\u673A\uFF09` : "\u9700\u8981\u516C\u4F17\u53F7\u7684 **AppID** \u548C **AppSecret**\uFF08\u5FC5\u586B\uFF09\uFF1A\u767B\u5F55**\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0**\uFF0C\u70B9\u9876\u90E8\u300C**\u6211\u7684\u4E1A\u52A1\u4E0E\u670D\u52A1 \u2192 \u516C\u4F17\u53F7**\u300D\uFF0CAppID \u5728\u300C**\u57FA\u7840\u4FE1\u606F**\u300D\u91CC\uFF0CAppSecret \u5728\u540C\u4E00\u9875\u300C**\u5F00\u53D1\u5BC6\u94A5**\u300D\u91CC\u70B9\u300C\u91CD\u7F6E\u300D\u83B7\u53D6\u3002AppSecret \u53EA\u4FDD\u5B58\u5728\u4F60\u7684\u7535\u8111\u4E0A\u3002"
     );
     const b1 = s1.createDiv({ cls: "sp-ob-actions" });
     this.button(b1, hasAccount ? "\u518D\u6DFB\u52A0\u4E00\u4E2A" : "\u6DFB\u52A0\u516C\u4F17\u53F7", !hasAccount, () => {
@@ -25321,6 +25335,20 @@ var OnboardingModal = class extends import_obsidian13.Modal {
     this.button(b1, "\u6253\u5F00\u5FAE\u4FE1\u5F00\u53D1\u8005\u5E73\u53F0", false, () => {
       window.open(MP_URL2);
     });
+    if (missingSecret[0]) {
+      const target = missingSecret[0];
+      this.button(b1, "\u7F16\u8F91\u8D26\u53F7\uFF08\u586B AppSecret\uFF09", true, () => {
+        new AccountModal(this.app, this.plugin, target, async (updated) => {
+          const i = this.plugin.settings.accounts.findIndex((a) => a.id === target.id);
+          if (i !== -1) this.plugin.settings.accounts[i] = updated;
+          await this.plugin.saveSettings();
+          this.plugin.refreshPublisherSidebar();
+          this.accountCheck = null;
+          await this.testAccount(false);
+          this.render();
+        }).open();
+      });
+    }
     const check = this.accountCheck;
     const s2state = !hasAccount ? "todo" : (check == null ? void 0 : check.ok) ? this.draftPerm && !this.draftPerm.ok ? "warn" : "done" : check ? "warn" : "todo";
     const s2 = this.step(
@@ -26071,8 +26099,8 @@ var PublisherView = class extends import_obsidian15.ItemView {
       label.createDiv({ text: account.remark, cls: "account-remark" });
     }
     if (account.status === "expired" || account.status === "error") {
-      const warn = item.createDiv({ cls: "warning-text" });
-      warn.appendText("\u8FDE\u4E0D\u4E0A\u8FD9\u4E2A\u516C\u4F17\u53F7\uFF1A\u591A\u534A\u662F AppSecret \u5931\u6548\uFF0C\u6216\u672C\u673A IP \u4E0D\u5728\u767D\u540D\u5355\u3002");
+      const warn = label.createDiv({ cls: "warning-text" });
+      warn.appendText(this.plugin.hasAppSecret(account) ? "\u8FDE\u4E0D\u4E0A\u8FD9\u4E2A\u516C\u4F17\u53F7\uFF1A\u591A\u534A\u662F AppSecret \u5931\u6548\uFF0C\u6216\u672C\u673A IP \u4E0D\u5728\u767D\u540D\u5355\u3002" : "\u8FD8\u6CA1\u586B AppSecret\u3002");
       const fix = warn.createEl("a", { text: "\u67E5\u770B\u539F\u56E0", href: "#" });
       fix.onclick = (e) => {
         e.preventDefault();
@@ -28137,6 +28165,9 @@ var WeChatPublisherPlugin = class extends import_obsidian18.Plugin {
     });
     this.addSettingTab(new WeChatPublisherSettingTab(this.app, this));
     this.startAutoCheck();
+    this.app.workspace.onLayoutReady(() => {
+      void this.checkAllAccountsStatus();
+    });
   }
   onunload() {
     this.stopAutoCheck();
@@ -28335,22 +28366,30 @@ var WeChatPublisherPlugin = class extends import_obsidian18.Plugin {
       await this.checkAccountStatus(account);
     }
     await this.saveSettings();
+    this.refreshPublisherSidebar();
+  }
+  /** 这个账号的 AppSecret 有没有保存在本机钥匙串里 */
+  hasAppSecret(account) {
+    return Boolean(this.getAppSecret(account));
   }
   async checkAccountStatus(account) {
     const resolved = this.resolveAccount(account);
     if (!resolved.accessToken || !account.tokenExpireTime || Date.now() >= account.tokenExpireTime) {
       try {
-        if (!resolved.appsecret) throw new Error("\u7F3A\u5C11 AppSecret");
+        if (!resolved.appsecret) throw new Error("\u8FD8\u6CA1\u586B AppSecret\uFF1A\u70B9\u300C\u7F16\u8F91\u300D\u586B\u8FDB\u53BB");
         const token = await getAccessToken(account.appid, resolved.appsecret, resolved.proxyConfig);
         this.setAccessToken(account, token);
         account.status = "online";
+        delete account.lastError;
         account.lastCheckTime = (/* @__PURE__ */ new Date()).toISOString();
       } catch (error) {
         account.status = "expired";
+        account.lastError = error instanceof Error ? error.message : String(error);
         account.lastCheckTime = (/* @__PURE__ */ new Date()).toISOString();
       }
     } else {
       account.status = "online";
+      delete account.lastError;
       account.lastCheckTime = (/* @__PURE__ */ new Date()).toISOString();
     }
   }
@@ -28565,7 +28604,23 @@ var WeChatPublisherSettingTab = class extends import_obsidian18.PluginSettingTab
   displayAccountSetting(containerEl, account) {
     const accountDiv = containerEl.createDiv({ cls: "wechat-account-item" });
     const statusIcon = account.status === "online" ? "\u2705" : account.status === "expired" ? "\u26A0\uFE0F" : "\u274C";
-    new import_obsidian18.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(account.remark || "\u6682\u65E0\u5907\u6CE8").addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
+    const hasSecret = this.plugin.hasAppSecret(account);
+    const desc = createFragment((f) => {
+      const line = (label, ok, text) => {
+        const row = f.createDiv({ cls: "sp-account-status" });
+        row.createSpan({ text: `${label}\uFF1A` });
+        row.createSpan({ cls: ok ? "sp-status-ok" : "sp-status-bad", text });
+      };
+      line("AppID", Boolean(account.appid), account.appid ? "\u5DF2\u586B" : "\u8FD8\u6CA1\u586B");
+      line("AppSecret", hasSecret, hasSecret ? "\u5DF2\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\uFF08\u4E3A\u4E86\u5B89\u5168\u4E0D\u663E\u793A\uFF09" : "\u8FD8\u6CA1\u586B\uFF0C\u70B9\u300C\u7F16\u8F91\u300D\u586B\u8FDB\u53BB");
+      line(
+        "\u8FDE\u63A5",
+        account.status === "online",
+        account.status === "online" ? "\u5DF2\u8FDE\u901A\uFF0C\u53EF\u4EE5\u63A8\u9001" : `\u8FDE\u4E0D\u4E0A${account.lastError ? `\uFF1A${account.lastError}` : "\uFF0C\u70B9\u300C\u68C0\u6D4B\u8FDE\u63A5\u300D\u770B\u539F\u56E0"}`
+      );
+      if (account.remark) f.createDiv({ cls: "sp-account-status", text: account.remark });
+    });
+    new import_obsidian18.Setting(accountDiv).setName(`${statusIcon} ${account.name}`).setDesc(desc).addButton((button) => button.setButtonText("\u7F16\u8F91").onClick(() => {
       const modal = new AccountModal(this.app, this.plugin, account, async (updatedAccount) => {
         const index = this.plugin.settings.accounts.findIndex((a) => a.id === account.id);
         if (index !== -1) {
@@ -28575,15 +28630,18 @@ var WeChatPublisherSettingTab = class extends import_obsidian18.PluginSettingTab
         }
       });
       modal.open();
-    })).addButton((button) => button.setButtonText("\u5237\u65B0").onClick(async () => {
-      new import_obsidian18.Notice("\u6B63\u5728\u5237\u65B0 Access Token...");
+    })).addButton((button) => button.setButtonText("\u68C0\u6D4B\u8FDE\u63A5").onClick(async () => {
+      var _a2;
+      new import_obsidian18.Notice("\u6B63\u5728\u68C0\u6D4B\u8FDE\u63A5\u2026");
+      account.tokenExpireTime = 0;
       await this.plugin.checkAccountStatus(account);
       await this.plugin.saveSettings();
+      this.plugin.refreshPublisherSidebar();
       this.display();
       if (account.status === "online") {
-        new import_obsidian18.Notice("\u2705 Access Token \u5237\u65B0\u6210\u529F");
+        new import_obsidian18.Notice("\u2705 \u8FDE\u63A5\u6210\u529F\uFF0C\u53EF\u4EE5\u63A8\u9001");
       } else {
-        new import_obsidian18.Notice("\u274C Access Token \u5237\u65B0\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5 AppID \u548C AppSecret");
+        new import_obsidian18.Notice(`\u274C \u8FDE\u4E0D\u4E0A\uFF1A${(_a2 = account.lastError) != null ? _a2 : "\u8BF7\u68C0\u67E5 AppID\u3001AppSecret \u548C IP \u767D\u540D\u5355"}`, 8e3);
       }
     })).addButton((button) => button.setButtonText("\u5220\u9664").setWarning().onClick(async () => {
       if (confirm(`\u786E\u5B9A\u8981\u5220\u9664\u8D26\u53F7 "${account.name}" \u5417\uFF1F`)) {

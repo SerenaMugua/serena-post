@@ -95,9 +95,12 @@ export class OnboardingModal extends Modal {
 
 		// 1. 添加公众号
 		const hasAccount = st.accounts.length > 0;
-		const s1 = this.step(1, '添加公众号', hasAccount ? 'done' : 'todo',
+		const missingSecret = st.accounts.filter(a => !this.plugin.hasAppSecret(a));
+		const s1 = this.step(1, '添加公众号', !hasAccount ? 'todo' : missingSecret.length ? 'warn' : 'done',
 			hasAccount
-				? `已添加：${st.accounts.map(a => a.name).join('、')}`
+				? (missingSecret.length
+					? `已添加，但「${missingSecret.map(a => a.name).join('、')}」还没填 **AppSecret**：点下面「编辑账号」填进去。`
+					: `已添加：${st.accounts.map(a => a.name).join('、')}（AppSecret 已保存在本机）`)
 				: '需要公众号的 **AppID** 和 **AppSecret**（必填）：登录**微信开发者平台**，点顶部「**我的业务与服务 → 公众号**」，AppID 在「**基础信息**」里，AppSecret 在同一页「**开发密钥**」里点「重置」获取。AppSecret 只保存在你的电脑上。');
 		const b1 = s1.createDiv({ cls: 'sp-ob-actions' });
 		this.button(b1, hasAccount ? '再添加一个' : '添加公众号', !hasAccount, () => {
@@ -112,6 +115,20 @@ export class OnboardingModal extends Modal {
 			}).open();
 		});
 		this.button(b1, '打开微信开发者平台', false, () => { window.open(MP_URL); });
+		if (missingSecret[0]) {
+			const target = missingSecret[0];
+			this.button(b1, '编辑账号（填 AppSecret）', true, () => {
+				new AccountModal(this.app, this.plugin, target, async updated => {
+					const i = this.plugin.settings.accounts.findIndex(a => a.id === target.id);
+					if (i !== -1) this.plugin.settings.accounts[i] = updated;
+					await this.plugin.saveSettings();
+					this.plugin.refreshPublisherSidebar();
+					this.accountCheck = null;
+					await this.testAccount(false);
+					this.render();
+				}).open();
+			});
+		}
 
 		// 2. IP 白名单
 		const check = this.accountCheck;

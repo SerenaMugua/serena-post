@@ -21,6 +21,8 @@ export interface WeChatAccount {
 	tokenExpireTime?: number;
 	lastCheckTime?: string;
 	status: 'online' | 'expired' | 'offline' | 'error';
+	/** 最近一次连不上的原因（微信返回的错误），连通后清空 */
+	lastError?: string;
 	/** @deprecated Migrated to Obsidian SecretStorage on first load. */
 	appsecret?: string;
 	/** @deprecated Migrated to Obsidian SecretStorage on first load. */

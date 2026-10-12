@@ -426,8 +426,11 @@ export class PublisherView extends ItemView {
 
 		if (account.status === 'expired' || account.status === 'error') {
 			// 连不上一般是 AppSecret 不对（重置过）或者本机 IP 不在白名单；引导里的「检测连接」会显示具体原因
-			const warn = item.createDiv({ cls: 'warning-text' });
-			warn.appendText('连不上这个公众号：多半是 AppSecret 失效，或本机 IP 不在白名单。');
+			// 放在名字下面一整行，侧栏窄的时候名字不会被挤成一个字一行
+			const warn = label.createDiv({ cls: 'warning-text' });
+			warn.appendText(this.plugin.hasAppSecret(account)
+				? '连不上这个公众号：多半是 AppSecret 失效，或本机 IP 不在白名单。'
+				: '还没填 AppSecret。');
 			const fix = warn.createEl('a', { text: '查看原因', href: '#' });
 			fix.onclick = e => { e.preventDefault(); e.stopPropagation(); this.plugin.openOnboarding(); };
 		}

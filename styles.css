@@ -1900,3 +1900,15 @@
 .sp-account-ip-line code {
 	font-size: var(--font-ui-small);
 }
+
+/* 账号状态：已保存 / 还没填 / 已连通 / 连不上 */
+.sp-account-status {
+	font-size: var(--font-ui-small);
+	line-height: 1.6;
+}
+.sp-status-ok {
+	color: var(--text-success, #15803d);
+}
+.sp-status-bad {
+	color: var(--text-error);
+}

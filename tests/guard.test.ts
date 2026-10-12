@@ -96,3 +96,13 @@ test('添加公众号：AppID、AppSecret 标了必填，并说明 IP 白名单�
 	assert.match(modal, /API IP 白名单/);
 	assert.match(read('styles.css'), /\.sp-required/);
 });
+
+test('AppSecret 是否已保存要看得见：编辑账号、设置页都会显示「已保存」', () => {
+	const modal = read('src/modals/account-modal.ts');
+	assert.match(modal, /已保存在本机（Obsidian 钥匙串）/);
+	const main = read('src/main.ts');
+	assert.match(main, /hasAppSecret\(account: WeChatAccount\)/);
+	assert.match(main, /已保存在本机钥匙串/);
+	// 启动时马上检测一次连接，状态才准
+	assert.match(main, /onLayoutReady\(\(\) => \{ void this\.checkAllAccountsStatus\(\); \}\)/);
+});

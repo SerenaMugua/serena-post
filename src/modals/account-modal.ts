@@ -110,13 +110,24 @@ export class AccountModal extends Modal {
 				}));
 
 		// AppSecret
+		const savedSecret = this.isEdit && this.account ? this.plugin.hasAppSecret(this.account) : false;
+		const secretDesc = createFragment(f => {
+			if (this.isEdit) {
+				if (savedSecret) {
+					f.createSpan({ cls: 'sp-status-ok', text: '✅ 已保存在本机（Obsidian 钥匙串）。' });
+					f.appendText('为了安全不会显示出来，这里空着是正常的，不用重填。只有在微信那边点过「重置」，才需要填新的。');
+				} else {
+					f.createSpan({ cls: 'sp-status-bad', text: '还没保存 AppSecret，请填写。' });
+				}
+			} else {
+				f.appendText('同一页「开发密钥」里点「重置」获取。微信后台不会再显示 AppSecret，重置后旧的会马上失效，所以拿到后直接填进来。只保存在你的电脑上（Obsidian 钥匙串）。');
+			}
+		});
 		new Setting(contentEl)
 			.setName(required('AppSecret'))
-			.setDesc(this.isEdit
-				? '留空表示保留现有 AppSecret'
-				: '同一页「开发密钥」里点「重置」获取（重置后旧的 AppSecret 会失效）。只保存在你的电脑上')
+			.setDesc(secretDesc)
 			.addText(text => {
-				text.setPlaceholder('请输入 AppSecret')
+				text.setPlaceholder(savedSecret ? '已保存，不用重填' : '请输入 AppSecret')
 					.setValue(this.appsecretInput)
 					.onChange((value) => {
 						this.appsecretInput = value;
