@@ -161,8 +161,8 @@ export function toWeixinError(json: any, fallback: string): WeixinApiError {
 	if (String(errcode) === '40164') {
 		const ip = errmsg.match(/invalid ip ([0-9a-fA-F.:]+)/)?.[1];
 		hint = ip
-			? `出口 IP ${ip} 不在公众号白名单。请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」的开发信息里，把 ${ip} 加进「IP 白名单」，几分钟后再试（家庭宽带 IP 变化后需要重新添加）`
-			: `${hint}，请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」的开发信息里，把当前出口 IP 加进「IP 白名单」`;
+			? `出口 IP ${ip} 不在公众号白名单。请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」页的「开发密钥 → API IP 白名单」里，把 ${ip} 加进去，几分钟后再试（家庭宽带 IP 变化后需要重新添加）`
+			: `${hint}，请到「微信开发者平台 → 我的业务与服务 → 公众号 → 基础信息」页的「开发密钥 → API IP 白名单」里，把当前出口 IP 加进去`;
 	}
 	const message = hint ? `${hint}（errcode: ${errcode}）` : `${errmsg}（errcode: ${errcode}）`;
 	return new WeixinApiError(message, errcode);

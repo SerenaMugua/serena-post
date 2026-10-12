@@ -55,8 +55,8 @@ SerenaPost 只支持电脑版 Obsidian（Windows / macOS / Linux），需要 Obs
 
 <p align="center"><img src="assets/demo-guide.gif" width="640" alt="新手引导"></p>
 
-1. **添加公众号**：在 [微信开发者平台](https://developers.weixin.qq.com/console/product/mp) →「我的业务与服务 → 公众号 → 基础信息」找到 AppID 和 AppSecret。
-2. **IP 白名单**：引导里会显示本机出口 IP，加进同一页开发信息里的「IP 白名单」，再点「检测连接」。检测会顺便告诉你这个号有没有草稿箱权限。
+1. **添加公众号**（必填 AppID、AppSecret）：在 [微信开发者平台](https://developers.weixin.qq.com/console/product/mp) →「我的业务与服务 → 公众号 → 基础信息」，AppID 在页面上方，AppSecret 在同一页「开发密钥」里点「重置」获取（重置后旧的会失效）。
+2. **IP 白名单**（必做，在微信那边设置）：引导里会显示本机出口 IP，加进同一页「开发密钥 → API IP 白名单」，再点「检测连接」。检测会顺便告诉你这个号有没有草稿箱权限。
 3. **推到 X（可选）**：在 Chrome 应用商店安装 [Kaitox 扩展](https://chromewebstore.google.com/detail/kaitox/ljefnciiojdefgpnphihcijfdmbdomll)，在 Chrome 里登录 X。中转程序已内置，不用装别的。
 4. **换上你的 IP（可选）**：上传头像、写一句结束标记。
 
@@ -92,7 +92,7 @@ sp_heading_style: box    # 这篇用的章节样式（推送后自动记录）
 <details>
 <summary><b>推送公众号提示「出口 IP 不在白名单」（40164）</b></summary>
 
-微信只接受白名单里的电脑推送。点失败信息下面的「复制 IP」，到 [微信开发者平台](https://developers.weixin.qq.com/console/product/mp) →「公众号 → 基础信息」的开发信息里加进「IP 白名单」，几分钟后点「重新推送」。
+微信只接受白名单里的电脑推送。点失败信息下面的「复制 IP」，到 [微信开发者平台](https://developers.weixin.qq.com/console/product/mp) →「公众号 → 基础信息」页的「开发密钥 → API IP 白名单」里加进去，几分钟后点「重新推送」。
 
 家里宽带的 IP 可能会变；开着代理的话，以插件显示的 IP 为准（代理换线路后也要重新加）。
 </details>

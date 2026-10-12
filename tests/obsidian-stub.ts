@@ -23,3 +23,4 @@ export async function requestUrl(o: { url: string; method?: string; headers?: Re
 	return { status: r.status, text, json, arrayBuffer: buf, headers: Object.fromEntries(r.headers) };
 }
 export function setIcon() {}
+export class MarkdownView {}

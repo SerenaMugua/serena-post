@@ -8,6 +8,7 @@ import type WeChatPublisherPlugin from '../main';
 import { ICON_ID } from '../brand';
 import { QUICK_FORMATS } from '../utils/quick-format';
 import { renderXPreviewInto } from '../x/x-preview-modal';
+import { findLoadedMarkdownView, findMarkdownView } from '../utils/markdown-view';
 import { marked } from 'marked';
 
 export const VIEW_TYPE_LIVE_PREVIEW = 'serena-post-live-preview';
@@ -263,10 +264,16 @@ export class LivePreviewView extends ItemView {
 
 	private currentMd(): MarkdownView | null {
 		if (this.md && this.md.file && this.md.leaf.view === this.md) return this.md;
-		const active = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (active) return (this.md = active);
-		const leaf = this.app.workspace.getLeavesOfType('markdown')[0];
-		this.md = (leaf?.view as MarkdownView | undefined) ?? null;
+		// 只拿已经加载好的笔记；后台没显示的笔记标签是空壳，直接用会报错
+		this.md = findLoadedMarkdownView(this.app);
+		return this.md;
+	}
+
+	/** 预览、复制用：后台的笔记标签还是空壳时，先把它加载出来 */
+	private async resolveMd(): Promise<MarkdownView | null> {
+		const md = this.currentMd();
+		if (md) return md;
+		this.md = await findMarkdownView(this.app);
 		return this.md;
 	}
 
@@ -280,12 +287,12 @@ export class LivePreviewView extends ItemView {
 		if (this.running) { this.pending = true; return; }
 		this.running = true;
 		try {
-			const publisher = this.plugin.getPublisherView();
+			const publisher = await this.plugin.loadPublisherView();
 			if (!publisher) {
 				this.message('先点左侧的 SerenaPost 头像图标打开发布面板，这里就会显示预览。');
 				return;
 			}
-			const md = this.currentMd();
+			const md = await this.resolveMd();
 			if (!md) {
 				this.message('打开一篇笔记，这里会实时显示它在公众号里的样子。');
 				return;
@@ -333,8 +340,8 @@ export class LivePreviewView extends ItemView {
 
 	/** 复制带格式的正文（图片转成内嵌），可以直接粘贴进公众号编辑器 */
 	private async copy(btn: HTMLButtonElement) {
-		const publisher = this.plugin.getPublisherView();
-		const md = this.currentMd();
+		const publisher = await this.plugin.loadPublisherView();
+		const md = await this.resolveMd();
 		if (!publisher || !md) {
 			new Notice('请先打开 SerenaPost 发布面板和一篇笔记');
 			return;

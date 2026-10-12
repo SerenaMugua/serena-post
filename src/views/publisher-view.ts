@@ -1,4 +1,5 @@
 import { App, ItemView, WorkspaceLeaf, Notice, MarkdownView, Modal, TFile, normalizePath, sanitizeHTMLToDom, setIcon } from 'obsidian';
+import { findMarkdownView } from '../utils/markdown-view';
 import html2canvas from 'html2canvas';
 import WeChatPublisherPlugin from '../main';
 import { WeChatAccount, PublishProgress, DraftMeta } from '../types';
@@ -44,7 +45,7 @@ export class PublisherView extends ItemView {
 	relayOnline: boolean | null = null;
 	publishProgress: Map<string, PublishProgress> = new Map();
 	isPublishing: boolean = false;
-	selectedTheme: string = '绿白清简';     // 当前选中的主题
+	selectedTheme: string = 'Serena 蓝白';     // 当前选中的主题
 	themeManager: ThemeManager;
 	publishSummary: { successCount: number; failCount: number } | null = null; // 发布汇总信息
 	/** 当前笔记用的章节样式（笔记属性 sp_heading_style 优先，否则用全局设置） */
@@ -423,8 +424,12 @@ export class PublisherView extends ItemView {
 			label.createDiv({ text: account.remark, cls: 'account-remark' });
 		}
 
-		if (account.status === 'expired') {
-			item.createDiv({ text: '登录已过期 - 请重新登录', cls: 'warning-text' });
+		if (account.status === 'expired' || account.status === 'error') {
+			// 连不上一般是 AppSecret 不对（重置过）或者本机 IP 不在白名单；引导里的「检测连接」会显示具体原因
+			const warn = item.createDiv({ cls: 'warning-text' });
+			warn.appendText('连不上这个公众号：多半是 AppSecret 失效，或本机 IP 不在白名单。');
+			const fix = warn.createEl('a', { text: '查看原因', href: '#' });
+			fix.onclick = e => { e.preventDefault(); e.stopPropagation(); this.plugin.openOnboarding(); };
 		}
 	}
 
@@ -450,9 +455,11 @@ export class PublisherView extends ItemView {
 		const file = this.currentFile ?? this.app.workspace.getActiveFile();
 		if (!file || file.extension !== 'md') return '';
 		let content = this.removeFrontmatter(await this.app.vault.cachedRead(file));
-		const leaf = this.app.workspace.getLeavesOfType('markdown').find(l => (l.view as MarkdownView).file?.path === file.path);
-		if (leaf) {
-			try { content = await this.processImageLinks(content, leaf.view as MarkdownView); } catch { /* 预览不显示图片也无妨 */ }
+		const view = this.app.workspace.getLeavesOfType('markdown')
+			.map(l => l.view)
+			.find((v): v is MarkdownView => v instanceof MarkdownView && v.file?.path === file.path);
+		if (view) {
+			try { content = await this.processImageLinks(content, view); } catch { /* 预览不显示图片也无妨 */ }
 		}
 		return content;
 	}
@@ -1067,16 +1074,8 @@ export class PublisherView extends ItemView {
 	}
 
 	async handlePreviewModal() {
-		// Try to get active view first, then fall back to any visible markdown view
-		let activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-
-		if (!activeView) {
-			// If no active markdown view, try to find any visible markdown view
-			const leaves = this.app.workspace.getLeavesOfType('markdown');
-			if (leaves.length > 0) {
-				activeView = leaves[0].view as MarkdownView;
-			}
-		}
+		// 先用正在编辑的笔记；没有就找已打开的笔记标签（后台空壳会先加载）
+		const activeView = await findMarkdownView(this.app);
 
 		if (!activeView) {
 			new Notice('请先打开一个笔记');
@@ -1108,10 +1107,7 @@ export class PublisherView extends ItemView {
 	}
 
 	async handleExportLongImage(): Promise<void> {
-		let activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if (!activeView) {
-			activeView = (this.app.workspace.getLeavesOfType('markdown')[0]?.view as MarkdownView | undefined) ?? null;
-		}
+		const activeView = await findMarkdownView(this.app);
 		if (!activeView) {
 			new Notice('请先打开一个笔记');
 			return;
@@ -1278,16 +1274,8 @@ export class PublisherView extends ItemView {
 	}
 
 	async handlePublish() {
-		// Try to get active view first, then fall back to any visible markdown view
-		let activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-
-		if (!activeView) {
-			// If no active markdown view, try to find any visible markdown view
-			const leaves = this.app.workspace.getLeavesOfType('markdown');
-			if (leaves.length > 0) {
-				activeView = leaves[0].view as MarkdownView;
-			}
-		}
+		// 先用正在编辑的笔记；没有就找已打开的笔记标签（后台空壳会先加载）
+		const activeView = await findMarkdownView(this.app);
 
 		if (!activeView) {
 			new Notice('请先打开一个笔记');

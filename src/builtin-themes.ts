@@ -14,7 +14,7 @@ import blueWhiteCase from '../themes/蓝白案例.md';
 import greenWhiteClean from '../themes/绿白清简.md';
 import serenaBlue from '../themes/Serena蓝白.md';
 
-export const DEFAULT_BUILTIN_THEME = '绿白清简';
+export const DEFAULT_BUILTIN_THEME = 'Serena 蓝白';
 
 export interface BuiltinThemeDocument {
 	name: string;

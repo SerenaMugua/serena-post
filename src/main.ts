@@ -10,6 +10,7 @@ import { AccountModal } from './modals/account-modal';
 import { KAITOX_STORE_URL, OnboardingModal } from './modals/onboarding-modal';
 import { getAccessToken } from './services/weixin-api';
 import { DEFAULT_BUILTIN_THEME } from './builtin-themes';
+import { ensureLoadedView, loadedView } from './utils/deferred-view';
 import { CUSTOM_THEME_AI_GUIDE } from './custom-theme-guide';
 
 // 文件夹选择模态框
@@ -299,9 +300,14 @@ export default class WeChatPublisherPlugin extends Plugin {
 		this.getPublisherView()?.render();
 	}
 
+	/** 已经加载好的发布面板；面板没打开、或者还是 Obsidian 延迟加载的空壳时返回 null */
 	getPublisherView(): PublisherView | null {
-		const leaf = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER)[0];
-		return (leaf?.view as PublisherView | undefined) ?? null;
+		return loadedView(this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER)[0], PublisherView);
+	}
+
+	/** 要用发布面板干活（预览、复制）时用这个：面板开着但还没加载，会先把它加载出来 */
+	async loadPublisherView(): Promise<PublisherView | null> {
+		return ensureLoadedView(this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER)[0], PublisherView);
 	}
 
 	/** 在笔记右边打开（或显示）实时预览 */
@@ -387,6 +393,44 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
+		// Account management section
+		new Setting(containerEl).setName('公众号账号').setHeading();
+		const accDesc = containerEl.createEl('p', { cls: 'setting-item-description sp-settings-required' });
+		accDesc.appendText('推送到公众号需要：');
+		accDesc.createEl('strong', { text: 'AppID' });
+		accDesc.createSpan({ cls: 'sp-required', text: ' *' });
+		accDesc.appendText('、');
+		accDesc.createEl('strong', { text: 'AppSecret' });
+		accDesc.createSpan({ cls: 'sp-required', text: ' *' });
+		accDesc.appendText('（在下面「添加账号」里填），以及 ');
+		accDesc.createEl('strong', { text: 'IP 白名单' });
+		accDesc.createSpan({ cls: 'sp-required', text: ' *' });
+		accDesc.appendText('（不在这里填，要在微信开发者平台「基础信息 → 开发密钥 → API IP 白名单」里加上本机 IP）。');
+
+		// Add account button
+		new Setting(containerEl)
+			.setName('添加新账号')
+			.setDesc('添加一个微信公众号，填 AppID 和 AppSecret')
+			.addButton(button => button
+				.setButtonText('添加账号')
+				.setCta()
+				.onClick(() => {
+					const modal = new AccountModal(this.app, this.plugin, null, async (account) => {
+						this.plugin.settings.accounts.push(account);
+						await this.plugin.saveSettings();
+						this.display();
+						new Notice(`账号 "${account.name}" 添加成功`);
+					});
+					modal.open();
+				}));
+
+		// List existing accounts
+		for (const account of this.plugin.settings.accounts) {
+			this.displayAccountSetting(containerEl, account);
+		}
+
+		new Setting(containerEl).setName('通用').setHeading();
+
 		// Max concurrent publish
 		new Setting(containerEl)
 			.setName('最大并发发布数')
@@ -402,7 +446,7 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('排除笔记属性')
-			.setDesc('排版和发布时不包含 YAML frontmatter')
+			.setDesc('开着时，笔记开头的属性（title、digest、cover 这些）不会被排进正文。建议保持开启')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.excludeFrontmatter)
 				.onChange(async value => {
@@ -651,36 +695,14 @@ class WeChatPublisherSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		// Account management section
-		new Setting(containerEl).setName('公众号账号').setHeading();
-
-		// Add account button
-		new Setting(containerEl)
-			.setName('添加新账号')
-			.setDesc('添加一个新的微信公众号')
-			.addButton(button => button
-				.setButtonText('添加账号')
-				.setCta()
-				.onClick(() => {
-					const modal = new AccountModal(this.app, this.plugin, null, async (account) => {
-						this.plugin.settings.accounts.push(account);
-						await this.plugin.saveSettings();
-						this.display();
-						new Notice(`账号 "${account.name}" 添加成功`);
-					});
-					modal.open();
-				}));
-
-		// List existing accounts
-		for (const account of this.plugin.settings.accounts) {
-			this.displayAccountSetting(containerEl, account);
-		}
 	}
 
 	private async refreshPublisherViews(): Promise<void> {
 		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_PUBLISHER);
 		for (const leaf of leaves) {
-			const view = leaf.view as PublisherView;
+			// 还没加载的空壳不用刷新，等它加载时会直接读最新设置
+			const view = loadedView(leaf, PublisherView);
+			if (!view) continue;
 			view.themeManager.setThemesFolder(this.plugin.settings.themesFolder);
 			view.themeManager.setCustomThemesEnabled(this.plugin.settings.customThemesEnabled);
 			view.themeManager.setCustomDefs(this.plugin.settings.customThemes);

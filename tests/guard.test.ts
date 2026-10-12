@@ -81,3 +81,18 @@ test('Release 流程：推标签自动发布，文件名不变', () => {
 	for (const f of ['main.js', 'manifest.json', 'styles.css']) assert.ok(wf.includes(f), `Release 少了 ${f}`);
 	assert.match(wf, /serena-post-/);
 });
+
+test('新用户默认设置：不把笔记属性排进正文，默认排版是 Serena 蓝白', () => {
+	assert.equal(DEFAULT_SETTINGS.excludeFrontmatter, true, '新用户预览里会出现 title/digest/cover 大标题');
+	assert.equal(DEFAULT_SETTINGS.defaultTheme, 'Serena 蓝白');
+	const builtin = read('src/builtin-themes.ts');
+	assert.match(builtin, /DEFAULT_BUILTIN_THEME = 'Serena 蓝白'/);
+});
+
+test('添加公众号：AppID、AppSecret 标了必填，并说明 IP 白名单要在微信那边设置', () => {
+	const modal = read('src/modals/account-modal.ts');
+	assert.match(modal, /required\('AppID'\)/);
+	assert.match(modal, /required\('AppSecret'\)/);
+	assert.match(modal, /API IP 白名单/);
+	assert.match(read('styles.css'), /\.sp-required/);
+});

@@ -1,6 +1,19 @@
 import { App, Modal, Notice, Setting } from 'obsidian';
 import { WeChatAccount, ProxyConfig } from '../types';
-import { getAccessToken, testProxy } from '../services/weixin-api';
+import { checkProxyIP, getAccessToken, testProxy } from '../services/weixin-api';
+
+const MP_URL = 'https://developers.weixin.qq.com/console/product/mp';
+
+/** 设置项名字后面加红色 *，表示必填 */
+function required(name: string): DocumentFragment {
+	const frag = document.createDocumentFragment();
+	frag.append(name);
+	const star = document.createElement('span');
+	star.className = 'sp-required';
+	star.textContent = ' *';
+	frag.append(star);
+	return frag;
+}
 import WeChatPublisherPlugin from '../main';
 
 export class AccountModal extends Modal {
@@ -56,11 +69,17 @@ export class AccountModal extends Modal {
 		contentEl.empty();
 
 		this.setTitle(this.isEdit ? '编辑账号' : '添加新账号');
+		this.modalEl.addClass('sp-account-modal');
+
+		const intro = contentEl.createDiv({ cls: 'sp-account-intro' });
+		intro.createDiv({ text: '带红色 * 的必须填。AppID 和 AppSecret 都在微信开发者平台「我的业务与服务 → 公众号 → 基础信息」页面里。' });
+		const introLink = intro.createEl('a', { text: '打开微信开发者平台', href: MP_URL });
+		introLink.addEventListener('click', e => { e.preventDefault(); window.open(MP_URL); });
 
 		// Account Name
 		new Setting(contentEl)
-			.setName('账号名称')
-			.setDesc('便于识别的名称')
+			.setName(required('账号名称'))
+			.setDesc('自己起的名字，方便在侧栏里认出来，比如公众号的名字')
 			.addText(text => text
 				.setPlaceholder('我的公众号')
 				.setValue(this.nameInput)
@@ -81,8 +100,8 @@ export class AccountModal extends Modal {
 
 		// AppID
 		new Setting(contentEl)
-			.setName('AppID')
-			.setDesc('微信公众号开发者 AppID')
+			.setName(required('AppID'))
+			.setDesc('「基础信息」页里的 AppID，以 wx 开头，旁边有复制按钮')
 			.addText(text => text
 				.setPlaceholder('请输入公众号 AppID')
 				.setValue(this.appidInput)
@@ -92,8 +111,10 @@ export class AccountModal extends Modal {
 
 		// AppSecret
 		new Setting(contentEl)
-			.setName('AppSecret')
-			.setDesc(this.isEdit ? '留空表示保留现有 AppSecret' : '微信公众号开发者 AppSecret')
+			.setName(required('AppSecret'))
+			.setDesc(this.isEdit
+				? '留空表示保留现有 AppSecret'
+				: '同一页「开发密钥」里点「重置」获取（重置后旧的 AppSecret 会失效）。只保存在你的电脑上')
 			.addText(text => {
 				text.setPlaceholder('请输入 AppSecret')
 					.setValue(this.appsecretInput)
@@ -103,8 +124,39 @@ export class AccountModal extends Modal {
 				text.inputEl.type = 'password';
 			});
 
+		// IP 白名单：不在这里填，要去微信那边加
+		const ipSetting = new Setting(contentEl)
+			.setName(required('IP 白名单（在微信那边设置）'))
+			.setDesc('这一项不在这里填。把下面的本机 IP 复制下来，加到微信开发者平台同一页「开发密钥 → API IP 白名单」里，过几分钟再点「测试 API 配置」。');
+		ipSetting.settingEl.addClass('sp-account-ip');
+		const ipLine = ipSetting.descEl.createDiv({ cls: 'sp-account-ip-line' });
+		ipLine.appendText('本机出口 IP：');
+		const ipValue = ipLine.createEl('code', { text: '检测中…' });
+		let ip = '';
+		ipSetting.addButton(button => button
+			.setButtonText('复制 IP')
+			.onClick(async () => {
+				if (!ip) { new Notice('还没检测到 IP，稍等一下'); return; }
+				await navigator.clipboard.writeText(ip);
+				new Notice(`已复制 ${ip}`);
+			}));
+		void checkProxyIP().then(found => {
+			ip = found && found !== 'unknown' ? found : '';
+			ipValue.setText(ip || '检测失败，可以先保存，推送失败时提示里会显示 IP');
+		});
+
+		// Test API Configuration button
+		new Setting(contentEl)
+			.setName('测试 API 配置')
+			.setDesc('检查 AppID、AppSecret 和 IP 白名单是否都设置好了')
+			.addButton(button => button
+				.setButtonText('测试 API')
+				.onClick(async () => {
+					await this.testAccessToken();
+				}));
+
 		// Proxy section header
-		new Setting(contentEl).setName('代理配置（可选）').setHeading();
+		new Setting(contentEl).setName('代理配置（可选，一般不用填）').setHeading();
 
 		// Proxy Type
 		new Setting(contentEl)
@@ -179,16 +231,6 @@ export class AccountModal extends Modal {
 				.setButtonText('测试连接')
 				.onClick(async () => {
 					await this.testProxyConnection();
-				}));
-
-		// Test API Configuration button
-		new Setting(contentEl)
-			.setName('测试 API 配置')
-			.setDesc('验证 AppID 和 AppSecret 是否有效')
-			.addButton(button => button
-				.setButtonText('测试 API')
-				.onClick(async () => {
-					await this.testAccessToken();
 				}));
 
 		// Buttons
@@ -275,18 +317,18 @@ export class AccountModal extends Modal {
 	async handleSave() {
 		// Validate required fields
 		if (!this.nameInput.trim()) {
-			new Notice('请输入账号名称');
+			new Notice('请填写账号名称（带红色 * 的是必填）');
 			return;
 		}
 
 		if (!this.appidInput.trim()) {
-			new Notice('请输入 AppID');
+			new Notice('请填写 AppID（带红色 * 的是必填）');
 			return;
 		}
 
 		const appSecret = this.appsecretInput.trim() || (this.account ? this.plugin.getAppSecret(this.account) : '');
 		if (!appSecret) {
-			new Notice('请输入 AppSecret');
+			new Notice('请填写 AppSecret（带红色 * 的是必填）');
 			return;
 		}
 

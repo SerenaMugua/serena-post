@@ -82,8 +82,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	autoCheckInterval: 3600000, // 1 hour
 	themesFolder: '',
 	customThemesEnabled: false,
-	defaultTheme: '绿白清简',
-	excludeFrontmatter: false,
+	defaultTheme: 'Serena 蓝白',
+	excludeFrontmatter: true,
 	defaultCoverImage: '',
 	defaultAuthor: '',
 	defaultOpenComment: false,

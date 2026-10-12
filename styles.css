@@ -1876,3 +1876,27 @@
 	color: #fff;
 }
 .sp-x-alert-actions button.mod-cta:hover { background: var(--sp-blue2, #53a4ea); }
+
+/* 必填标记：红色 * */
+.sp-required {
+	color: var(--text-error);
+	font-weight: 600;
+}
+.sp-account-intro {
+	margin-bottom: 12px;
+	padding: 8px 12px;
+	border-radius: 6px;
+	background: var(--background-secondary);
+	font-size: var(--font-ui-small);
+	line-height: 1.6;
+}
+.sp-account-intro a {
+	display: inline-block;
+	margin-top: 4px;
+}
+.sp-account-ip-line {
+	margin-top: 6px;
+}
+.sp-account-ip-line code {
+	font-size: var(--font-ui-small);
+}

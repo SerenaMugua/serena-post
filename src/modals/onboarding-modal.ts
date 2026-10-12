@@ -98,7 +98,7 @@ export class OnboardingModal extends Modal {
 		const s1 = this.step(1, '添加公众号', hasAccount ? 'done' : 'todo',
 			hasAccount
 				? `已添加：${st.accounts.map(a => a.name).join('、')}`
-				: '需要公众号的 **AppID** 和 **AppSecret**：登录**微信开发者平台**，点顶部「**我的业务与服务 → 公众号**」，在「**基础信息**」里就能看到。AppSecret 只保存在你的电脑上。');
+				: '需要公众号的 **AppID** 和 **AppSecret**（必填）：登录**微信开发者平台**，点顶部「**我的业务与服务 → 公众号**」，AppID 在「**基础信息**」里，AppSecret 在同一页「**开发密钥**」里点「重置」获取。AppSecret 只保存在你的电脑上。');
 		const b1 = s1.createDiv({ cls: 'sp-ob-actions' });
 		this.button(b1, hasAccount ? '再添加一个' : '添加公众号', !hasAccount, () => {
 			new AccountModal(this.app, this.plugin, null, async account => {
@@ -117,7 +117,7 @@ export class OnboardingModal extends Modal {
 		const check = this.accountCheck;
 		const s2state: StepState = !hasAccount ? 'todo' : check?.ok ? (this.draftPerm && !this.draftPerm.ok ? 'warn' : 'done') : check ? 'warn' : 'todo';
 		const s2 = this.step(2, '把本机 IP 加进公众号白名单', s2state,
-			'微信只接受**白名单里的电脑**推送。在微信开发者平台同一个「**基础信息**」页的开发信息里找到「**IP 白名单**」，把下面这个 IP 加进去，等几分钟再点「**检测连接**」。');
+			'这一步要**在微信那边设置**（必做）：微信只接受**白名单里的电脑**推送。在微信开发者平台同一个「**基础信息**」页，找到「**开发密钥 → API IP 白名单**」，把下面这个 IP 加进去，等几分钟再点「**检测连接**」。');
 		const ipRow = s2.createDiv({ cls: 'sp-ob-ip' });
 		ipRow.createSpan({ text: '本机出口 IP：' });
 		ipRow.createEl('strong', { cls: 'sp-ob-ip-value', text: this.ip || '检测中…' });
@@ -135,6 +135,21 @@ export class OnboardingModal extends Modal {
 			});
 		}
 		if (check) s2.createDiv({ cls: `sp-ob-result ${check.ok ? 'is-ok' : 'is-bad'}`, text: check.message });
+		if (check && !check.ok && st.accounts[0]) {
+			const account = st.accounts[0];
+			const bFix = s2.createDiv({ cls: 'sp-ob-actions' });
+			this.button(bFix, '编辑账号（重新填 AppID / AppSecret）', true, () => {
+				new AccountModal(this.app, this.plugin, account, async updated => {
+					const i = this.plugin.settings.accounts.findIndex(a => a.id === account.id);
+					if (i !== -1) this.plugin.settings.accounts[i] = updated;
+					await this.plugin.saveSettings();
+					this.plugin.refreshPublisherSidebar();
+					this.accountCheck = null;
+					await this.testAccount(false);
+					this.render();
+				}).open();
+			});
+		}
 		const perm = this.draftPerm;
 		if (check?.ok && perm) {
 			const box = s2.createDiv({ cls: `sp-ob-result ${perm.ok ? 'is-ok' : 'is-bad'}` });
