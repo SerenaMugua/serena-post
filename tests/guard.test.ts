@@ -106,3 +106,11 @@ test('AppSecret 是否已保存要看得见：编辑账号、设置页都会显�
 	// 启动时马上检测一次连接，状态才准
 	assert.match(main, /onLayoutReady\(\(\) => \{ void this\.checkAllAccountsStatus\(\); \}\)/);
 });
+
+test('保存账号时先存 AppSecret，连不上微信也不能丢（10-12 作者因此反复重置密钥）', () => {
+	const modal = read('src/modals/account-modal.ts');
+	const save = modal.slice(modal.indexOf('async handleSave'));
+	const store = save.indexOf('storeAccountSecrets(');
+	const tryAt = save.indexOf('getAccessToken(');
+	assert.ok(store > 0 && tryAt > 0 && store < tryAt, 'storeAccountSecrets 必须在 getAccessToken 之前');
+});

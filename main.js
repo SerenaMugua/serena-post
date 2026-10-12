@@ -25207,30 +25207,27 @@ var AccountModal = class extends import_obsidian12.Modal {
       status: "offline",
       lastCheckTime: (_f = this.account) == null ? void 0 : _f.lastCheckTime
     };
-    new import_obsidian12.Notice("\u9A8C\u8BC1 Access Token...");
+    const proxyPassword = this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : void 0);
+    this.plugin.storeAccountSecrets(account, appSecret, proxyPassword);
+    new import_obsidian12.Notice("\u5DF2\u4FDD\u5B58\uFF0C\u6B63\u5728\u68C0\u6D4B\u80FD\u4E0D\u80FD\u8FDE\u4E0A\u5FAE\u4FE1\u2026");
     try {
       const token = await getAccessToken(
         account.appid,
         appSecret,
-        proxyConfig ? {
-          ...proxyConfig,
-          password: this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : void 0)
-        } : void 0
+        proxyConfig ? { ...proxyConfig, password: proxyPassword } : void 0
       );
-      this.plugin.storeAccountSecrets(
-        account,
-        appSecret,
-        this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : void 0),
-        token
-      );
-      account.tokenExpireTime = Date.now() + 7200 * 1e3;
+      this.plugin.setAccessToken(account, token);
       account.status = "online";
-      this.onSubmit(account);
-      this.close();
-      new import_obsidian12.Notice("\u8D26\u53F7\u4FDD\u5B58\u6210\u529F");
+      delete account.lastError;
+      new import_obsidian12.Notice("\u2705 \u8D26\u53F7\u5DF2\u4FDD\u5B58\uFF0C\u8FDE\u63A5\u6210\u529F\uFF0C\u53EF\u4EE5\u63A8\u9001");
     } catch (error) {
-      new import_obsidian12.Notice(`\u274C \u9A8C\u8BC1\u5931\u8D25\uFF1A${error.message}`);
+      account.status = "expired";
+      account.lastError = error instanceof Error ? error.message : String(error);
+      new import_obsidian12.Notice(`\u8D26\u53F7\u548C AppSecret \u5DF2\u4FDD\u5B58\uFF0C\u4F46\u73B0\u5728\u8FDE\u4E0D\u4E0A\u5FAE\u4FE1\uFF1A${account.lastError}
+\u6539\u597D\u4EE5\u540E\u70B9\u300C\u68C0\u6D4B\u8FDE\u63A5\u300D\u5C31\u884C\uFF0C\u4E0D\u7528\u91CD\u586B AppSecret\u3002`, 12e3);
     }
+    this.onSubmit(account);
+    this.close();
   }
   onClose() {
     const { contentEl } = this;
@@ -25246,6 +25243,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
     super(app);
     this.plugin = plugin2;
     this.ip = "";
+    /** kind：ip = 本机 IP 不在白名单；account = AppID / AppSecret 不对；other = 其他（网络等） */
     this.accountCheck = null;
     /** 草稿箱接口权限：null = 还没检测 */
     this.draftPerm = null;
@@ -25277,7 +25275,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
     this.render();
   }
   async testAccount(rerender = true) {
-    var _a2;
+    var _a2, _b;
     const account = this.plugin.settings.accounts[0];
     if (!account) return;
     try {
@@ -25295,7 +25293,14 @@ var OnboardingModal = class extends import_obsidian13.Modal {
         this.draftPerm = null;
       }
     } catch (e) {
-      this.accountCheck = { ok: false, message: e instanceof Error ? e.message : String(e) };
+      const message = e instanceof Error ? e.message : String(e);
+      const code = String((_b = e == null ? void 0 : e.errcode) != null ? _b : "");
+      const kind = code === "40164" ? "ip" : ["40125", "40001", "40013", "41004", "41002"].includes(code) || message.includes("AppSecret") ? "account" : "other";
+      this.accountCheck = { ok: false, message, kind };
+      account.status = "expired";
+      account.lastError = message;
+      await this.plugin.saveSettings();
+      this.plugin.refreshPublisherSidebar();
       this.draftPerm = null;
     }
     if (rerender) this.render();
@@ -25350,7 +25355,7 @@ var OnboardingModal = class extends import_obsidian13.Modal {
       });
     }
     const check = this.accountCheck;
-    const s2state = !hasAccount ? "todo" : (check == null ? void 0 : check.ok) ? this.draftPerm && !this.draftPerm.ok ? "warn" : "done" : check ? "warn" : "todo";
+    const s2state = !hasAccount ? "todo" : (check == null ? void 0 : check.ok) ? this.draftPerm && !this.draftPerm.ok ? "warn" : "done" : check && check.kind !== "account" ? "warn" : "todo";
     const s2 = this.step(
       2,
       "\u628A\u672C\u673A IP \u52A0\u8FDB\u516C\u4F17\u53F7\u767D\u540D\u5355",
@@ -25376,7 +25381,10 @@ var OnboardingModal = class extends import_obsidian13.Modal {
         await this.testAccount();
       });
     }
-    if (check) s2.createDiv({ cls: `sp-ob-result ${check.ok ? "is-ok" : "is-bad"}`, text: check.message });
+    if (check) {
+      const prefix = check.ok ? "" : check.kind === "ip" ? "\u95EE\u9898\u51FA\u5728 IP \u767D\u540D\u5355\uFF1A" : check.kind === "account" ? "\u95EE\u9898\u51FA\u5728 AppID / AppSecret\uFF0C\u4E0D\u662F IP\uFF1A" : "\u8FDE\u4E0D\u4E0A\uFF1A";
+      s2.createDiv({ cls: `sp-ob-result ${check.ok ? "is-ok" : "is-bad"}`, text: prefix + check.message });
+    }
     if (check && !check.ok && st2.accounts[0]) {
       const account = st2.accounts[0];
       const bFix = s2.createDiv({ cls: "sp-ob-actions" });
@@ -26100,7 +26108,7 @@ var PublisherView = class extends import_obsidian15.ItemView {
     }
     if (account.status === "expired" || account.status === "error") {
       const warn = label.createDiv({ cls: "warning-text" });
-      warn.appendText(this.plugin.hasAppSecret(account) ? "\u8FDE\u4E0D\u4E0A\u8FD9\u4E2A\u516C\u4F17\u53F7\uFF1A\u591A\u534A\u662F AppSecret \u5931\u6548\uFF0C\u6216\u672C\u673A IP \u4E0D\u5728\u767D\u540D\u5355\u3002" : "\u8FD8\u6CA1\u586B AppSecret\u3002");
+      warn.appendText(!this.plugin.hasAppSecret(account) ? "\u8FD8\u6CA1\u586B AppSecret\u3002" : account.lastError ? `\u8FDE\u4E0D\u4E0A\uFF1A${account.lastError.length > 60 ? account.lastError.slice(0, 60) + "\u2026" : account.lastError}` : "\u8FDE\u4E0D\u4E0A\u8FD9\u4E2A\u516C\u4F17\u53F7\u3002");
       const fix = warn.createEl("a", { text: "\u67E5\u770B\u539F\u56E0", href: "#" });
       fix.onclick = (e) => {
         e.preventDefault();

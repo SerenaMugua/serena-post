@@ -17,7 +17,8 @@ type StepState = 'done' | 'todo' | 'warn' | 'optional';
 
 export class OnboardingModal extends Modal {
 	private ip = '';
-	private accountCheck: { ok: boolean; message: string } | null = null;
+	/** kind：ip = 本机 IP 不在白名单；account = AppID / AppSecret 不对；other = 其他（网络等） */
+	private accountCheck: { ok: boolean; message: string; kind?: 'ip' | 'account' | 'other' } | null = null;
 	/** 草稿箱接口权限：null = 还没检测 */
 	private draftPerm: { ok: boolean; message: string } | null = null;
 	private relayOnline: boolean | null = null;
@@ -76,7 +77,16 @@ export class OnboardingModal extends Modal {
 				this.draftPerm = null;
 			}
 		} catch (e) {
-			this.accountCheck = { ok: false, message: e instanceof Error ? e.message : String(e) };
+			const message = e instanceof Error ? e.message : String(e);
+			const code = String((e as { errcode?: unknown })?.errcode ?? '');
+			const kind = code === '40164' ? 'ip'
+				: ['40125', '40001', '40013', '41004', '41002'].includes(code) || message.includes('AppSecret') ? 'account'
+				: 'other';
+			this.accountCheck = { ok: false, message, kind };
+			account.status = 'expired';
+			account.lastError = message;
+			await this.plugin.saveSettings();
+			this.plugin.refreshPublisherSidebar();
 			this.draftPerm = null;
 		}
 		if (rerender) this.render();
@@ -132,7 +142,8 @@ export class OnboardingModal extends Modal {
 
 		// 2. IP 白名单
 		const check = this.accountCheck;
-		const s2state: StepState = !hasAccount ? 'todo' : check?.ok ? (this.draftPerm && !this.draftPerm.ok ? 'warn' : 'done') : check ? 'warn' : 'todo';
+		// 只有真的是 IP 的问题才把这一步标成要处理；AppSecret 不对时这里不标，免得误会成 IP 问题
+		const s2state: StepState = !hasAccount ? 'todo' : check?.ok ? (this.draftPerm && !this.draftPerm.ok ? 'warn' : 'done') : check && check.kind !== 'account' ? 'warn' : 'todo';
 		const s2 = this.step(2, '把本机 IP 加进公众号白名单', s2state,
 			'这一步要**在微信那边设置**（必做）：微信只接受**白名单里的电脑**推送。在微信开发者平台同一个「**基础信息**」页，找到「**开发密钥 → API IP 白名单**」，把下面这个 IP 加进去，等几分钟再点「**检测连接**」。');
 		const ipRow = s2.createDiv({ cls: 'sp-ob-ip' });
@@ -151,7 +162,10 @@ export class OnboardingModal extends Modal {
 				await this.testAccount();
 			});
 		}
-		if (check) s2.createDiv({ cls: `sp-ob-result ${check.ok ? 'is-ok' : 'is-bad'}`, text: check.message });
+		if (check) {
+			const prefix = check.ok ? '' : check.kind === 'ip' ? '问题出在 IP 白名单：' : check.kind === 'account' ? '问题出在 AppID / AppSecret，不是 IP：' : '连不上：';
+			s2.createDiv({ cls: `sp-ob-result ${check.ok ? 'is-ok' : 'is-bad'}`, text: prefix + check.message });
+		}
 		if (check && !check.ok && st.accounts[0]) {
 			const account = st.accounts[0];
 			const bFix = s2.createDiv({ cls: 'sp-ob-actions' });

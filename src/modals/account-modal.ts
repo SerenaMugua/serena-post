@@ -368,34 +368,30 @@ export class AccountModal extends Modal {
 			lastCheckTime: this.account?.lastCheckTime
 		};
 
-		// Test access token before saving
-		new Notice('验证 Access Token...');
+		const proxyPassword = this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : undefined);
+
+		// 先把 AppSecret 存进钥匙串，不管下面能不能连上微信。
+		// 以前是「连上了才保存」：IP 还没加白名单时连不上，密钥就没存，关掉窗口后只能重填（微信又只显示一次，只好去重置）
+		this.plugin.storeAccountSecrets(account, appSecret, proxyPassword);
+
+		new Notice('已保存，正在检测能不能连上微信…');
 		try {
 			const token = await getAccessToken(
 				account.appid,
 				appSecret,
-				proxyConfig ? {
-					...proxyConfig,
-					password: this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : undefined)
-				} : undefined
+				proxyConfig ? { ...proxyConfig, password: proxyPassword } : undefined
 			);
-
-			// Save token and expiration (WeChat tokens expire in 7200 seconds)
-			this.plugin.storeAccountSecrets(
-				account,
-				appSecret,
-				this.proxyPassword || (this.account ? this.plugin.getProxyPassword(this.account) : undefined),
-				token
-			);
-			account.tokenExpireTime = Date.now() + 7200 * 1000;
+			this.plugin.setAccessToken(account, token);
 			account.status = 'online';
-
-			this.onSubmit(account);
-			this.close();
-			new Notice('账号保存成功');
+			delete account.lastError;
+			new Notice('✅ 账号已保存，连接成功，可以推送');
 		} catch (error) {
-			new Notice(`❌ 验证失败：${error.message}`);
+			account.status = 'expired';
+			account.lastError = error instanceof Error ? error.message : String(error);
+			new Notice(`账号和 AppSecret 已保存，但现在连不上微信：${account.lastError}\n改好以后点「检测连接」就行，不用重填 AppSecret。`, 12000);
 		}
+		this.onSubmit(account);
+		this.close();
 	}
 
 	onClose() {
