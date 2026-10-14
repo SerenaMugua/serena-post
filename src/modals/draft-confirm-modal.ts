@@ -323,22 +323,25 @@ export class DraftConfirmModal extends Modal {
 				out.push({ id: 'img-remote', level: 'info', text: `${sc.remote.length} 张网络图片，发布时会自动下载再上传到公众号；如果原网站不让下载，草稿里会少这张图` });
 			}
 		}
-		// 动图和视频：两个平台都不能自动传，推送时自动处理并留提示
+		// 动图和视频：公众号不能自动传，推送时自动处理并留提示；X 直接上传（Kaitox 扩展 0.6.3 起）
 		const ms = this.scan;
 		if (ms && (this.hasWechat || this.xInfo)) {
-			const both = this.hasWechat && !!this.xInfo;
-			const where = both ? '公众号和 X 都' : this.xInfo ? 'X ' : '公众号';
 			const list = (a: string[]) => `${a.slice(0, 3).join('、')}${a.length > 3 ? ' 等' : ''}`;
+			const xPart = this.xInfo ? 'X 会直接上传，' : '';
 			if (ms.animated.length) {
 				out.push({
-					id: 'img-gif', level: 'warn',
-					text: `${ms.animated.length} 张动图（${list(ms.animated)}）：${where}不能直接上传动图${this.xInfo ? '（X 收到动图会整篇草稿建不成）' : ''}。推送时会自动变成第一帧静态图，并在后面留一行「【这里换成动图：文件名】」，推完到编辑器里把动图插回去、删掉这行`
+					id: 'img-gif', level: this.hasWechat ? 'warn' : 'info',
+					text: this.hasWechat
+						? `${ms.animated.length} 张动图（${list(ms.animated)}）：${xPart}公众号不能直接上传动图，推送时会变成第一帧静态图，并在后面留一行「【这里换成动图：文件名】」，推完到公众号编辑器里把动图插回去、删掉这行`
+						: `${ms.animated.length} 张动图（${list(ms.animated)}）：会按动图直接上传到 X（单张不能超过 15MB，超过的会变成静态图并留提示）`
 				});
 			}
 			if (ms.videos.length) {
 				out.push({
-					id: 'video', level: 'warn',
-					text: `${ms.videos.length} 个视频（${list(ms.videos)}）：${where}不能自动上传视频。推送时会换成一行「【这里插入视频：文件名】」，推完到编辑器里插入视频、删掉这行`
+					id: 'video', level: this.hasWechat ? 'warn' : 'info',
+					text: this.hasWechat
+						? `${ms.videos.length} 个视频（${list(ms.videos)}）：${xPart}公众号不能自动上传视频，推送时会换成一行「【这里插入视频：文件名】」，推完到公众号编辑器里插入视频、删掉这行`
+						: `${ms.videos.length} 个视频（${list(ms.videos)}）：会直接上传到 X。X 要先处理视频，草稿可能要几分钟才建好；MP4 / MOV 最稳妥`
 				});
 			}
 		}

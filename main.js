@@ -9315,7 +9315,7 @@ var require_previous_map = __commonJS({
   "node_modules/postcss/lib/previous-map.js"(exports, module2) {
     "use strict";
     var { existsSync, readFileSync, realpathSync } = require("fs");
-    var { dirname, isAbsolute, join: join3, relative, sep } = require("path");
+    var { dirname: dirname2, isAbsolute, join: join4, relative, sep } = require("path");
     var { SourceMapConsumer, SourceMapGenerator } = require_source_map();
     function realPath(path) {
       try {
@@ -9342,7 +9342,7 @@ var require_previous_map = __commonJS({
         if (!this.mapFile && opts.from) {
           this.mapFile = opts.from;
         }
-        if (this.mapFile) this.root = dirname(this.mapFile);
+        if (this.mapFile) this.root = dirname2(this.mapFile);
         if (text) this.text = text;
       }
       consumer() {
@@ -9388,12 +9388,12 @@ var require_previous_map = __commonJS({
         if (!trusted && !this.unsafeMap) {
           if (!/\.map$/i.test(path)) return void 0;
           if (!cssFile) return void 0;
-          let rel = relative(realPath(dirname(cssFile)), realPath(path));
+          let rel = relative(realPath(dirname2(cssFile)), realPath(path));
           if (rel === ".." || rel.startsWith(".." + sep) || isAbsolute(rel)) {
             return void 0;
           }
         }
-        this.root = dirname(path);
+        this.root = dirname2(path);
         if (existsSync(path)) {
           this.mapFile = path;
           return readFileSync(path, "utf-8").toString().trim();
@@ -9430,7 +9430,7 @@ var require_previous_map = __commonJS({
           return this.decodeInline(this.annotation);
         } else if (this.annotation) {
           let map = this.annotation;
-          if (file) map = join3(dirname(file), map);
+          if (file) map = join4(dirname2(file), map);
           let unknown = this.loadFile(map, file, false);
           if (unknown) {
             try {
@@ -9933,12 +9933,12 @@ var require_fromJSON = __commonJS({
 var require_map_generator = __commonJS({
   "node_modules/postcss/lib/map-generator.js"(exports, module2) {
     "use strict";
-    var { dirname, relative, resolve, sep } = require("path");
+    var { dirname: dirname2, relative, resolve, sep } = require("path");
     var { SourceMapConsumer, SourceMapGenerator } = require_source_map();
     var { pathToFileURL } = require("url");
     var Input2 = require_input();
     var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
-    var pathAvailable = Boolean(dirname && resolve && relative && sep);
+    var pathAvailable = Boolean(dirname2 && resolve && relative && sep);
     var MapGenerator = class {
       constructor(stringify2, root2, opts, cssString) {
         this.stringify = stringify2;
@@ -9970,7 +9970,7 @@ var require_map_generator = __commonJS({
       applyPrevMaps() {
         for (let prev of this.previous()) {
           let from = this.toUrl(this.path(prev.file));
-          let root2 = prev.root || dirname(prev.file);
+          let root2 = prev.root || dirname2(prev.file);
           let map;
           if (this.mapOpts.sourcesContent === false) {
             map = new SourceMapConsumer(prev.text);
@@ -10165,9 +10165,9 @@ var require_map_generator = __commonJS({
         if (/^\w+:\/\//.test(file)) return file;
         let cached = this.memoizedPaths.get(file);
         if (cached) return cached;
-        let from = this.opts.to ? dirname(this.opts.to) : ".";
+        let from = this.opts.to ? dirname2(this.opts.to) : ".";
         if (typeof this.mapOpts.annotation === "string") {
-          from = dirname(resolve(from, this.mapOpts.annotation));
+          from = dirname2(resolve(from, this.mapOpts.annotation));
         }
         let path = relative(from, file);
         this.memoizedPaths.set(file, path);
@@ -17476,7 +17476,7 @@ function imageSize(dataUrl) {
 // vendor/kaitox/relay/server.ts
 var import_node_http = require("node:http");
 var import_node_fs = require("node:fs");
-var import_promises3 = require("node:fs/promises");
+var import_promises4 = require("node:fs/promises");
 
 // vendor/kaitox/relay-protocol/bundle.ts
 var DEFAULT_DRAFT_KIND = "x-article";
@@ -17834,8 +17834,8 @@ function isAllowedOrigin(origin) {
 }
 
 // vendor/kaitox/relay/storage.ts
-var import_promises2 = require("node:fs/promises");
-var import_node_path2 = require("node:path");
+var import_promises3 = require("node:fs/promises");
+var import_node_path3 = require("node:path");
 
 // vendor/kaitox/relay/imageFit.ts
 var MAX_X_IMAGE_BYTES = 5242880;
@@ -17855,13 +17855,13 @@ async function fitImageBytes(bytes, mime) {
   if (typeof document === "undefined" || typeof createImageBitmap === "undefined") return { bytes, mime };
   try {
     const bitmap = await createImageBitmap(new Blob([bytes], { type: mime }));
-    const probe = document.createElement("canvas");
-    probe.width = bitmap.width;
-    probe.height = bitmap.height;
-    const pctx = probe.getContext("2d");
+    const probe2 = document.createElement("canvas");
+    probe2.width = bitmap.width;
+    probe2.height = bitmap.height;
+    const pctx = probe2.getContext("2d");
     if (!pctx) return { bytes, mime };
     pctx.drawImage(bitmap, 0, 0);
-    const transparent = hasTransparency(pctx, probe.width, probe.height);
+    const transparent = hasTransparency(pctx, probe2.width, probe2.height);
     const targetMime = transparent ? "image/webp" : "image/jpeg";
     for (const scale of SCALE_STEPS) {
       const canvas = document.createElement("canvas");
@@ -17885,38 +17885,110 @@ async function fitImageBytes(bytes, mime) {
   }
 }
 
+// vendor/kaitox/relay/videoFit.ts
+var import_node_child_process = require("node:child_process");
+var import_promises2 = require("node:fs/promises");
+var import_node_os2 = require("node:os");
+var import_node_path2 = require("node:path");
+var import_node_util = require("node:util");
+var run = (0, import_node_util.promisify)(import_node_child_process.execFile);
+var X_CONTAINERS = /* @__PURE__ */ new Set(["video/mp4", "video/quicktime"]);
+var foundTools;
+async function findTools() {
+  if (foundTools) return foundTools;
+  const candidates = [process.env.KAITOX_FFMPEG, "ffmpeg", "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"];
+  for (const ffmpeg of candidates) {
+    if (!ffmpeg) continue;
+    const ffprobe = ffmpeg === (0, import_node_path2.basename)(ffmpeg) ? "ffprobe" : (0, import_node_path2.join)((0, import_node_path2.dirname)(ffmpeg), `ffprobe${(0, import_node_path2.extname)(ffmpeg)}`);
+    try {
+      await run(ffmpeg, ["-version"]);
+      await run(ffprobe, ["-version"]);
+      foundTools = { ffmpeg, ffprobe };
+      return foundTools;
+    } catch (e) {
+    }
+  }
+  return null;
+}
+async function probe(ffprobe, input) {
+  var _a2, _b, _c;
+  try {
+    const { stdout } = await run(ffprobe, ["-v", "error", "-show_entries", "stream=codec_type,codec_name", "-of", "json", input]);
+    const streams = (_a2 = JSON.parse(stdout).streams) != null ? _a2 : [];
+    return {
+      video: (_b = streams.find((s) => s.codec_type === "video")) == null ? void 0 : _b.codec_name,
+      audio: (_c = streams.find((s) => s.codec_type === "audio")) == null ? void 0 : _c.codec_name
+    };
+  } catch (e) {
+    return null;
+  }
+}
+async function fitVideoBytes(bytes, mime) {
+  if (!mime.startsWith("video/")) return { bytes, mime };
+  const tools = await findTools();
+  if (!tools) return { bytes, mime };
+  const dir = await (0, import_promises2.mkdtemp)((0, import_node_path2.join)((0, import_node_os2.tmpdir)(), "kaitox-video-"));
+  try {
+    const input = (0, import_node_path2.join)(dir, "input");
+    await (0, import_promises2.writeFile)(input, bytes);
+    const streams = await probe(tools.ffprobe, input);
+    if (!(streams == null ? void 0 : streams.video)) return { bytes, mime };
+    const videoOk = streams.video === "h264";
+    const audioOk = !streams.audio || streams.audio === "aac";
+    if (videoOk && audioOk && X_CONTAINERS.has(mime)) return { bytes, mime };
+    const output = (0, import_node_path2.join)(dir, "output.mp4");
+    const videoArgs = videoOk ? ["-c:v", "copy"] : (
+      // yuv420p + even dimensions: what H.264 players (and X) expect.
+      ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2"]
+    );
+    const audioArgs = !streams.audio ? [] : audioOk ? ["-c:a", "copy"] : ["-c:a", "aac", "-b:a", "128k"];
+    await run(
+      tools.ffmpeg,
+      ["-v", "error", "-y", "-i", input, "-map", "0:v:0", "-map", "0:a:0?", ...videoArgs, ...audioArgs, "-movflags", "+faststart", output],
+      { maxBuffer: 16 * 1024 * 1024 }
+    );
+    return { bytes: new Uint8Array(await (0, import_promises2.readFile)(output)), mime: "video/mp4" };
+  } catch (e) {
+    return { bytes, mime };
+  } finally {
+    await (0, import_promises2.rm)(dir, { recursive: true, force: true }).catch(() => {
+    });
+  }
+}
+
 // vendor/kaitox/relay/storage.ts
 var BUNDLE_FILE = "bundle.json";
 var ASSETS_DIR = "assets";
 function sanitizeId(id) {
-  const s = (0, import_node_path2.basename)(String(id)).replace(/[^a-zA-Z0-9_-]/g, "");
+  const s = (0, import_node_path3.basename)(String(id)).replace(/[^a-zA-Z0-9_-]/g, "");
   if (!s) throw new Error("\u975E\u6CD5 id");
   return s;
 }
 function sanitizeFileName(name) {
-  const s = (0, import_node_path2.basename)(String(name));
+  const s = (0, import_node_path3.basename)(String(name));
   if (!s || s === "." || s === ".." || /[\\/]/.test(name)) throw new Error("\u975E\u6CD5\u6587\u4EF6\u540D");
   return s;
 }
 async function ensureDirs(kind) {
-  await (0, import_promises2.mkdir)(outboxDir(kind), { recursive: true });
-  await (0, import_promises2.mkdir)(sentDir(kind), { recursive: true });
+  await (0, import_promises3.mkdir)(outboxDir(kind), { recursive: true });
+  await (0, import_promises3.mkdir)(sentDir(kind), { recursive: true });
 }
 function draftDir(kind, id, sent = false) {
-  return (0, import_node_path2.join)(sent ? sentDir(kind) : outboxDir(kind), id);
+  return (0, import_node_path3.join)(sent ? sentDir(kind) : outboxDir(kind), id);
 }
 async function saveDraft(wire, kind) {
   var _a2;
   await ensureDirs(kind);
   const id = sanitizeId(wire.bundle.id);
   const dir = draftDir(kind, id);
-  await (0, import_promises2.mkdir)((0, import_node_path2.join)(dir, ASSETS_DIR), { recursive: true });
+  await (0, import_promises3.mkdir)((0, import_node_path3.join)(dir, ASSETS_DIR), { recursive: true });
   const written = /* @__PURE__ */ new Map();
   const assetsByName = new Map(wire.assets.map((a) => [sanitizeFileName(a.fileName), a]));
   for (const [fileName, a] of assetsByName) {
-    const fit = await fitImageBytes(base64ToBytes(a.base64), a.mime);
+    const raw = base64ToBytes(a.base64);
+    const fit = a.mime.startsWith("video/") ? await fitVideoBytes(raw, a.mime) : await fitImageBytes(raw, a.mime);
     written.set(fileName, { mime: fit.mime, bytesLen: fit.bytes.byteLength });
-    await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, ASSETS_DIR, fileName), fit.bytes);
+    await (0, import_promises3.writeFile)((0, import_node_path3.join)(dir, ASSETS_DIR, fileName), fit.bytes);
   }
   const bundle = {
     ...wire.bundle,
@@ -17930,12 +18002,12 @@ async function saveDraft(wire, kind) {
     }),
     status: "pending"
   };
-  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), JSON.stringify(bundle, null, 2), "utf8");
+  await (0, import_promises3.writeFile)((0, import_node_path3.join)(dir, BUNDLE_FILE), JSON.stringify(bundle, null, 2), "utf8");
   return id;
 }
 async function readBundleFrom(dir) {
   try {
-    const raw = await (0, import_promises2.readFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), "utf8");
+    const raw = await (0, import_promises3.readFile)((0, import_node_path3.join)(dir, BUNDLE_FILE), "utf8");
     return JSON.parse(raw);
   } catch (e) {
     return null;
@@ -17949,7 +18021,7 @@ async function listDrafts(kind) {
   for (const sent of [false, true]) {
     let ids;
     try {
-      ids = await (0, import_promises2.readdir)(sent ? sentDir(kind) : outboxDir(kind));
+      ids = await (0, import_promises3.readdir)(sent ? sentDir(kind) : outboxDir(kind));
     } catch (e) {
       continue;
     }
@@ -17983,9 +18055,9 @@ async function getAssetPath(id, fileName, kind) {
   const safe = sanitizeId(id);
   const safeName = sanitizeFileName(fileName);
   for (const sent of [false, true]) {
-    const p = (0, import_node_path2.join)(draftDir(kind, safe, sent), ASSETS_DIR, safeName);
+    const p = (0, import_node_path3.join)(draftDir(kind, safe, sent), ASSETS_DIR, safeName);
     try {
-      await (0, import_promises2.stat)(p);
+      await (0, import_promises3.stat)(p);
       return p;
     } catch (e) {
     }
@@ -18000,13 +18072,13 @@ async function setCover(id, cover, kind) {
   if (!b) return null;
   const fileName = `cover-${sanitizeFileName(cover.fileName)}`;
   const { bytes, mime } = await fitImageBytes(base64ToBytes(cover.base64), cover.mime);
-  await (0, import_promises2.mkdir)((0, import_node_path2.join)(dir, ASSETS_DIR), { recursive: true });
-  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, ASSETS_DIR, fileName), bytes);
+  await (0, import_promises3.mkdir)((0, import_node_path3.join)(dir, ASSETS_DIR), { recursive: true });
+  await (0, import_promises3.writeFile)((0, import_node_path3.join)(dir, ASSETS_DIR, fileName), bytes);
   let coverOriginal = b.coverOriginal;
   if (cover.original) {
     const origFileName = `cover-original-${sanitizeFileName(cover.original.fileName)}`;
     const fit = await fitImageBytes(base64ToBytes(cover.original.base64), cover.original.mime);
-    await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, ASSETS_DIR, origFileName), fit.bytes);
+    await (0, import_promises3.writeFile)((0, import_node_path3.join)(dir, ASSETS_DIR, origFileName), fit.bytes);
     coverOriginal = {
       key: "cover-original",
       src: origFileName,
@@ -18022,7 +18094,7 @@ async function setCover(id, cover, kind) {
   ]);
   for (const old of [(_b = b.cover) == null ? void 0 : _b.fileName, (_c = b.coverOriginal) == null ? void 0 : _c.fileName]) {
     if (old && !referenced.has(old)) {
-      await (0, import_promises2.rm)((0, import_node_path2.join)(dir, ASSETS_DIR, sanitizeFileName(old)), { force: true }).catch(() => {
+      await (0, import_promises3.rm)((0, import_node_path3.join)(dir, ASSETS_DIR, sanitizeFileName(old)), { force: true }).catch(() => {
       });
     }
   }
@@ -18031,7 +18103,7 @@ async function setCover(id, cover, kind) {
     cover: { key: "cover", src: fileName, fileName, mime, bytesLen: bytes.byteLength },
     coverOriginal
   };
-  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), JSON.stringify(updated, null, 2), "utf8");
+  await (0, import_promises3.writeFile)((0, import_node_path3.join)(dir, BUNDLE_FILE), JSON.stringify(updated, null, 2), "utf8");
   return updated;
 }
 async function patchDraft(id, patch, kind) {
@@ -18046,11 +18118,11 @@ async function patchDraft(id, patch, kind) {
     restId: (_a2 = patch.restId) != null ? _a2 : b.restId,
     error: (_b = patch.error) != null ? _b : b.error
   };
-  await (0, import_promises2.writeFile)((0, import_node_path2.join)(dir, BUNDLE_FILE), JSON.stringify(updated, null, 2), "utf8");
+  await (0, import_promises3.writeFile)((0, import_node_path3.join)(dir, BUNDLE_FILE), JSON.stringify(updated, null, 2), "utf8");
   if (patch.status === "done") {
     const dest = draftDir(kind, safe, true);
-    await (0, import_promises2.rm)(dest, { recursive: true, force: true });
-    await (0, import_promises2.rename)(dir, dest).catch(() => {
+    await (0, import_promises3.rm)(dest, { recursive: true, force: true });
+    await (0, import_promises3.rename)(dir, dest).catch(() => {
     });
   }
   return updated;
@@ -18061,8 +18133,8 @@ async function deleteDraft(id, kind) {
   for (const sent of [false, true]) {
     const dir = draftDir(kind, safe, sent);
     try {
-      await (0, import_promises2.stat)(dir);
-      await (0, import_promises2.rm)(dir, { recursive: true, force: true });
+      await (0, import_promises3.stat)(dir);
+      await (0, import_promises3.rm)(dir, { recursive: true, force: true });
       removed = true;
     } catch (e) {
     }
@@ -18083,7 +18155,7 @@ async function startRelay(port = relayPort()) {
     server.once("error", reject);
     server.listen(port, HOST, () => resolve());
   });
-  await (0, import_promises3.mkdir)(kaitoxHome(), { recursive: true }).catch(() => {
+  await (0, import_promises4.mkdir)(kaitoxHome(), { recursive: true }).catch(() => {
   });
   return {
     port,
@@ -18308,8 +18380,8 @@ async function handle(req, res, state) {
 }
 
 // src/x/embedded-relay.ts
-var import_promises4 = require("node:fs/promises");
-var import_node_child_process = require("node:child_process");
+var import_promises5 = require("node:fs/promises");
+var import_node_child_process2 = require("node:child_process");
 
 // src/x/xpush.ts
 var import_obsidian2 = require("obsidian");
@@ -19655,6 +19727,20 @@ var xn = k.parseInline;
 var Rn = T.parse;
 var Tn = R.lex;
 
+// vendor/kaitox/x-article/media.ts
+var DRAFT_CATEGORY_BY_KIND = {
+  image: "DraftTweetImage",
+  gif: "DraftTweetGif",
+  video: "DraftTweetVideo"
+};
+var MAX_X_GIF_BYTES = 15728640;
+function mediaKindFromMime(mime) {
+  const m = mime.trim().toLowerCase();
+  if (m === "image/gif") return "gif";
+  if (m.startsWith("video/")) return "video";
+  return "image";
+}
+
 // vendor/kaitox/x-article/contentState.ts
 function randomBlockKey() {
   const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -19668,9 +19754,11 @@ var ContentStateBuilder = class {
   /**
    * @param resolveMediaId  给一个图片 src，返回它上传到 X 后的 media_id。
    *                        返回 undefined 表示没上传成功——该图片会被跳过并记录。
+   * @param resolveKind     Media kind of an uploaded src; picks the entity's media_category.
    */
-  constructor(resolveMediaId) {
+  constructor(resolveMediaId, resolveKind) {
     this.resolveMediaId = resolveMediaId;
+    this.resolveKind = resolveKind;
     this.blocks = [];
     this.entityMap = [];
     this.nextEntityKey = 0;
@@ -19815,7 +19903,9 @@ var ContentStateBuilder = class {
       type: "MEDIA",
       mutability: "Immutable",
       data: {
-        media_items: [{ local_media_id: key, media_id: mediaId, media_category: "DraftTweetImage" }]
+        media_items: [
+          { local_media_id: key, media_id: mediaId, media_category: DRAFT_CATEGORY_BY_KIND[this.resolveKind(src)] }
+        ]
       }
     });
     this.pushAtomic(key);
@@ -19963,16 +20053,83 @@ function collectImageSources(markdown) {
   visit(tokens);
   return srcs;
 }
-function markdownToContentState(markdown, mediaIdBySrc = {}) {
+function markdownToContentState(markdown, mediaIdBySrc = {}, mediaKindBySrc = {}) {
   const lookup = mediaIdBySrc instanceof Map ? (src) => mediaIdBySrc.get(src) : (src) => mediaIdBySrc[src];
-  const builder = new ContentStateBuilder(lookup);
+  const kindOf = mediaKindBySrc instanceof Map ? (src) => {
+    var _a2;
+    return (_a2 = mediaKindBySrc.get(src)) != null ? _a2 : "image";
+  } : (src) => {
+    var _a2;
+    return (_a2 = mediaKindBySrc[src]) != null ? _a2 : "image";
+  };
+  const builder = new ContentStateBuilder(lookup, kindOf);
   const contentState = builder.build(markdown);
   return { contentState, skippedImages: builder.skippedImages, title: builder.derivedTitle };
 }
 
 // vendor/kaitox/x-article/xArticleClient.ts
 var APPEND_CHUNK_SIZE = 4 * 1024 * 1024;
+var DEFAULT_PROCESSING_TIMEOUT_MS = 60 * 6e4;
 var VALID_INLINE_STYLES = new Set(Object.keys(INLINE_STYLES));
+
+// vendor/kaitox/x-article/pushHelpers.ts
+function parseFrontmatter(md) {
+  const m = md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!m) return { fields: {}, body: md };
+  const fields = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const kv = line.match(/^([A-Za-z0-9_-]+)\s*:(.*)$/);
+    if (!kv) continue;
+    const value = kv[2].trim().replace(/^["']|["']$/g, "");
+    if (value) fields[kv[1]] = value;
+  }
+  return { fields, body: md.slice(m[0].length) };
+}
+function baseName(pathOrUrl) {
+  return pathOrUrl.split("?")[0].split("#")[0].split("/").pop() || "";
+}
+var MIME_BY_EXT = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  svg: "image/svg+xml",
+  // Video: X takes MP4 / MOV; the relay converts the rest to MP4 at ingest (needs ffmpeg).
+  mp4: "video/mp4",
+  m4v: "video/mp4",
+  mov: "video/quicktime",
+  webm: "video/webm",
+  mkv: "video/x-matroska",
+  avi: "video/x-msvideo",
+  wmv: "video/x-ms-wmv",
+  flv: "video/x-flv",
+  "3gp": "video/3gpp",
+  ogv: "video/ogg",
+  mpg: "video/mpeg",
+  mpeg: "video/mpeg"
+};
+function guessMimeFromName(name) {
+  const m = /\.([a-zA-Z0-9]+)$/.exec(baseName(name));
+  return m && MIME_BY_EXT[m[1].toLowerCase()] || "application/octet-stream";
+}
+function safeFileName(rawName, taken) {
+  let n = (rawName || "image").replace(/[^a-zA-Z0-9._-]/g, "_");
+  if (!/\.[a-zA-Z0-9]+$/.test(n)) n += ".bin";
+  let cand = n;
+  let i = 1;
+  while (taken.has(cand)) {
+    const dot = n.lastIndexOf(".");
+    cand = `${n.slice(0, dot)}-${i}${n.slice(dot)}`;
+    i++;
+  }
+  taken.add(cand);
+  return cand;
+}
+function makeCoverAsset(bytes, mime, rawName, taken) {
+  const fileName = safeFileName(`cover-${baseName(rawName) || "image"}`, taken);
+  return { key: "cover", src: "__cover__", fileName, mime, bytes };
+}
 
 // vendor/kaitox/x-article/publishArticle.ts
 function deriveTitle(markdown) {
@@ -19989,8 +20146,10 @@ function deriveTitle(markdown) {
 // vendor/kaitox/x-article/styleCheck.ts
 var DEFAULT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 var AUTO_COMPRESSED_MIMES = /* @__PURE__ */ new Set(["image/png", "image/jpeg", "image/webp"]);
+var X_VIDEO_MIMES = /* @__PURE__ */ new Set(["video/mp4", "video/quicktime"]);
+var VIDEO_TAG_RE = /<video\b[^>]*>/i;
 function checkMarkdownStyle(markdown, opts = {}) {
-  var _a2, _b, _c, _d, _e2;
+  var _a2, _b, _c, _d, _e2, _f, _g;
   const issues = [];
   const maxBytes = (_a2 = opts.maxImageBytes) != null ? _a2 : DEFAULT_MAX_IMAGE_BYTES;
   const tokens = k.lexer(markdown);
@@ -20008,6 +20167,7 @@ function checkMarkdownStyle(markdown, opts = {}) {
         });
         break;
       case "html":
+        if (VIDEO_TAG_RE.test((_b = t.raw) != null ? _b : "")) break;
         issues.push({
           rule: "html-block",
           severity: "warning",
@@ -20018,7 +20178,7 @@ function checkMarkdownStyle(markdown, opts = {}) {
         });
         break;
       case "code": {
-        const isMermaid = ((_b = t.lang) != null ? _b : "").trim().split(/\s+/)[0].toLowerCase() === "mermaid";
+        const isMermaid = ((_c = t.lang) != null ? _c : "").trim().split(/\s+/)[0].toLowerCase() === "mermaid";
         issues.push({
           rule: isMermaid ? "mermaid-block" : "code-block",
           severity: "info",
@@ -20028,7 +20188,7 @@ function checkMarkdownStyle(markdown, opts = {}) {
         break;
       }
       case "heading": {
-        const d = (_c = t.depth) != null ? _c : 2;
+        const d = (_d = t.depth) != null ? _d : 2;
         if (d === 1) {
           if (seenH1) {
             issues.push({
@@ -20075,7 +20235,7 @@ function checkMarkdownStyle(markdown, opts = {}) {
       default:
         break;
     }
-    offset += ((_d = t.raw) != null ? _d : "").length;
+    offset += ((_e2 = t.raw) != null ? _e2 : "").length;
   }
   const footnoteRe = /\[\^[^\]]+\]/g;
   let m;
@@ -20093,7 +20253,17 @@ function checkMarkdownStyle(markdown, opts = {}) {
       excerpt: m[0]
     });
   }
-  const assetMap = (_e2 = opts.assetMap) != null ? _e2 : {};
+  for (const tag of markdown.matchAll(new RegExp(VIDEO_TAG_RE.source, "gi"))) {
+    issues.push({
+      rule: "video-html",
+      severity: "warning",
+      message: "<video> \u6807\u7B7E\u4E0D\u4F1A\u88AB\u4E0A\u4F20\u6210\u89C6\u9891\uFF0C\u4F1A\u88AB\u4E22\u5F03\u6216\u539F\u6837\u663E\u793A\u6210\u6587\u672C\u3002",
+      suggestion: "\u6539\u7528\u56FE\u7247\u8BED\u6CD5\u5F15\u7528\u89C6\u9891\uFF1A![](clip.mp4)\u3002",
+      line: lineAt(markdown, (_f = tag.index) != null ? _f : 0),
+      excerpt: excerpt(tag[0])
+    });
+  }
+  const assetMap = (_g = opts.assetMap) != null ? _g : {};
   for (const src of collectImageSources(markdown)) {
     const meta = assetMap[src];
     const line = firstLineOfSubstring(markdown, src);
@@ -20129,6 +20299,33 @@ function checkMarkdownStyle(markdown, opts = {}) {
         line,
         excerpt: src
       });
+      continue;
+    }
+    const kind = (meta == null ? void 0 : meta.mime) !== void 0 ? mediaKindFromMime(meta.mime) : "image";
+    if (kind === "video") {
+      if ((meta == null ? void 0 : meta.mime) && !X_VIDEO_MIMES.has(meta.mime)) {
+        issues.push({
+          rule: "video-convert",
+          severity: "info",
+          message: `\u89C6\u9891 ${src}\uFF08${meta.mime}\uFF09X \u4E0D\u76F4\u63A5\u652F\u6301\uFF0C\u4E2D\u8F6C\u4F1A\u7528\u672C\u673A ffmpeg \u8F6C\u6210 MP4\uFF1B\u7535\u8111\u4E0A\u6CA1\u88C5 ffmpeg \u7684\u8BDD\u8FD9\u4E2A\u89C6\u9891\u4F1A\u88AB\u8DF3\u8FC7\u3002`,
+          suggestion: "\u5148\u628A\u89C6\u9891\u8F6C\u6210 MP4\uFF0C\u6216\u5B89\u88C5 ffmpeg\u3002",
+          line,
+          excerpt: src
+        });
+      }
+      continue;
+    }
+    if (kind === "gif") {
+      if (typeof (meta == null ? void 0 : meta.bytesLen) === "number" && meta.bytesLen > MAX_X_GIF_BYTES) {
+        issues.push({
+          rule: "image-too-large",
+          severity: "warning",
+          message: `GIF ${src} \u7EA6 ${(meta.bytesLen / 1024 / 1024).toFixed(1)}MB\uFF0C\u8D85\u8FC7 X \u7684 15MB GIF \u4E0A\u9650\uFF0C\u4E0A\u4F20\u4F1A\u88AB\u62D2\u3002`,
+          suggestion: "\u538B\u7F29 GIF\uFF0C\u6216\u8F6C\u6210 mp4 \u89C6\u9891\u3002",
+          line,
+          excerpt: src
+        });
+      }
       continue;
     }
     if (meta && typeof meta.bytesLen === "number" && meta.bytesLen > maxBytes && meta.mime !== void 0 && !AUTO_COMPRESSED_MIMES.has(meta.mime)) {
@@ -20191,52 +20388,6 @@ function excerpt(raw, max = 80) {
   if (!raw) return void 0;
   const one = raw.replace(/\s+/g, " ").trim();
   return one.length > max ? one.slice(0, max) + "\u2026" : one;
-}
-
-// vendor/kaitox/x-article/pushHelpers.ts
-function parseFrontmatter(md) {
-  const m = md.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
-  if (!m) return { fields: {}, body: md };
-  const fields = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const kv = line.match(/^([A-Za-z0-9_-]+)\s*:(.*)$/);
-    if (!kv) continue;
-    const value = kv[2].trim().replace(/^["']|["']$/g, "");
-    if (value) fields[kv[1]] = value;
-  }
-  return { fields, body: md.slice(m[0].length) };
-}
-function baseName(pathOrUrl) {
-  return pathOrUrl.split("?")[0].split("#")[0].split("/").pop() || "";
-}
-var MIME_BY_EXT = {
-  png: "image/png",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  gif: "image/gif",
-  webp: "image/webp",
-  svg: "image/svg+xml"
-};
-function guessMimeFromName(name) {
-  const m = /\.([a-zA-Z0-9]+)$/.exec(baseName(name));
-  return m && MIME_BY_EXT[m[1].toLowerCase()] || "application/octet-stream";
-}
-function safeFileName(rawName, taken) {
-  let n = (rawName || "image").replace(/[^a-zA-Z0-9._-]/g, "_");
-  if (!/\.[a-zA-Z0-9]+$/.test(n)) n += ".bin";
-  let cand = n;
-  let i = 1;
-  while (taken.has(cand)) {
-    const dot = n.lastIndexOf(".");
-    cand = `${n.slice(0, dot)}-${i}${n.slice(dot)}`;
-    i++;
-  }
-  taken.add(cand);
-  return cand;
-}
-function makeCoverAsset(bytes, mime, rawName, taken) {
-  const fileName = safeFileName(`cover-${baseName(rawName) || "image"}`, taken);
-  return { key: "cover", src: "__cover__", fileName, mime, bytes };
 }
 
 // vendor/kaitox/x-article/mermaid.ts
@@ -20385,7 +20536,7 @@ function renderSingleBlock(block2, entities, opts) {
   }
 }
 function renderAtomic(block2, entities, opts) {
-  var _a2, _b, _c;
+  var _a2, _b, _c, _d;
   const key = (_a2 = block2.entity_ranges[0]) == null ? void 0 : _a2.key;
   const entity = key === void 0 ? void 0 : entities.get(key);
   if (!entity) return "";
@@ -20405,6 +20556,9 @@ function renderAtomic(block2, entities, opts) {
       }
       if (resolved === void 0) {
         return `<figure class="xp-fig"><div class="xp-img-loading">\u56FE\u7247\u52A0\u8F7D\u4E2D\u2026</div></figure>`;
+      }
+      if ((_d = opts.isVideo) == null ? void 0 : _d.call(opts, src)) {
+        return `<figure class="xp-fig"><video class="xp-img" src="${escapeHtml(resolved)}" controls muted playsinline preload="metadata"></video></figure>`;
       }
       return `<figure class="xp-fig"><img class="xp-img" src="${escapeHtml(resolved)}" alt=""></figure>`;
     }
@@ -20540,6 +20694,30 @@ ${gifPlaceholder(name)}
   });
   return { text, gifs, videos };
 }
+function gifFrameCount(b) {
+  const ascii = (i2, n) => String.fromCharCode(...b.subarray(i2, i2 + n));
+  if (b.length < 13 || ascii(0, 3) !== "GIF") return -1;
+  const skipColorTable = (flags) => flags & 128 ? 3 * (1 << (flags & 7) + 1) : 0;
+  const skipSubBlocks = (i2) => {
+    while (i2 < b.length && b[i2] !== 0) i2 += b[i2] + 1;
+    return i2 + 1;
+  };
+  let i = 13 + skipColorTable(b[10]);
+  let frames = 0;
+  while (i < b.length) {
+    const block2 = b[i];
+    if (block2 === 59) return frames;
+    if (block2 === 33) {
+      i = skipSubBlocks(i + 2);
+      continue;
+    }
+    if (block2 !== 44 || i + 10 > b.length) return -1;
+    if (++frames > 1) return frames;
+    i += 10 + skipColorTable(b[i + 9]);
+    i = skipSubBlocks(i + 1);
+  }
+  return frames || -1;
+}
 
 // src/x/resolve.ts
 async function resolveActiveNote(app, file) {
@@ -20548,7 +20726,7 @@ async function resolveActiveNote(app, file) {
   const parsed = parseFrontmatter(raw);
   const { fields } = parsed;
   const media = markMedia(parsed.body);
-  const body = media.text;
+  const body = parsed.body;
   const fmTitle = fields.title;
   const fmCover = fields.cover;
   const assets = [];
@@ -20569,7 +20747,7 @@ async function resolveActiveNote(app, file) {
   let work = await replaceAsync(body, /!\[\[([^\]\n]+?)\]\]/g, async (whole, inner) => {
     const { link: link2, alias } = splitWiki(inner);
     const tfile = app.metadataCache.getFirstLinkpathDest(link2, file.path);
-    if (!tfile || !isImageExt(tfile.extension)) {
+    if (!tfile || !isMediaExt(tfile.extension)) {
       unresolved.push(inner);
       return whole;
     }
@@ -20661,6 +20839,9 @@ function splitWiki(inner) {
 function isImageExt(ext) {
   return /^(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(ext.replace(/^\./, ""));
 }
+function isMediaExt(ext) {
+  return isImageExt(ext) || /^(mp4|m4v|mov|webm|mkv|avi|wmv|flv|3gp|ogv|mpe?g)$/i.test(ext.replace(/^\./, ""));
+}
 function bytesToBlobUrl(bytes, mime) {
   return URL.createObjectURL(new Blob([bytes], { type: mime }));
 }
@@ -20718,10 +20899,10 @@ async function isRelayUp(s) {
 }
 async function prepareXDraft(app, file) {
   const resolved = await resolveActiveNote(app, file);
-  await staticGifs(resolved);
+  const manualGifs = await staticGifs(resolved);
   resolved.body = resolved.body.replace(/(```[\s\S]*?```)|==(?=\S)([^=\n]*?\S)==/g, (m, code, text) => code != null ? code : `**${text}**`);
   const report = checkMarkdownStyle(resolved.body, { assetMap: resolved.assetMap });
-  return { resolved, report };
+  return { resolved, report, manualGifs };
 }
 function coverFromDataUrl(dataUrl, taken) {
   const m = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
@@ -20757,10 +20938,13 @@ async function pushXDraft(app, s, file, prepared, opts) {
 }
 async function staticGifs(resolved) {
   const taken = new Set(resolved.assets.map((a) => a.fileName));
+  const manual = [];
   for (const a of resolved.assets) {
     const isGif = /^image\/gif$/i.test(a.mime) || /\.gif$/i.test(a.fileName);
+    const tooBigGif = isGif && a.bytes.byteLength > MAX_X_GIF_BYTES;
+    const stillGif = isGif && gifFrameCount(a.bytes) === 1;
     const unsupported = /^image\/(svg\+xml|bmp|avif)$/i.test(a.mime) || /\.(svg|bmp|avif)$/i.test(a.fileName);
-    if (!isGif && !unsupported) continue;
+    if (!tooBigGif && !stillGif && !unsupported) continue;
     try {
       const buf = a.bytes.buffer.slice(a.bytes.byteOffset, a.bytes.byteOffset + a.bytes.byteLength);
       const jpg = new Uint8Array(await convertToJpeg(buf, a.mime || "image/gif"));
@@ -20769,7 +20953,14 @@ async function staticGifs(resolved) {
       for (let i = 2; taken.has(name); i++) name = `${base}-${i}.jpg`;
       taken.add(name);
       const oldSrc = a.src;
-      resolved.body = resolved.body.split(`](${oldSrc})`).join(`](${name})`);
+      const shown = mediaName(a.fileName);
+      const after = tooBigGif ? `
+
+${gifPlaceholder(shown)}
+
+` : "";
+      resolved.body = resolved.body.split(`](${oldSrc})`).join(`](${name})${after}`);
+      if (tooBigGif) manual.push(shown);
       delete resolved.assetMap[oldSrc];
       resolved.assetMap[name] = { bytesLen: jpg.byteLength, mime: "image/jpeg", resolved: true };
       a.bytes = jpg;
@@ -20780,6 +20971,7 @@ async function staticGifs(resolved) {
       console.error("[SerenaPost] \u56FE\u7247\u8F6C JPG \u5931\u8D25", a.fileName, e);
     }
   }
+  return manual;
 }
 async function watchXDraft(s, id, opts = {}) {
   var _a2, _b, _c, _d;
@@ -20852,7 +21044,7 @@ var EmbeddedRelay = class {
     const port = this.portOf(s.relayBase);
     let filePid = 0;
     try {
-      filePid = parseInt((await (0, import_promises4.readFile)(pidPath(), "utf8")).trim(), 10) || 0;
+      filePid = parseInt((await (0, import_promises5.readFile)(pidPath(), "utf8")).trim(), 10) || 0;
     } catch (e) {
     }
     const portPids = (await pidsOnPort(port)).filter((p) => p !== process.pid);
@@ -20864,7 +21056,7 @@ var EmbeddedRelay = class {
       } catch (e) {
       }
     }
-    await (0, import_promises4.rm)(pidPath(), { force: true }).catch(() => {
+    await (0, import_promises5.rm)(pidPath(), { force: true }).catch(() => {
     });
     const deadline = Date.now() + 4e3;
     while (Date.now() < deadline && await isRelayUp(s)) await new Promise((r) => setTimeout(r, 150));
@@ -20888,7 +21080,7 @@ function pidsOnPort(port) {
     const win = process.platform === "win32";
     const cmd = win ? "netstat" : "lsof";
     const args = win ? ["-ano", "-p", "tcp"] : ["-ti", `tcp:${port}`, "-sTCP:LISTEN"];
-    (0, import_node_child_process.execFile)(cmd, args, (err, stdout) => {
+    (0, import_node_child_process2.execFile)(cmd, args, (err, stdout) => {
       if (err && !stdout) return resolve([]);
       const lines = String(stdout).split("\n");
       const pids = win ? lines.filter((l3) => l3.includes(`:${port} `) && /LISTENING/i.test(l3)).map((l3) => {
@@ -21013,10 +21205,12 @@ function renderXPreviewInto(container, resolved, report, title, coverDataUrl) {
   const urls = [];
   renderStyleReport(container, report, resolved.unresolved);
   const bySrc = {};
+  const videos = /* @__PURE__ */ new Set();
   for (const a of resolved.assets) {
     const u = bytesToBlobUrl(a.bytes, a.mime);
     urls.push(u);
     bySrc[a.src] = u;
+    if (mediaKindFromMime(a.mime) === "video") videos.add(a.src);
   }
   let coverUrl = coverDataUrl;
   if (!coverUrl && resolved.cover) {
@@ -21030,7 +21224,8 @@ function renderXPreviewInto(container, resolved, report, title, coverDataUrl) {
     resolveImage: (src) => {
       var _a2;
       return src.startsWith(MERMAID_SRC_PREFIX) ? null : (_a2 = bySrc[src]) != null ? _a2 : null;
-    }
+    },
+    isVideo: (src) => videos.has(src)
   });
   const frame = container.createDiv({ cls: "wechatpb-x-preview-frame" });
   const doc = new DOMParser().parseFromString(html, "text/html");
@@ -21292,21 +21487,20 @@ var DraftConfirmModal = class extends import_obsidian5.Modal {
     }
     const ms = this.scan;
     if (ms && (this.hasWechat || this.xInfo)) {
-      const both = this.hasWechat && !!this.xInfo;
-      const where = both ? "\u516C\u4F17\u53F7\u548C X \u90FD" : this.xInfo ? "X " : "\u516C\u4F17\u53F7";
       const list2 = (a) => `${a.slice(0, 3).join("\u3001")}${a.length > 3 ? " \u7B49" : ""}`;
+      const xPart = this.xInfo ? "X \u4F1A\u76F4\u63A5\u4E0A\u4F20\uFF0C" : "";
       if (ms.animated.length) {
         out.push({
           id: "img-gif",
-          level: "warn",
-          text: `${ms.animated.length} \u5F20\u52A8\u56FE\uFF08${list2(ms.animated)}\uFF09\uFF1A${where}\u4E0D\u80FD\u76F4\u63A5\u4E0A\u4F20\u52A8\u56FE${this.xInfo ? "\uFF08X \u6536\u5230\u52A8\u56FE\u4F1A\u6574\u7BC7\u8349\u7A3F\u5EFA\u4E0D\u6210\uFF09" : ""}\u3002\u63A8\u9001\u65F6\u4F1A\u81EA\u52A8\u53D8\u6210\u7B2C\u4E00\u5E27\u9759\u6001\u56FE\uFF0C\u5E76\u5728\u540E\u9762\u7559\u4E00\u884C\u300C\u3010\u8FD9\u91CC\u6362\u6210\u52A8\u56FE\uFF1A\u6587\u4EF6\u540D\u3011\u300D\uFF0C\u63A8\u5B8C\u5230\u7F16\u8F91\u5668\u91CC\u628A\u52A8\u56FE\u63D2\u56DE\u53BB\u3001\u5220\u6389\u8FD9\u884C`
+          level: this.hasWechat ? "warn" : "info",
+          text: this.hasWechat ? `${ms.animated.length} \u5F20\u52A8\u56FE\uFF08${list2(ms.animated)}\uFF09\uFF1A${xPart}\u516C\u4F17\u53F7\u4E0D\u80FD\u76F4\u63A5\u4E0A\u4F20\u52A8\u56FE\uFF0C\u63A8\u9001\u65F6\u4F1A\u53D8\u6210\u7B2C\u4E00\u5E27\u9759\u6001\u56FE\uFF0C\u5E76\u5728\u540E\u9762\u7559\u4E00\u884C\u300C\u3010\u8FD9\u91CC\u6362\u6210\u52A8\u56FE\uFF1A\u6587\u4EF6\u540D\u3011\u300D\uFF0C\u63A8\u5B8C\u5230\u516C\u4F17\u53F7\u7F16\u8F91\u5668\u91CC\u628A\u52A8\u56FE\u63D2\u56DE\u53BB\u3001\u5220\u6389\u8FD9\u884C` : `${ms.animated.length} \u5F20\u52A8\u56FE\uFF08${list2(ms.animated)}\uFF09\uFF1A\u4F1A\u6309\u52A8\u56FE\u76F4\u63A5\u4E0A\u4F20\u5230 X\uFF08\u5355\u5F20\u4E0D\u80FD\u8D85\u8FC7 15MB\uFF0C\u8D85\u8FC7\u7684\u4F1A\u53D8\u6210\u9759\u6001\u56FE\u5E76\u7559\u63D0\u793A\uFF09`
         });
       }
       if (ms.videos.length) {
         out.push({
           id: "video",
-          level: "warn",
-          text: `${ms.videos.length} \u4E2A\u89C6\u9891\uFF08${list2(ms.videos)}\uFF09\uFF1A${where}\u4E0D\u80FD\u81EA\u52A8\u4E0A\u4F20\u89C6\u9891\u3002\u63A8\u9001\u65F6\u4F1A\u6362\u6210\u4E00\u884C\u300C\u3010\u8FD9\u91CC\u63D2\u5165\u89C6\u9891\uFF1A\u6587\u4EF6\u540D\u3011\u300D\uFF0C\u63A8\u5B8C\u5230\u7F16\u8F91\u5668\u91CC\u63D2\u5165\u89C6\u9891\u3001\u5220\u6389\u8FD9\u884C`
+          level: this.hasWechat ? "warn" : "info",
+          text: this.hasWechat ? `${ms.videos.length} \u4E2A\u89C6\u9891\uFF08${list2(ms.videos)}\uFF09\uFF1A${xPart}\u516C\u4F17\u53F7\u4E0D\u80FD\u81EA\u52A8\u4E0A\u4F20\u89C6\u9891\uFF0C\u63A8\u9001\u65F6\u4F1A\u6362\u6210\u4E00\u884C\u300C\u3010\u8FD9\u91CC\u63D2\u5165\u89C6\u9891\uFF1A\u6587\u4EF6\u540D\u3011\u300D\uFF0C\u63A8\u5B8C\u5230\u516C\u4F17\u53F7\u7F16\u8F91\u5668\u91CC\u63D2\u5165\u89C6\u9891\u3001\u5220\u6389\u8FD9\u884C` : `${ms.videos.length} \u4E2A\u89C6\u9891\uFF08${list2(ms.videos)}\uFF09\uFF1A\u4F1A\u76F4\u63A5\u4E0A\u4F20\u5230 X\u3002X \u8981\u5148\u5904\u7406\u89C6\u9891\uFF0C\u8349\u7A3F\u53EF\u80FD\u8981\u51E0\u5206\u949F\u624D\u5EFA\u597D\uFF1BMP4 / MOV \u6700\u7A33\u59A5`
         });
       }
     }
@@ -24914,7 +25108,7 @@ var import_obsidian11 = require("obsidian");
 function xAlertMessage(r) {
   if (r.kind === "failed") return `X \u8349\u7A3F\u6CA1\u6709\u5EFA\u6210${r.error ? `\uFF1A${r.error}` : ""}`;
   if (r.kind === "no-id") return "X \u8349\u7A3F\u6CA1\u6709\u5EFA\u6210\uFF1AKaitox \u6269\u5C55\u63D0\u4EA4\u4E86\u8349\u7A3F\uFF0C\u4F46 X \u6CA1\u6709\u8FD4\u56DE\u8349\u7A3F\u7F16\u53F7\uFF08X \u62D2\u7EDD\u4E86\u8FD9\u7BC7\u8349\u7A3F\uFF09";
-  return "X \u4E00\u76F4\u6CA1\u6709\u786E\u8BA4\u8349\u7A3F\uFF1A3 \u5206\u949F\u5185\u6CA1\u6536\u5230 Kaitox \u6269\u5C55\u7684\u56DE\u62A5";
+  return "X \u4E00\u76F4\u6CA1\u6709\u786E\u8BA4\u8349\u7A3F\uFF1A\u7B49\u4E86\u5F88\u4E45\u90FD\u6CA1\u6536\u5230 Kaitox \u6269\u5C55\u7684\u56DE\u62A5";
 }
 function xAlertReasons(info) {
   const out = [];
@@ -24928,7 +25122,7 @@ function xAlertReasons(info) {
   if (info.gifs.length) media.push(`${info.gifs.length} \u5F20\u52A8\u56FE\uFF08${info.gifs.slice(0, 2).join("\u3001")}${info.gifs.length > 2 ? " \u7B49" : ""}\uFF09`);
   if (info.videos.length) media.push(`${info.videos.length} \u4E2A\u89C6\u9891\uFF08${info.videos.slice(0, 2).join("\u3001")}${info.videos.length > 2 ? " \u7B49" : ""}\uFF09`);
   if (media.length) {
-    out.push(`\u8FD9\u7BC7\u6709 ${media.join(" \u548C ")}\u3002X \u6587\u7AE0\u4E0D\u63A5\u53D7\u76F4\u63A5\u4E0A\u4F20\u52A8\u56FE\u548C\u89C6\u9891\uFF1ASerenaPost \u5DF2\u7ECF\u628A\u52A8\u56FE\u8F6C\u6210\u9759\u6001\u56FE\u3001\u89C6\u9891\u6362\u6210\u4E86\u63D0\u793A\u6587\u5B57\uFF0C\u5982\u679C\u8FD8\u662F\u5931\u8D25\uFF0C\u5148\u628A\u5B83\u4EEC\u4ECE\u7B14\u8BB0\u91CC\u5220\u6389\u518D\u63A8\u4E00\u6B21\u8BD5\u8BD5`);
+    out.push(`\u8FD9\u7BC7\u6709 ${media.join(" \u548C ")}\u3002\u4E0A\u4F20\u52A8\u56FE\u548C\u89C6\u9891\u8981 Chrome \u91CC\u7684 Kaitox \u6269\u5C55\u662F 0.6.3 \u6216\u66F4\u65B0\u7684\u7248\u672C\uFF1B\u89C6\u9891\u592A\u957F\u3001\u592A\u5927\uFF0C\u6216\u8005\u4F60\u7684 X \u8D26\u53F7\u4E0D\u652F\u6301\u8FD9\u4E48\u957F\u7684\u89C6\u9891\uFF0CX \u4E5F\u4F1A\u62D2\u6536\u3002\u53EF\u4EE5\u5148\u628A\u5B83\u4EEC\u4ECE\u7B14\u8BB0\u91CC\u5220\u6389\u518D\u63A8\u4E00\u6B21\uFF0C\u786E\u8BA4\u662F\u4E0D\u662F\u5B83\u4EEC\u7684\u95EE\u9898`);
   }
   out.push("X \u5076\u5C14\u4F1A\u4E34\u65F6\u62D2\u7EDD\uFF0C\u8FC7\u4E00\u4E24\u5206\u949F\u70B9\u300C\u91CD\u65B0\u63A8\u9001\u300D");
   out.push("Chrome \u91CC\u7684 Kaitox \u6269\u5C55\u4E0D\u662F\u6700\u65B0\u7248\uFF1A\u5230 Chrome \u6269\u5C55\u7BA1\u7406\u9875\u66F4\u65B0\u4E00\u4E0B");
@@ -26691,8 +26885,8 @@ var PublisherView = class extends import_obsidian15.ItemView {
   }
   /** 只重推失败的那一个目标 */
   async retryTarget(targetId) {
-    const run = this.lastRun;
-    if (!run) {
+    const run2 = this.lastRun;
+    if (!run2) {
       new import_obsidian15.Notice("\u627E\u4E0D\u5230\u4E0A\u6B21\u63A8\u9001\u7684\u5185\u5BB9\uFF0C\u8BF7\u91CD\u65B0\u70B9\u300C\u53D1\u5E03\u5230\u8349\u7A3F\u7BB1\u300D");
       return;
     }
@@ -26700,9 +26894,9 @@ var PublisherView = class extends import_obsidian15.ItemView {
     this.retrying.add(targetId);
     try {
       if (targetId === X_TARGET_ID) {
-        if (run.xPrepared) await this.publishToX(run.file, run.xPrepared, run.draft);
+        if (run2.xPrepared) await this.publishToX(run2.file, run2.xPrepared, run2.draft);
       } else {
-        await this.publishToAccount(targetId, run.draft, run.html);
+        await this.publishToAccount(targetId, run2.draft, run2.html);
       }
     } finally {
       this.retrying.delete(targetId);
@@ -26883,7 +27077,7 @@ var PublisherView = class extends import_obsidian15.ItemView {
     return content;
   }
   async handlePublish() {
-    var _a2, _b, _c, _d, _e2, _f;
+    var _a2, _b, _c, _d, _e2;
     const activeView = await findMarkdownView(this.app);
     if (!activeView) {
       new import_obsidian15.Notice("\u8BF7\u5148\u6253\u5F00\u4E00\u4E2A\u7B14\u8BB0");
@@ -26955,10 +27149,11 @@ var PublisherView = class extends import_obsidian15.ItemView {
     const title = draft.title;
     if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
     const media = markMedia(content);
-    if (this.selectedAccountIds.size) content = media.text;
+    const toWechat = this.selectedAccountIds.size > 0;
+    if (toWechat) content = media.text;
     this.lastMedia = {
-      gifs: [.../* @__PURE__ */ new Set([...media.gifs, ...(_d = xPrepared == null ? void 0 : xPrepared.resolved.gifs) != null ? _d : []])],
-      videos: [.../* @__PURE__ */ new Set([...media.videos, ...(_e2 = xPrepared == null ? void 0 : xPrepared.resolved.videos) != null ? _e2 : []])]
+      gifs: [.../* @__PURE__ */ new Set([...toWechat ? media.gifs : [], ...(_d = xPrepared == null ? void 0 : xPrepared.manualGifs) != null ? _d : []])],
+      videos: toWechat ? media.videos : []
     };
     content = await this.processImageLinks(content, activeView);
     this.isPublishing = true;
@@ -26973,7 +27168,7 @@ var PublisherView = class extends import_obsidian15.ItemView {
     if (xPrepared) this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "pending" });
     this.render();
     const xPromise = xPrepared ? this.publishToX(file, xPrepared, draft) : Promise.resolve(null);
-    const theme = (_f = this.themeManager.getTheme(this.selectedTheme)) != null ? _f : this.themeManager.getDefaultTheme();
+    const theme = (_e2 = this.themeManager.getTheme(this.selectedTheme)) != null ? _e2 : this.themeManager.getDefaultTheme();
     const setup = this.renderSetupFor(theme);
     const htmlContent = MarkedFormatter.markdownToHtmlSync(content, setup.css, setup.options);
     this.lastRun = { file, draft, html: htmlContent, xPrepared };
@@ -27102,7 +27297,7 @@ var PublisherView = class extends import_obsidian15.ItemView {
         coverDataUrl: draft.coverBase64 || void 0
       });
       const duration = Date.now() - start;
-      this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "success", duration, note: "\u5DF2\u4EA4\u7ED9 Chrome \u91CC\u7684 Kaitox \u6269\u5C55\uFF0C\u6B63\u5728\u7B49 X \u786E\u8BA4\u8349\u7A3F\u5EFA\u597D\u2026" });
+      this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: "success", duration, note: prepared.resolved.videos.length ? "\u5DF2\u4EA4\u7ED9 Chrome \u91CC\u7684 Kaitox \u6269\u5C55\uFF0C\u6B63\u5728\u7B49 X \u786E\u8BA4\u8349\u7A3F\u5EFA\u597D\u2026\uFF08\u6709\u89C6\u9891\uFF0CX \u8981\u5148\u5904\u7406\u89C6\u9891\uFF0C\u53EF\u80FD\u8981\u51E0\u5206\u949F\uFF09" : "\u5DF2\u4EA4\u7ED9 Chrome \u91CC\u7684 Kaitox \u6269\u5C55\uFF0C\u6B63\u5728\u7B49 X \u786E\u8BA4\u8349\u7A3F\u5EFA\u597D\u2026" });
       this.render();
       void this.watchX(id, file, prepared, draft, duration);
       return { success: true };
@@ -27117,7 +27312,8 @@ var PublisherView = class extends import_obsidian15.ItemView {
   /** 推 X 后盯着 Kaitox 扩展的回报：没建成就在侧栏标红并弹窗报警 */
   async watchX(id, file, prepared, draft, duration) {
     const token = ++this.xWatchToken;
-    const result = await watchXDraft(this.plugin.settings, id, { cancelled: () => token !== this.xWatchToken });
+    const timeoutMs = prepared.resolved.videos.length ? 15 * 6e4 : void 0;
+    const result = await watchXDraft(this.plugin.settings, id, { timeoutMs, cancelled: () => token !== this.xWatchToken });
     if (token !== this.xWatchToken) return;
     const cur = this.publishProgress.get(X_TARGET_ID);
     if (result.kind === "lost") {

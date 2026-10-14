@@ -17,7 +17,7 @@ export interface XAlertInfo {
 export function xAlertMessage(r: XAlertInfo['result']): string {
 	if (r.kind === 'failed') return `X 草稿没有建成${r.error ? `：${r.error}` : ''}`;
 	if (r.kind === 'no-id') return 'X 草稿没有建成：Kaitox 扩展提交了草稿，但 X 没有返回草稿编号（X 拒绝了这篇草稿）';
-	return 'X 一直没有确认草稿：3 分钟内没收到 Kaitox 扩展的回报';
+	return 'X 一直没有确认草稿：等了很久都没收到 Kaitox 扩展的回报';
 }
 
 /** 可能的原因，按可能性排 */
@@ -33,7 +33,7 @@ export function xAlertReasons(info: Pick<XAlertInfo, 'result' | 'gifs' | 'videos
 	if (info.gifs.length) media.push(`${info.gifs.length} 张动图（${info.gifs.slice(0, 2).join('、')}${info.gifs.length > 2 ? ' 等' : ''}）`);
 	if (info.videos.length) media.push(`${info.videos.length} 个视频（${info.videos.slice(0, 2).join('、')}${info.videos.length > 2 ? ' 等' : ''}）`);
 	if (media.length) {
-		out.push(`这篇有 ${media.join(' 和 ')}。X 文章不接受直接上传动图和视频：SerenaPost 已经把动图转成静态图、视频换成了提示文字，如果还是失败，先把它们从笔记里删掉再推一次试试`);
+		out.push(`这篇有 ${media.join(' 和 ')}。上传动图和视频要 Chrome 里的 Kaitox 扩展是 0.6.3 或更新的版本；视频太长、太大，或者你的 X 账号不支持这么长的视频，X 也会拒收。可以先把它们从笔记里删掉再推一次，确认是不是它们的问题`);
 	}
 	out.push('X 偶尔会临时拒绝，过一两分钟点「重新推送」');
 	out.push('Chrome 里的 Kaitox 扩展不是最新版：到 Chrome 扩展管理页更新一下');

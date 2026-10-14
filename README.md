@@ -122,6 +122,16 @@ sp_heading_style: box    # 这篇用的章节样式（推送后自动记录）
 </details>
 
 <details>
+<summary><b>X 草稿里少了动图 / 视频</b></summary>
+
+SerenaPost 1.1.5 起，X 文章会直接上传 GIF 动图和视频，需要 Chrome 里的 Kaitox 扩展是 0.6.3 或更新的版本（在 Chrome 扩展管理页更新）。
+- 单张 GIF 不能超过 15MB，超过的会变成第一帧静态图，并留一行「【这里换成动图】」提示。
+- 只有 1 帧的 GIF 其实是静态图，会自动当普通图片上传。
+- 视频用 MP4 / MOV 最稳妥；其他格式（WebM 等）需要电脑上装了 ffmpeg 才能自动转换。视频要等 X 处理，草稿可能几分钟后才建好。
+- 视频太长、太大，或者你的 X 账号不支持这么长的视频，X 会拒收，这个视频会被跳过。
+</details>
+
+<details>
 <summary><b>每次启动都弹「本地 relay 未运行」</b></summary>
 
 这是旧的 Kaitox Obsidian 插件发出的提示。SerenaPost 已经内置了它的功能，侧栏顶部会提示「可以关掉旧 Kaitox 插件」，点「一键关闭」就好（Chrome 里的 Kaitox 扩展要保留）。

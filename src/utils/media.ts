@@ -1,6 +1,7 @@
 /**
- * 动图和视频：公众号接口只收静态图，X 文章收到动图会整篇建不成，两个平台都不能自动上传视频。
- * 推送前在正文里给它们留一行醒目的提示，推完到编辑器里手动补上。
+ * 动图和视频：公众号接口只收静态图，也不能自动上传视频。
+ * 推公众号前在正文里给它们留一行醒目的提示，推完到编辑器里手动补上。
+ * （X 由 Kaitox 扩展直接上传动图和视频，这里只用来统计有哪些；超过 15MB 的动图见 xpush.ts 的 staticGifs。）
  */
 
 export const VIDEO_EXT = /\.(mp4|mov|m4v|webm|avi|mkv)$/i;
@@ -46,4 +47,30 @@ export function markMedia(markdown: string): MediaMarks {
 		return whole;
 	});
 	return { text, gifs, videos };
+}
+
+/**
+ * 数 GIF 有几帧（只数到 2 就停）。解析不了返回 -1（当作动图处理，不改原样）。
+ * 只有 1 帧的 GIF 其实是静态图：按动图（tweet_gif）传给 X 会被拒、被扩展悄悄跳过（2026-10-14 实测）。
+ */
+export function gifFrameCount(b: Uint8Array): number {
+	const ascii = (i: number, n: number) => String.fromCharCode(...b.subarray(i, i + n));
+	if (b.length < 13 || ascii(0, 3) !== 'GIF') return -1;
+	const skipColorTable = (flags: number) => (flags & 0x80 ? 3 * (1 << ((flags & 0x07) + 1)) : 0);
+	const skipSubBlocks = (i: number) => {
+		while (i < b.length && b[i] !== 0) i += b[i] + 1;
+		return i + 1;
+	};
+	let i = 13 + skipColorTable(b[10]);
+	let frames = 0;
+	while (i < b.length) {
+		const block = b[i];
+		if (block === 0x3b) return frames; // 结尾
+		if (block === 0x21) { i = skipSubBlocks(i + 2); continue; } // 扩展块
+		if (block !== 0x2c || i + 10 > b.length) return -1;
+		if (++frames > 1) return frames;
+		i += 10 + skipColorTable(b[i + 9]);
+		i = skipSubBlocks(i + 1); // 跳过 LZW 最小码长 + 图像数据
+	}
+	return frames || -1; // 文件被截断：数到了就算
 }

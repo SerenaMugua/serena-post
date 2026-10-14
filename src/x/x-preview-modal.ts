@@ -3,7 +3,7 @@
  * 渲染逻辑来自 Kaitox（MIT）。Mermaid 图在这里只显示占位，推送时由 Kaitox 扩展转换。
  */
 import { App, Modal, setIcon } from 'obsidian';
-import { renderPreviewHtml, extractMermaidBlocks, MERMAID_SRC_PREFIX } from '../../vendor/kaitox/x-article/index';
+import { renderPreviewHtml, extractMermaidBlocks, mediaKindFromMime, MERMAID_SRC_PREFIX } from '../../vendor/kaitox/x-article/index';
 import type { StyleReport } from '../../vendor/kaitox/relay-protocol/index';
 import { bytesToBlobUrl, type Resolved } from './resolve';
 
@@ -52,10 +52,12 @@ export function renderXPreviewInto(
 	const urls: string[] = [];
 	renderStyleReport(container, report, resolved.unresolved);
 	const bySrc: Record<string, string> = {};
+	const videos = new Set<string>();
 	for (const a of resolved.assets) {
 		const u = bytesToBlobUrl(a.bytes, a.mime);
 		urls.push(u);
 		bySrc[a.src] = u;
+		if (mediaKindFromMime(a.mime) === 'video') videos.add(a.src);
 	}
 	let coverUrl: string | undefined = coverDataUrl;
 	if (!coverUrl && resolved.cover) {
@@ -66,7 +68,8 @@ export function renderXPreviewInto(
 	const html = renderPreviewHtml(markdown, {
 		title,
 		coverUrl,
-		resolveImage: src => (src.startsWith(MERMAID_SRC_PREFIX) ? null : bySrc[src] ?? null)
+		resolveImage: src => (src.startsWith(MERMAID_SRC_PREFIX) ? null : bySrc[src] ?? null),
+		isVideo: src => videos.has(src)
 	});
 	const frame = container.createDiv({ cls: 'wechatpb-x-preview-frame' });
 	// renderPreviewHtml 的文本与属性已全部转义；用 DOMParser 解析以保留 blob: 图片地址（同 Kaitox 做法）

@@ -8,13 +8,13 @@ import { GIF_EXT, VIDEO_EXT, mediaName } from '../utils/media';
 export interface ImageScan {
 	/** 超过 1MB 的本地图片（发布时会自动压缩） */
 	large: { name: string; kb: number }[];
-	/** GIF 动图（公众号接口只收 JPG/PNG，会变成静态图） */
+	/** GIF 动图（公众号接口只收 JPG/PNG，会变成静态图；X 直接上传） */
 	animated: string[];
 	/** 网络图片（发布时自动下载再上传） */
 	remote: string[];
 	/** 笔记里引用了但库里找不到的图片 */
 	missing: string[];
-	/** 视频（两个平台都不能自动上传） */
+	/** 视频（公众号不能自动上传；X 直接上传） */
 	videos: string[];
 }
 

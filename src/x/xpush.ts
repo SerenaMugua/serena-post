@@ -7,9 +7,10 @@
 import { App, TFile, requestUrl } from 'obsidian';
 import { HttpRelayClient, DEFAULT_RELAY_BASE } from '../../vendor/kaitox/relay-protocol/index';
 import type { DraftAssetInput, StyleReport } from '../../vendor/kaitox/relay-protocol/index';
-import { checkMarkdownStyle, makeCoverAsset } from '../../vendor/kaitox/x-article/index';
+import { checkMarkdownStyle, makeCoverAsset, MAX_X_GIF_BYTES } from '../../vendor/kaitox/x-article/index';
 import { resolveActiveNote, type Resolved } from './resolve';
 import { convertToJpeg } from '../utils/image';
+import { gifFrameCount, gifPlaceholder, mediaName } from '../utils/media';
 import type { DraftBundle } from '../../vendor/kaitox/relay-protocol/index';
 
 export { DEFAULT_RELAY_BASE };
@@ -73,16 +74,18 @@ export async function isRelayUp(s: XSettings): Promise<boolean> {
 export interface XPrepared {
 	resolved: Resolved;
 	report: StyleReport;
+	/** 超过 X 15MB 上限、只能推第一帧的动图（推完要到 X 里手动换） */
+	manualGifs: string[];
 }
 
 /** 解析笔记并做 X 样式检查（推送和预览共用）。 */
 export async function prepareXDraft(app: App, file: TFile): Promise<XPrepared> {
 	const resolved = await resolveActiveNote(app, file);
-	await staticGifs(resolved);
+	const manualGifs = await staticGifs(resolved);
 	// Obsidian 高亮 ==文字== 在 X 文章里没有对应格式，改成加粗（代码块里的不动）
 	resolved.body = resolved.body.replace(/(```[\s\S]*?```)|==(?=\S)([^=\n]*?\S)==/g, (m, code, text) => code ?? `**${text}**`);
 	const report = checkMarkdownStyle(resolved.body, { assetMap: resolved.assetMap });
-	return { resolved, report };
+	return { resolved, report, manualGifs };
 }
 
 /** data URL → X 封面资产（与公众号共用同一张封面）。 */
@@ -128,15 +131,20 @@ export async function pushXDraft(
 }
 
 /**
- * X 文章只收 JPG / PNG / WebP 静态图：收到 GIF 动图会整篇草稿建不成（Kaitox 扩展把它当静态图上传）。
- * 推送前把 GIF（第一帧）、SVG、BMP、AVIF 转成 JPG；GIF 原位置已有「【这里换成动图】」提示，推完到 X 编辑器里换回动图。
+ * X 文章的图片只收 JPG / PNG / WebP；GIF 动图和视频由 Kaitox 扩展（0.6.3 起）按 GIF / 视频分类上传。
+ * 推送前把 SVG、BMP、AVIF 和只有 1 帧的 GIF（其实是静态图，按动图传 X 会被拒）转成 JPG；
+ * 超过 X 15MB 上限的 GIF 只能转成第一帧 JPG，
+ * 后面留一行「【这里换成动图】」，推完到 X 编辑器里换回动图。返回这些超大动图的文件名。
  */
-export async function staticGifs(resolved: Resolved): Promise<void> {
+export async function staticGifs(resolved: Resolved): Promise<string[]> {
 	const taken = new Set(resolved.assets.map(a => a.fileName));
+	const manual: string[] = [];
 	for (const a of resolved.assets) {
 		const isGif = /^image\/gif$/i.test(a.mime) || /\.gif$/i.test(a.fileName);
+		const tooBigGif = isGif && a.bytes.byteLength > MAX_X_GIF_BYTES;
+		const stillGif = isGif && gifFrameCount(a.bytes) === 1;
 		const unsupported = /^image\/(svg\+xml|bmp|avif)$/i.test(a.mime) || /\.(svg|bmp|avif)$/i.test(a.fileName);
-		if (!isGif && !unsupported) continue;
+		if (!tooBigGif && !stillGif && !unsupported) continue;
 		try {
 			const buf = a.bytes.buffer.slice(a.bytes.byteOffset, a.bytes.byteOffset + a.bytes.byteLength) as ArrayBuffer;
 			const jpg = new Uint8Array(await convertToJpeg(buf, a.mime || 'image/gif'));
@@ -145,7 +153,11 @@ export async function staticGifs(resolved: Resolved): Promise<void> {
 			for (let i = 2; taken.has(name); i++) name = `${base}-${i}.jpg`;
 			taken.add(name);
 			const oldSrc = a.src;
-			resolved.body = resolved.body.split(`](${oldSrc})`).join(`](${name})`);
+			const shown = mediaName(a.fileName);
+			// 超大动图：图片后面另起一行提示（引用可能在一行中间，所以前后都空行）
+			const after = tooBigGif ? `\n\n${gifPlaceholder(shown)}\n\n` : '';
+			resolved.body = resolved.body.split(`](${oldSrc})`).join(`](${name})${after}`);
+			if (tooBigGif) manual.push(shown);
 			delete resolved.assetMap[oldSrc];
 			resolved.assetMap[name] = { bytesLen: jpg.byteLength, mime: 'image/jpeg', resolved: true };
 			a.bytes = jpg;
@@ -156,6 +168,7 @@ export async function staticGifs(resolved: Resolved): Promise<void> {
 			console.error('[SerenaPost] 图片转 JPG 失败', a.fileName, e);
 		}
 	}
+	return manual;
 }
 
 export type XWatchResult =

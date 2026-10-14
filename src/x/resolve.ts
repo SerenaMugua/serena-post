@@ -29,9 +29,9 @@ export interface Resolved {
   unresolved: string[];
   /** frontmatter cover: 解析出的封面（可选，不进正文）。 */
   cover?: DraftAssetInput;
-  /** 正文里的 GIF 动图（文件名），推送时转成静态图并留提示 */
+  /** 正文里的 GIF 动图（文件名）：Kaitox 扩展按 GIF 上传到 X */
   gifs: string[];
-  /** 正文里的视频（文件名），已换成提示文字 */
+  /** 正文里的视频（文件名）：Kaitox 扩展按视频上传到 X */
   videos: string[];
 }
 
@@ -40,9 +40,9 @@ export async function resolveActiveNote(app: App, file: TFile): Promise<Resolved
   const raw = await app.vault.cachedRead(file);
   const parsed = parseFrontmatter(raw);
   const { fields } = parsed;
-  // 动图后面留「【这里换成动图】」，视频换成「【这里插入视频】」（X 不收动图和视频）
+  // X 能直接收动图和视频（Kaitox 0.6.2 起按 GIF / 视频分类上传），正文不改，只记下有哪些
   const media = markMedia(parsed.body);
-  const body = media.text;
+  const body = parsed.body;
   const fmTitle = fields.title;
   const fmCover = fields.cover;
 
@@ -67,7 +67,7 @@ export async function resolveActiveNote(app: App, file: TFile): Promise<Resolved
   let work = await replaceAsync(body, /!\[\[([^\]\n]+?)\]\]/g, async (whole, inner) => {
     const { link, alias } = splitWiki(inner);
     const tfile = app.metadataCache.getFirstLinkpathDest(link, file.path);
-    if (!tfile || !isImageExt(tfile.extension)) {
+    if (!tfile || !isMediaExt(tfile.extension)) {
       unresolved.push(inner);
       return whole;
     }
@@ -181,6 +181,11 @@ export function splitWiki(inner: string): { link: string; alias?: string } {
 
 export function isImageExt(ext: string): boolean {
   return /^(png|jpe?g|gif|webp|svg|bmp|avif)$/i.test(ext.replace(/^\./, ''));
+}
+
+/** 正文嵌入还可以是视频（X 收 MP4 / MOV，其他格式中转会用 ffmpeg 转）；封面只能是图片。 */
+export function isMediaExt(ext: string): boolean {
+  return isImageExt(ext) || /^(mp4|m4v|mov|webm|mkv|avi|wmv|flv|3gp|ogv|mpe?g)$/i.test(ext.replace(/^\./, ''));
 }
 
 /** 字节 → 可显示的 blob URL。（cast 规避 TS lib 对 Uint8Array<ArrayBufferLike> 的名义收紧。） */

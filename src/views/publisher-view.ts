@@ -1355,12 +1355,14 @@ export class PublisherView extends ItemView {
 
 		if (this.plugin.settings.excludeFrontmatter) content = this.removeFrontmatter(content);
 
-		// 动图后面留「【这里换成动图】」，视频换成「【这里插入视频】」（公众号接口只收静态图，也不能传视频）
+		// 公众号：动图后面留「【这里换成动图】」，视频换成「【这里插入视频】」（接口只收静态图，也不能传视频）
+		// X：动图和视频直接上传，只有超过 15MB 的动图要手动换
 		const media = markMedia(content);
-		if (this.selectedAccountIds.size) content = media.text;
+		const toWechat = this.selectedAccountIds.size > 0;
+		if (toWechat) content = media.text;
 		this.lastMedia = {
-			gifs: [...new Set([...media.gifs, ...(xPrepared?.resolved.gifs ?? [])])],
-			videos: [...new Set([...media.videos, ...(xPrepared?.resolved.videos ?? [])])],
+			gifs: [...new Set([...(toWechat ? media.gifs : []), ...(xPrepared?.manualGifs ?? [])])],
+			videos: toWechat ? media.videos : [],
 		};
 
 		// Process Obsidian image links to base64
@@ -1551,7 +1553,9 @@ export class PublisherView extends ItemView {
 				coverDataUrl: draft.coverBase64 || undefined
 			});
 			const duration = Date.now() - start;
-			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'success', duration, note: '已交给 Chrome 里的 Kaitox 扩展，正在等 X 确认草稿建好…' });
+			this.publishProgress.set(X_TARGET_ID, { accountId: X_TARGET_ID, status: 'success', duration, note: prepared.resolved.videos.length
+				? '已交给 Chrome 里的 Kaitox 扩展，正在等 X 确认草稿建好…（有视频，X 要先处理视频，可能要几分钟）'
+				: '已交给 Chrome 里的 Kaitox 扩展，正在等 X 确认草稿建好…' });
 			this.render();
 			void this.watchX(id, file, prepared, draft, duration);
 			return { success: true };
@@ -1567,7 +1571,9 @@ export class PublisherView extends ItemView {
 	/** 推 X 后盯着 Kaitox 扩展的回报：没建成就在侧栏标红并弹窗报警 */
 	private async watchX(id: string, file: TFile, prepared: XPrepared, draft: DraftMeta, duration: number) {
 		const token = ++this.xWatchToken;
-		const result = await watchXDraft(this.plugin.settings, id, { cancelled: () => token !== this.xWatchToken });
+		// 带视频时 X 要先转码，扩展回报会晚很多，多等一会儿再报警
+		const timeoutMs = prepared.resolved.videos.length ? 15 * 60000 : undefined;
+		const result = await watchXDraft(this.plugin.settings, id, { timeoutMs, cancelled: () => token !== this.xWatchToken });
 		if (token !== this.xWatchToken) return;
 		const cur = this.publishProgress.get(X_TARGET_ID);
 		if (result.kind === 'lost') {

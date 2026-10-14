@@ -9,6 +9,7 @@ import { base64ToBytes } from '../relay-protocol/index';
 import type { DraftBundle, DraftListItem, DraftStatus, PostDraftWireBody } from '../relay-protocol/index';
 import { outboxDir, sentDir } from './config';
 import { fitImageBytes } from './imageFit';
+import { fitVideoBytes } from './videoFit';
 
 const BUNDLE_FILE = 'bundle.json';
 const ASSETS_DIR = 'assets';
@@ -44,8 +45,10 @@ export async function saveDraft(wire: PostDraftWireBody, kind: string): Promise<
   // 写资源字节（base64 → 二进制）；超过 X 上限的图片入库前静默压到限内。
   const written = new Map<string, { mime: string; bytesLen: number }>();
   const assetsByName = new Map(wire.assets.map((a) => [sanitizeFileName(a.fileName), a]));
+  // X 不收的视频格式（WebM、MKV…）用本机 ffmpeg 转成 H.264/AAC MP4（videoFit.ts）。
   for (const [fileName, a] of assetsByName) {
-    const fit = await fitImageBytes(base64ToBytes(a.base64), a.mime);
+    const raw = base64ToBytes(a.base64);
+    const fit = a.mime.startsWith('video/') ? await fitVideoBytes(raw, a.mime) : await fitImageBytes(raw, a.mime);
     written.set(fileName, { mime: fit.mime, bytesLen: fit.bytes.byteLength });
     await writeFile(join(dir, ASSETS_DIR, fileName), fit.bytes);
   }
