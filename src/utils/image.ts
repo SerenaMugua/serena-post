@@ -97,8 +97,62 @@ export async function convertToJpeg(data: ArrayBuffer, mimeType: string, maxSide
 	}
 }
 
-/** 公众号正文图片只收 JPG / PNG、1MB 以内：先压缩，其他格式（WebP、GIF、SVG）转成 JPG */
+export function isSvg(mimeType: string, fileName = ''): boolean {
+	return /^image\/svg\+xml$/i.test(mimeType) || /\.svg$/i.test(fileName);
+}
+
+/** SVG 的设计尺寸：优先 viewBox，其次绝对单位的 width / height；都没有返回 null */
+function svgSize(root: Element): { w: number; h: number } | null {
+	const vb = (root.getAttribute('viewBox') ?? '').trim().split(/[\s,]+/).map(Number);
+	if (vb.length === 4 && vb[2] > 0 && vb[3] > 0) return { w: vb[2], h: vb[3] };
+	const len = (v: string | null) => (v && /^\s*[\d.]+\s*(px)?\s*$/i.test(v) ? parseFloat(v) : 0);
+	const w = len(root.getAttribute('width'));
+	const h = len(root.getAttribute('height'));
+	return w > 0 && h > 0 ? { w, h } : null;
+}
+
+/**
+ * SVG 转高清 PNG（白底）。直接 new Image() 画 SVG 时，没写 width/height（或写成 100%）的 SVG
+ * 会被浏览器当成 300×150，转出来的图又小又糊；这里先按 viewBox 把尺寸钉死，
+ * 再放大到宽至少 minWidth（长边不超过 maxSide）后画，文字图用 PNG 不会有 JPG 的噪点。
+ */
+export async function svgToPng(data: ArrayBuffer, minWidth = 2400, maxSide = 4096): Promise<ArrayBuffer> {
+	const doc = new DOMParser().parseFromString(new TextDecoder().decode(data), 'image/svg+xml');
+	if (doc.querySelector('parsererror')) throw new Error('SVG 不是合法 XML');
+	const root = doc.documentElement;
+	const size = svgSize(root) ?? { w: 800, h: 600 };
+	root.setAttribute('width', String(size.w));
+	root.setAttribute('height', String(size.h));
+	const scale = Math.min(Math.max(1, minWidth / size.w), maxSide / Math.max(size.w, size.h));
+	const xml = new XMLSerializer().serializeToString(root);
+	const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml' }));
+	try {
+		const img = new Image();
+		await new Promise<void>((resolve, reject) => {
+			img.onload = () => resolve();
+			img.onerror = () => reject(new Error('无法读取 SVG'));
+			img.src = url;
+		});
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.max(1, Math.round(size.w * scale));
+		canvas.height = Math.max(1, Math.round(size.h * scale));
+		const ctx = canvas.getContext('2d');
+		if (!ctx) throw new Error('无法创建画布');
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+		return await (await canvasToBlob(canvas, 'image/png', 1)).arrayBuffer();
+	} finally {
+		URL.revokeObjectURL(url);
+	}
+}
+
+/** 公众号正文图片只收 JPG / PNG、1MB 以内：先压缩，其他格式（WebP、GIF）转成 JPG，SVG 先转高清 PNG */
 export async function toUploadable(data: ArrayBuffer, mimeType: string): Promise<CompressedImage> {
+	if (isSvg(mimeType)) {
+		data = await svgToPng(data, 2048, 2048);
+		mimeType = 'image/png';
+	}
 	let out = await compressImage(data, mimeType, 900);
 	if (!/^image\/(jpeg|png)$/i.test(out.mimeType)) {
 		out = await compressImage(await convertToJpeg(out.data, out.mimeType), 'image/jpeg', 900);

@@ -9,7 +9,7 @@ import { HttpRelayClient, DEFAULT_RELAY_BASE } from '../../vendor/kaitox/relay-p
 import type { DraftAssetInput, StyleReport } from '../../vendor/kaitox/relay-protocol/index';
 import { checkMarkdownStyle, makeCoverAsset, MAX_X_GIF_BYTES } from '../../vendor/kaitox/x-article/index';
 import { resolveActiveNote, type Resolved } from './resolve';
-import { convertToJpeg } from '../utils/image';
+import { convertToJpeg, isSvg, svgToPng } from '../utils/image';
 import { gifFrameCount, gifPlaceholder, mediaName } from '../utils/media';
 import type { DraftBundle } from '../../vendor/kaitox/relay-protocol/index';
 
@@ -132,7 +132,8 @@ export async function pushXDraft(
 
 /**
  * X 文章的图片只收 JPG / PNG / WebP；GIF 动图和视频由 Kaitox 扩展（0.6.3 起）按 GIF / 视频分类上传。
- * 推送前把 SVG、BMP、AVIF 和只有 1 帧的 GIF（其实是静态图，按动图传 X 会被拒）转成 JPG；
+ * 推送前把 SVG 转成高清 PNG（按原尺寸直接转会变成 300×150 的小图，传上去糊得没法看），
+ * BMP、AVIF 和只有 1 帧的 GIF（其实是静态图，按动图传 X 会被拒）转成 JPG；
  * 超过 X 15MB 上限的 GIF 只能转成第一帧 JPG，
  * 后面留一行「【这里换成动图】」，推完到 X 编辑器里换回动图。返回这些超大动图的文件名。
  */
@@ -147,10 +148,13 @@ export async function staticGifs(resolved: Resolved): Promise<string[]> {
 		if (!tooBigGif && !stillGif && !unsupported) continue;
 		try {
 			const buf = a.bytes.buffer.slice(a.bytes.byteOffset, a.bytes.byteOffset + a.bytes.byteLength) as ArrayBuffer;
-			const jpg = new Uint8Array(await convertToJpeg(buf, a.mime || 'image/gif'));
+			const svg = isSvg(a.mime, a.fileName);
+			const out = new Uint8Array(svg ? await svgToPng(buf) : await convertToJpeg(buf, a.mime || 'image/gif'));
+			const ext = svg ? 'png' : 'jpg';
+			const mime = svg ? 'image/png' : 'image/jpeg';
 			const base = a.fileName.replace(/\.[^.]+$/, '');
-			let name = `${base}.jpg`;
-			for (let i = 2; taken.has(name); i++) name = `${base}-${i}.jpg`;
+			let name = `${base}.${ext}`;
+			for (let i = 2; taken.has(name); i++) name = `${base}-${i}.${ext}`;
 			taken.add(name);
 			const oldSrc = a.src;
 			const shown = mediaName(a.fileName);
@@ -159,13 +163,13 @@ export async function staticGifs(resolved: Resolved): Promise<string[]> {
 			resolved.body = resolved.body.split(`](${oldSrc})`).join(`](${name})${after}`);
 			if (tooBigGif) manual.push(shown);
 			delete resolved.assetMap[oldSrc];
-			resolved.assetMap[name] = { bytesLen: jpg.byteLength, mime: 'image/jpeg', resolved: true };
-			a.bytes = jpg;
-			a.mime = 'image/jpeg';
+			resolved.assetMap[name] = { bytesLen: out.byteLength, mime, resolved: true };
+			a.bytes = out;
+			a.mime = mime;
 			a.fileName = name;
 			a.src = name;
 		} catch (e) {
-			console.error('[SerenaPost] 图片转 JPG 失败', a.fileName, e);
+			console.error('[SerenaPost] 图片转换失败', a.fileName, e);
 		}
 	}
 	return manual;
